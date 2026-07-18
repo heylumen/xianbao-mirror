@@ -1,0 +1,435 @@
+ body {
+     background-color: #f2f2f4;
+ }
+ .tip-off {
+     min-height: 700px;
+     padding-bottom: 50px;
+ }
+ .tip-main {
+     width: 1230px;
+     margin: 0 auto;
+     position: relative;
+     min-height: 580px;
+     margin-top: 40px;
+ }
+ .tip-nav {
+     height: 50px;
+     font-size: 15px;
+     /*width: 1280px;*/
+     background: #fff;
+     border-radius: 10px;
+    margin-top: -30px;
+    padding: 0px 10px 0px 20px;
+}
+
+
+.tip-daohang{
+    margin-top: 40px;
+}
+ 
+ .tip-nav span {
+     padding: 6.5px 18px;
+     border-radius: 16px;
+     cursor: pointer;
+ }
+ .tip-nav span:hover {
+     color: #f7365f;
+ }
+ .tip-nav span.active {
+     background: linear-gradient(90deg, #ff6e67, #f7365f);
+     color: #fff;
+ }
+ .tipoff-box {
+     margin-top: 10px;
+ }
+ .tip-off .animation-place {
+     transition: all 0.2s ease-in-out;
+ }
+ .tip-off .animation-place:hover {
+     transform: translateY(-4px);
+     box-shadow: 0 4px 12px 2px rgba(0, 0, 0, 0.1);
+ }
+ .tip-off .c-sholist-empty {
+     margin-top: 100px;
+ }
+ .tipsoff-photos {
+     top: 50% !important;
+     left: 50% !important;
+     transform: translate(-50%, -50%);
+     max-width: 600px;
+     width: auto !important;
+     height: auto !important;
+ }
+ .tipsoff-photos img {
+     display: block;
+     margin: 0 auto;
+     width: 100%;
+ }
+ .comhead-top {
+     position: absolute !important;
+ }
+ .tips-fixed {
+     position: fixed;
+     top: 0;
+     left: 0;
+     right: 0;
+     background-color: #fff;
+     height: 60px;
+     z-index: 1000;
+ }
+ .tips-fixed-none {
+     display: none;
+ }
+ .tips-fixed .tip-nav {
+     margin: 0 auto;
+     background-color: transparent;
+ }
+ .c-tipoff-list .ac-pagination {
+     margin: 40px 0;
+ }
+ .tipoff-box {
+     /* padding: 0 25px; */
+     min-height: 680px;
+ }
+ .tipoff-list {
+     width: 100%;
+     min-height: 1000px;
+     margin-left: 16px;
+     position: relative;
+ }
+ .tipoff-list:nth-child(3n + 1) {
+     margin-left: 0;
+ }
+ .tipoff-list > li {
+     float:left;
+     border-radius: 20px;
+     overflow: hidden;
+     margin: 5px;
+     width: 399.5px;
+     border-radius: 10px;
+     padding: 11px 11px;
+     border: 2px solid rgba(255, 255, 255, 0.4);
+     background: rgba(255, 255, 255, 0.2);
+ }
+ .tipoff-list .head {
+     height: 76px;
+     position: relative;
+     padding: 0 15px 0 15px;
+     background: url('https://img.bc.haodanku.com/haodanku/1640076340') no-repeat;
+     background-size: cover;
+ }
+ .tipoff-list .bendi-list {
+     width:309px;
+ }
+ .tipoff-list .bendi-head {
+     padding: 10px 10px 0px 10px;
+     background: white;
+     border-radius:10px 10px 0 0;
+ }
+ .tipoff-list .bendi-head img {
+     border-radius:10px
+ }
+ .tipoff-list .bendi-list .right li:nth-child(2n) {
+     color: #9a4e00;
+     margin-top:5px;
+ }
+ .tipoff-list .bendi-list .right li:nth-child(2n+1) {
+     font-size: 16px;
+ }
+ .tipoff-head-inner {
+     height: 68px;
+     display: flex;
+     align-items: center;
+     position: relative;
+ }
+ .tipoff-head-box {
+     display: flex;
+     flex-direction: column;
+     margin-left: 8px;
+ }
+ .tipoff-list .img {
+     width: 30px;
+     height: 30px;
+     flex-shrink: 0;
+ }
+ .tipoff-list .img img {
+     max-width: 100%;
+     width: inherit;
+     max-height: 100%;
+ }
+ .tipoff-head-box span {
+     font-size: 16px;
+     font-weight: bold;
+     color: #e53e34;
+     max-width: 210px;
+     overflow: hidden;
+     text-overflow: ellipsis;
+     white-space: nowrap;
+ }
+ .tipoff-head-box i {
+     font-size: 12px;
+     color: #f89975;
+ }
+ .comflexAlignCenter {
+     display:flex;
+     display:-moz-box;
+     display:-ms-flexbox;
+     display:-webkit-box;
+     display:-webkit-flex;
+     -webkit-align-items:center;
+     -moz-align-items:center;
+     -ms-align-items:center;
+     align-items:center
+ }
+ .detail-block {
+     display: flex;
+     padding: 0 16px 0 13px;
+     background: #fff;
+     border-radius: 0 0 10px 10px;
+     background-image: url('https://img.bc.haodanku.com/haodanku/1641536035');
+     background-repeat: no-repeat;
+     background-size: auto;
+     background-position: 100% 100%;
+     padding-bottom: 16px;
+     padding-top: 8px;
+ }
+ .detail-block .right {
+     flex: 1;
+     margin-left: 15px;
+ }
+ .detail-block .right li {
+     font-size: 14px;
+     font-weight: bold;
+     color: #222222;
+     line-height: 22px;
+ }
+ .detail-block .right .btn.buy {
+     display: inline-flex;
+     align-items: center;
+     /* justify-content: center; */
+     -webkit-user-select: none;
+     -moz-user-select: none;
+     -ms-user-select: none;
+     user-select: none;
+     cursor:pointer;
+     color: #f94f08;
+     padding-left: 12px;
+     font-weight: bold;
+     width: 138px;
+     height: 30px;
+     background: #ffe0d4;
+     border-width: 0px;
+     border-radius: 15px;
+     background-image: url('https://img.bc.haodanku.com/haodanku/1640142730');
+     background-size: auto;
+     background-repeat: no-repeat;
+     background-position: 100% 100%;
+ }
+ .detail-block .right .btn.buy:hover {
+     opacity: 0.9;
+ }
+ .detail-block .right ul li .transfer {
+     position: absolute;
+     left: -10000px;
+     opacity: 0;
+ }
+ .detail-block .right ul li + li {
+     margin-top: 9px;
+ }
+ .detail-block .left {
+     width: 142px;
+ }
+ .detail-block .left img {
+     display: block;
+     width: 142px;
+     height: 142px;
+     border-radius: 5px;
+     filter: brightness(0.98);
+     margin-top: 5px;
+     cursor: pointer;
+ }
+ .detail-block .left img:nth-child(1) {
+     margin-top: 0;
+ }
+ .tipoff-btn {
+     position: absolute;
+     right: 0;
+     top: 50%;
+     color: #ffffff;
+     font-size: 16px;
+     width: 112px;
+     height: 40px;
+     text-align: center;
+     transform: translateY(-50%);
+     line-height: 40px;
+     background: linear-gradient(0deg, #ff0000 0%, #ff8100 100%);
+     box-shadow: 0px 3px 10px 0px rgba(255, 5, 0, 0.79);
+     border-radius: 20px;
+     cursor: pointer;
+ }
+ .tipoff-btn:hover {
+     opacity: 0.9;
+ }
+ .tipoff-photos {
+     top: 50% !important;
+     left: 50% !important;
+     transform: translate(-50%, -50%);
+     max-width: 550px;
+     width: auto !important;
+     height: auto !important;
+ }
+ .tipoff-photos.layui-layer-page .layui-layer-content {
+     overflow: hidden;
+     max-height: 800px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+ }
+ .tipoff-photos img {
+     display: block;
+     margin: 0 auto;
+     width: 100%;
+ }
+ .pagebar {
+     border:0;
+ }
+ .tip-main .pagebar .nav-links {
+     margin: 20px 10px 30px 10px;
+     background: #f2f2f4;
+ }
+ .tip-main .pagination {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     border-radius: 20px;
+     overflow: hidden;
+     margin: 30px 10px 40px 10px;
+     height: 55px;
+     border: 2px solid rgba(255, 255, 255, 0.4);
+     background: rgba(255, 255, 255, 0.8);
+ }
+ .pagination img {
+     vertical-align: middle;
+ }
+ 
+ /*========微博/好单的导航======*/ 
+
+.daohang{
+    border-radius: 10px;margin-bottom: 10px;
+}
+
+.sort-row{padding:0px 20px 15px 15px;}
+
+.sort-row span {
+    display: inline-block;
+    font-size: 13px;
+    line-height: 22px;
+    color: #9fa0aa;
+    padding: 0 12px;
+    border-radius: 11px;
+    background-color: #f6f7f8;
+    margin-left: 6px;
+    margin-right: 6px;
+    margin-top: 6px;
+    cursor: pointer;
+}
+.sort-row span:hover {color: #ff8100;}
+.sort-row span.active{
+    color: #ff8100;
+    background-color: #fff4ed;
+}
+
+@media (min-width: 1250px) {
+  .tip-main .tip-nav {
+    margin-left: 0px;
+  }
+}
+/* 优化后代码 */
+@media (max-width: 1250px) {
+  .tip-nav span {
+    padding: 6.5px 13px;  /* 1250-1221px */
+  }
+}
+
+@media (max-width: 1220px) {
+  .tip-nav span {
+    padding: 5px 12px;    /* 1220-1131px */
+  }
+}
+
+@media (max-width: 1130px) {
+  .tip-nav span {
+    padding: 4px 11px;    /* 1130px以下 */
+  }
+}
+
+
+@media screen and (max-width:1100px) {
+.tip-daohang{
+    margin-top: 10px;
+} 
+
+.sort-row {
+    padding-right: 20px;
+    width: 100%;
+    overflow: auto;
+    white-space: nowrap;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+     .tip-nav {
+         margin-top: 10px;
+         padding-right: 20px;
+         margin-left: 0;
+         width: 100%;
+         overflow:auto;
+         white-space: nowrap;
+         overflow-y: hidden;
+         scrollbar-width: none;
+         -ms-overflow-style: none;
+     }
+     .tip-nav::-webkit-scrollbar{display:none}
+     .sort-row::-webkit-scrollbar{display:none}
+     .tip-nav span {
+        margin: 0px 4px;
+         padding: 4px 10px;
+     }
+     .tip-main {
+         width: 900px;
+         margin-top: 0px;
+     }
+     .tip-main .pagination {
+         margin: 20px 0px 30px 0px;
+     }
+ }
+ @media screen and (max-width:450px) {
+     .tip-main {
+         width: 100%;
+     }
+     .tipoff-list > li {
+         width: 100%;
+         margin: 5px 0;
+         padding: 0;
+         border:0;
+     }
+     .tipoff-list .bendi-list {
+         width:48.5%;
+     }
+     .tipoff-list .bendi-head {
+         padding: 5px 5px 0px 5px;
+     }
+     .tipoff-list .bendi-list:nth-child(2n) {
+         margin-left: 5px;
+     }
+     .tipoff-list .bendi-list .right li:nth-child(2n) {
+         font-size: 12px;
+     }
+     .tipoff-list .bendi-list .right li:nth-child(2n+1) {
+         font-size: 14px;
+         overflow: hidden;
+         text-overflow: ellipsis;
+         white-space: nowrap;
+     }
+ }
