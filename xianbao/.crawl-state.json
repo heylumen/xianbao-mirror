@@ -31,18 +31,6 @@
     "xiaodao": 3
   },
   "pending": [
-    "/xiaodao/6315157.html",
-    "/xiaodao/6315329.html",
-    "/xiaodao/6317898.html",
-    "/xiaodao/6318346.html",
-    "/xiaodao/6318578.html",
-    "/xiaodao/6319330.html",
-    "/xiaodao/6319332.html",
-    "/xiaodao/6324356.html",
-    "/xiaodao/6329427.html",
-    "/xiaodao/6329734.html",
-    "/xiaodao/6334048.html",
-    "/xiaodao/6337574.html",
     "/xiaodao/6338070.html",
     "/xiaodao/6341034.html",
     "/xiaodao/6346866.html",
@@ -5628,6 +5616,56 @@
       "hash": "da780534abbb86aa5a9e4710a7331dbc3974646be8de78ac3321f73b6152a700",
       "local": "huluxia/6653687.html",
       "last_check": "2026-07-18T19:41:14+0000"
+    },
+    "/xiaodao/6317898.html": {
+      "hash": "3e29f9f4f8521b5072b984ccd0ee4c3ce6e62c201932f6872a679a25c7a2e906",
+      "local": "xiaodao/6317898.html",
+      "last_check": "2026-07-18T19:41:21+0000"
+    },
+    "/xiaodao/6318346.html": {
+      "hash": "29c2f9b0fe818f64fe144c84368e06e1298c9648dcbc62ab5abdd95c90cb6ccb",
+      "local": "xiaodao/6318346.html",
+      "last_check": "2026-07-18T19:41:25+0000"
+    },
+    "/xiaodao/6318578.html": {
+      "hash": "48550060cfdf38ad00b026693ce3ed4e67d5193caebe69c04400b6c377782341",
+      "local": "xiaodao/6318578.html",
+      "last_check": "2026-07-18T19:41:29+0000"
+    },
+    "/xiaodao/6319330.html": {
+      "hash": "bc9c93e86d5266b99727e3c0c52d1f73d3346556265e04d05ff4c9851f8cf397",
+      "local": "xiaodao/6319330.html",
+      "last_check": "2026-07-18T19:41:34+0000"
+    },
+    "/xiaodao/6319332.html": {
+      "hash": "28d32368fa211108e90926dfe811a0621044d50b9441556f1f58183361b4ad33",
+      "local": "xiaodao/6319332.html",
+      "last_check": "2026-07-18T19:41:39+0000"
+    },
+    "/xiaodao/6324356.html": {
+      "hash": "a251c8de4962765ac7d284eddac5ba72e99ad3eed59e9761ff66427c9d95b700",
+      "local": "xiaodao/6324356.html",
+      "last_check": "2026-07-18T19:41:43+0000"
+    },
+    "/xiaodao/6329427.html": {
+      "hash": "993f88c2640293404482f323c58c0c31c93a9f45e5cb4ca7cda96c777dd41171",
+      "local": "xiaodao/6329427.html",
+      "last_check": "2026-07-18T19:41:48+0000"
+    },
+    "/xiaodao/6329734.html": {
+      "hash": "34700abca80164d9b11660a7a6c54165c027aca9cc98c8370f2c63ee7588fde3",
+      "local": "xiaodao/6329734.html",
+      "last_check": "2026-07-18T19:41:52+0000"
+    },
+    "/xiaodao/6334048.html": {
+      "hash": "6d29a236eecd9584991dce7de0a304caaa5afc6dc9b868fa9e56ea3554bfc48b",
+      "local": "xiaodao/6334048.html",
+      "last_check": "2026-07-18T19:41:56+0000"
+    },
+    "/xiaodao/6337574.html": {
+      "hash": "bdeacf0917c5b1e5dbac045696cf335c70f2f2de6d84e84a03107d223ad27020",
+      "local": "xiaodao/6337574.html",
+      "last_check": "2026-07-18T19:42:01+0000"
     }
   },
   "dead": {
@@ -5684,6 +5722,18 @@
       "fails": 1,
       "ts": 1784402811,
       "permanent": true
+    },
+    "/xiaodao/6315157.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784403676,
+      "permanent": true
+    },
+    "/xiaodao/6315329.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784403677,
+      "permanent": true
     }
   },
   "dead_assets": {
@@ -5708,7 +5758,7 @@
   "completed_at": null,
   "stats": {
     "pages": 42,
-    "articles": 333,
+    "articles": 343,
     "rechecks": 0,
     "updated": 0
   }
