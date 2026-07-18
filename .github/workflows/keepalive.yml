@@ -1,0 +1,40 @@
+name: Keepalive · 防止定时工作流被自动暂停
+
+# GitHub 在仓库连续 60 天无任何 push/commit 活动后，会自动禁用仓库内所有
+# 定时（schedule）工作流。每日镜像（backup.yml）虽通常每天都会提交最新快照，
+# 但若连续多次镜像失败导致当天无提交，仍可能在 60 天后被禁用。
+# 本工作流独立于镜像结果，每周固定提交一次 keepalive 时间戳，确保仓库始终“活跃”。
+on:
+  schedule:
+    - cron: "0 4 * * 1"   # 北京时间每周一 12:00（UTC 周一 04:00）
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 写入 keepalive 时间戳并提交
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p .github
+          echo "last-keepalive: $(date -u +%Y-%m-%dT%H:%M:%SZ)" > .github/keepalive.txt
+          git add .github/keepalive.txt
+          if git diff --cached --quiet; then
+            echo "无变化，跳过提交"
+          else
+            git commit -m "chore: keepalive $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git pull --rebase origin main
+            git push
+            echo "keepalive 提交完成"
+          fi

@@ -1,0 +1,5 @@
+[build]
+  # xianbao/ 由 GitHub Actions 预渲染并提交到仓库，Netlify 直接发布该静态产物。
+  # 无需在 Netlify 构建环境中执行 Playwright（其默认镜像缺少 Chromium 系统库）。
+  command = "echo 'xianbao/ 由 GitHub Actions 预渲染并提交，Netlify 直接发布静态产物'"
+  publish = "xianbao"

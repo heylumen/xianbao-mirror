@@ -1,0 +1,127 @@
+name: 周级备份 · Release 归档
+
+# 每周一创建一份完整项目快照（含 mirror 脚本 + xianbao/ 整站镜像），
+# 发布为 GitHub Release（tag 形如 backup-YYYY-Www），作为可恢复的历史版本。
+#
+# 设计目标：
+#   - 恢复粒度 = 周级（每周一份 Release）
+#   - 历史保留 = 最近约 30 周（约 7 个月），超出自动清理最老 Release
+#   - 约束：GitHub Free 的 Packages 存储免费额度仅 500MB，每份快照约 15~40MB，
+#           30 份留有余量；故 KEEP=30。
+#   - 每日 xianbao/ 仍由 backup.yml 提交供 Vercel/Netlify 发布，历史归档由本工作流承担。
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"   # 北京时间每周一 08:00（UTC 周一 00:00）
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-backup
+  cancel-in-progress: false
+
+jobs:
+  weekly-backup:
+    runs-on: ubuntu-latest
+    env:
+      PAGES_PREFIX: "/"
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: mirror/requirements.txt
+
+      - name: 缓存 Playwright 浏览器
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: "安装依赖"
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mirror/requirements.txt
+          playwright install --with-deps chromium
+
+      - name: "单元测试"
+        run: python -m pytest mirror/test_render.py -q
+
+      - name: 重新渲染镜像（确保周级备份为站点最新快照）
+        run: bash mirror/mirror.sh
+
+      - name: "创建周级备份 Release（幂等，避免重复标签冲突）"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="backup-$(TZ=Asia/Shanghai date +%G-W%V)"
+          TS="$(TZ=Asia/Shanghai date +%F)"
+          ARCHIVE="${RUNNER_TEMP:-/tmp}/weekly-backup-${TAG}.tar.gz"
+          tar --exclude='.git' --exclude='__pycache__' --exclude='backups' \
+              --exclude='*.pyc' --exclude='*.tar.gz' -czf "$ARCHIVE" .
+
+          delete_existing() {
+            local t="$1"
+            gh release delete "$t" --yes --delete-tag >/dev/null 2>&1 || true
+            git push origin ":refs/tags/$t" >/dev/null 2>&1 || true
+            local i=0
+            while gh release view "$t" >/dev/null 2>&1 && [ "$i" -lt 6 ]; do
+              echo "等待 Release $t 删除生效 ($((i+1))/6)..."
+              sleep 5
+              i=$((i+1))
+            done
+            if git ls-remote --tags origin "refs/tags/$t" | grep -q "$t"; then
+              git push origin ":refs/tags/$t" >/dev/null 2>&1 || true
+            fi
+          }
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "检测到本周已存在 Release $TAG，先删除再重建..."
+            delete_existing "$TAG"
+          elif git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+            git push origin ":refs/tags/$TAG" >/dev/null 2>&1 || true
+          fi
+
+          create_release() {
+            gh release create "$TAG" "$ARCHIVE" \
+              --title "周级备份 ${TAG}（生成于 ${TS}）" \
+              --notes "自动归档：完整项目代码、配置文件与整站镜像产物（xianbao/）。
+
+          生成时间（北京时间）：${TS}
+          内容：mirror 抓取脚本、mirror.sh、README、xianbao/ 整站镜像快照。
+          本镜像为静态站点，无数据库，故无“数据库导出”步骤。
+          历史保留策略：自动保留最近 30 周，超出自动清理最老备份。"
+          }
+
+          n=0
+          until create_release; do
+            n=$((n+1))
+            if [ "$n" -ge 5 ]; then
+              echo "::error:: 周级备份创建失败（已重试 $n 次）"; exit 1
+            fi
+            echo "创建遇冲突，等待后重试 ($n/5)..."
+            sleep 10
+          done
+          echo "周级备份已发布: $TAG"
+
+      - name: 滚动清理超额老备份（保留最近 30 周）
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          KEEP=30
+          gh release list --limit 100 --json tagName \
+            | jq -r '.[] | select(.tagName | startswith("backup-")) | .tagName' \
+            | sort | head -n -"$KEEP" | while read -r old; do
+              echo "清理超额老备份: $old"
+              gh release delete "$old" --yes --delete-tag 2>/dev/null || true
+            done
+          echo "滚动清理完成（保留最近 ${KEEP} 周）"
