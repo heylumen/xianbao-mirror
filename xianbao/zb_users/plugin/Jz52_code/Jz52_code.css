@@ -1,0 +1,130 @@
+@charset "utf-8";
+/**
+ * 作品：Z-Blog代码高亮+复制
+ * 作者：隔壁老李
+ * 网址：https://yeelz.com
+ * 本插件完全免费，请勿删除此段内容
+ */
+@font-face {
+  font-family: 'MonacoRegular';
+  src: url(font/monaco-webfont.eot);
+  src: url(font/monaco-webfont.eot?#iefix) format('embedded-opentype'), url(font/monaco-webfont.woff) format('woff'), url(font/monaco-webfont.ttf) format('truetype'), url(font/monaco-webfont.svg#MonacoRegular) format('svg');
+  font-weight: normal;
+  font-style: normal
+}
+pre, pre > code, code[class*="language-"], pre[class*="language-"] {
+  color: #fff!important;
+  text-shadow: none;
+  font-size: 1rem;
+  font-family: Monaco, 'MonacoRegular', 'Microsoft Yahei', monospace;
+}
+pre[class*="language-"] {
+  border-radius: 0.6em;
+  padding-top: 2.8em;
+}
+pre {
+	border-radius: 0.6em;
+	
+    padding: 2.8em 1em 1em;
+    margin: .5em 0;
+    overflow: auto;
+}
+pre,:not(pre) > code[class*="language-"], pre[class*="language-"] {
+  background: #1f1f1f!important
+}
+pre > code {
+  display: block;
+  overflow-x: auto;
+  padding-bottom: .5em;
+  background: #1f1f1f!important
+}
+pre.prism-line-numbers > code {
+  padding-left: 2em;
+}
+pre,.prism-token.prism-punctuation {
+  color: #fff;
+}
+.prism-token.property, .prism-token.prism-tag, .prism-token.prism-boolean, .prism-token.prism-number, .prism-token.prism-constant, .prism-token.prism-symbol, .prism-token.prism-deleted {
+  color: #f92650;
+}
+.prism-token.prism-selector, .prism-token.prism-attr-name, .prism-token.prism-string, .prism-token.prism-char, .prism-token.prism-builtin, .prism-token.prism-inserted {
+  color: #a6e22d;
+}
+.prism-token.prism-operator, .prism-token.prism-entity, .prism-token.prism-url, .prism-language-css .prism-token.prism-string, .prism-style .prism-token.prism-string {
+  color: #fff;
+  background: none;
+}
+.prism-token.prism-atrule, .prism-token.prism-attr-value, .prism-token.prism-keyword {
+  color: #e6db5d;
+}
+.prism-token.prism-function {
+  color: #DD4A68;
+}
+.prism-line-numbers .prism-line-numbers-rows {
+  border-right: none;
+  left: 0;
+  width: 2.2em;
+}
+.prism-line-numbers-rows > span:before {
+  color: #868686;
+  padding-right: none;
+  text-align: left;
+}
+div.prism-show-language {
+  position: relative;
+}
+.prism-show-language:before {
+  display: inline-block;
+  z-index: 1;
+  content: " ";
+  position: absolute;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  background: #fc6054 !important;
+  width: 15px;
+  height: 15px;
+  -webkit-box-shadow: 22px 0 #fbc606, 44px 0 #2ac744;
+  box-shadow: 22px 0 #fbc606, 44px 0 #2ac744;
+  float: right;
+  top: 13px;
+  left: 13px;
+  border-color: transparent;
+}
+div.prism-show-language > div.prism-show-language-label[data-language] {
+  background-color: transparent;
+  border: 0;
+  font-size: 14px;
+  padding: .5em .8em;
+  color: #fff;
+}
+.prism-show-language-label img.Jz52_code {
+  display: inline;
+  border-radius: 0;
+  margin: 2px 4px 4px 0;
+}
+div.post-body code {
+  border: none;
+}
+pre,pre.prism-line-numbers {
+  padding-left: 1em;
+  padding-bottom: .5em;
+}
+pre ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+pre ::-webkit-scrollbar-thumb {
+  background-color: rgba(112, 128, 144, .4);
+  border-radius: 3px;
+}
+pre ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(112, 128, 144, 1);
+}
+pre ::-webkit-scrollbar-track {
+  background-color: transparent;
+  border-radius: 3px;
+}
+pre * {
+  scrollbar-color:rgba(112, 128, 144, .4) transparent;
+  scrollbar-width: thin;
+}
