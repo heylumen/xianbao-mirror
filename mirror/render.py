@@ -75,8 +75,9 @@ PAGES_PER_RUN_PER_CAT = int(os.environ.get("PAGES_PER_RUN_PER_CAT", "6"))
 # maintenance 模式下每天抽样复查的已抓文章数（检测新评论/内容更新）。
 RECHECK_PER_RUN = int(os.environ.get("RECHECK_PER_RUN", "200"))
 # 单轮运行渲染页面总数硬上限（列表页 + 文章页合计），防封 IP / 控 Actions 额度。
-# 实测 5 分类合计约 2.6 万篇，按 100/天约需大半年；可调大（如 200~300）提速。
-MAX_PAGES_PER_RUN = int(os.environ.get("MAX_PAGES_PER_RUN", "100"))
+# 实测 5 分类合计约 2.6 万篇，按 200/天约需 130 天（约 4 个半月）；源站请求分散在
+# 单次运行的深夜窗口内（约 0.3 req/s），隐蔽性良好；稳后可调大到 300 提速。
+MAX_PAGES_PER_RUN = int(os.environ.get("MAX_PAGES_PER_RUN", "200"))
 # 每渲染多少页做一次「检查点提交」（commit + push 状态与新页面），
 # 使中途取消/崩溃也不丢进度、次日不重复爬。0 = 关闭检查点（仅跑完才提交）。
 CHECKPOINT_EVERY = int(os.environ.get("CHECKPOINT_EVERY", "10"))
@@ -475,6 +476,7 @@ def default_state():
         "category_cursor": {s: 1 for s in ALLOWED_CATEGORIES},
         "category_exhausted": {s: False for s in ALLOWED_CATEGORIES},
         "category_miss": {s: 0 for s in ALLOWED_CATEGORIES},
+        "pending": set(),       # 已发现但尚未渲染的文章 path 集合（跨运行续爬，保证全量不丢页）
         "crawled": {},          # path -> {hash, local, last_check}
         "dead": {},             # path -> {reason, fails, ts, permanent} 永久失效页（不再爬）
         "dead_assets": {},      # 绝对URL -> {reason, ts} 永久失效资源（不再补）
@@ -502,6 +504,7 @@ def load_state(path: Path):
                 base["category_miss"][s] = data.get(
                     "category_miss", {}).get(s, 0)
             base["crawled"] = data.get("crawled", {})
+            base["pending"] = set(data.get("pending", []))
             base["recheck_idx"] = data.get("recheck_idx", 0)
             base["completed_at"] = data.get("completed_at")
             return base
@@ -510,9 +513,48 @@ def load_state(path: Path):
     return default_state()
 
 
+def _json_default(o):
+    # 状态文件可能含 set（pending），JSON 无法直接序列化，转成排序列表
+    if isinstance(o, set):
+        return sorted(o)
+    if isinstance(o, Path):
+        return str(o)
+    return str(o)
+
+
 def save_state(path: Path, state):
-    path.write_text(json.dumps(state, ensure_ascii=False, indent=2),
-                    encoding="utf-8")
+    path.write_text(json.dumps(state, ensure_ascii=False, indent=2,
+                                default=_json_default), encoding="utf-8")
+
+
+def drain_frontier(page, raw_docs, save_page, state, counter):
+    """排空「待处理文章队列」（状态文件中的 pending，已持久化）。
+
+    关键设计：发现的文章 URL 先进入 pending（写入 .crawl-state.json），本函数按
+    每日上限渲染其中一部分；未渲染的与本次新发现的都留在 pending，下次运行继续排空。
+    这样即使单日达到 MAX_PAGES_PER_RUN 上限，也不会丢失任何已发现的文章——
+    保证「整个网站全量备份」的目标（旧版用局部变量导致已发现文章被丢弃）。
+    """
+    queue = deque(sorted(state["pending"]))
+    seen = set(state["crawled"].keys())
+    while queue and counter[0] < MAX_PAGES_PER_RUN:
+        path = queue.popleft()
+        state["pending"].discard(path)
+        if path in seen or is_dead(state, path):
+            continue
+        seen.add(path)
+        url = TARGET + path
+        ok, rendered, raw = render_page(page, url, path, raw_docs, state)
+        if not ok:
+            continue
+        save_page(path, rendered, "article")
+        if CRAWL_DELAY_MS > 0:
+            time.sleep(CRAWL_DELAY_MS / 1000.0)
+        for a in discover_article_links(raw if raw else rendered, url):
+            ap = urlparse(a).path
+            if ap not in seen and ap not in state["crawled"] and not is_dead(state, ap):
+                queue.append(ap)
+                state["pending"].add(ap)
 
 
 # 检查点计数（模块级，供 save_page 闭包累加后触发 checkpoint）
@@ -737,7 +779,8 @@ def main():
     state["target"] = TARGET
 
     raw_docs = {}
-    pages_rendered = 0
+    counter = [0]          # 本轮已渲染页面数（受 MAX_PAGES_PER_RUN 约束）
+    run_start_ts = _now_ts()  # 本轮起始时间戳，供后处理只扫描「本轮新产生」的文件
 
     exe_path = os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH") or None
 
@@ -807,7 +850,6 @@ def main():
             page.on("response", on_response)
 
             def save_page(path: str, rendered: str, kind: str):
-                nonlocal pages_rendered
                 url = TARGET + path
                 local = url_to_local(url)
                 outp = OUT_DIR / local
@@ -833,7 +875,7 @@ def main():
                             state["stats"]["articles"] += 1
                         else:
                             state["stats"]["pages"] += 1
-                pages_rendered += 1
+                counter[0] += 1
                 # 检查点提交：每渲染 CHECKPOINT_EVERY 页就把进度推到 GitHub，
                 # 中途取消/崩溃也不丢进度，次日从断点继续（不重复爬）。
                 global _pages_since_ckpt
@@ -841,31 +883,22 @@ def main():
                 if CHECKPOINT_EVERY > 0 and _pages_since_ckpt >= CHECKPOINT_EVERY:
                     checkpoint(state, path)
 
-            def bfs_articles(seed_paths, label=""):
-                nonlocal pages_rendered
-                queue = deque(sorted(seed_paths))
-                seen = set(state["crawled"].keys())
-                while queue and pages_rendered < MAX_PAGES_PER_RUN:
-                    path = queue.popleft()
-                    if path in seen or path in state["crawled"] or is_dead(state, path):
-                        continue
-                    seen.add(path)
-                    url = TARGET + path
-                    ok, rendered, raw = render_page(page, url, path, raw_docs, state)
-                    if not ok:
-                        continue
-                    save_page(path, rendered, "article")
-                    if CRAWL_DELAY_MS > 0:
-                        time.sleep(CRAWL_DELAY_MS / 1000.0)
-                    found = discover_article_links(raw if raw else rendered, url)
-                    for a in found:
-                        ap = urlparse(a).path
-                        if (ap not in seen and ap not in state["crawled"]
-                                and not is_dead(state, ap)):
-                            queue.append(ap)
+            # ---- 通用：各分类第 1 页捕获新发布帖（crawl / maintenance 均执行）----
+            for slug in ALLOWED_CATEGORIES:
+                path = f"/category-{slug}/"
+                url = TARGET + path
+                ok, rendered, raw = render_page(page, url, path, raw_docs, state)
+                if not ok:
+                    continue
+                save_page(path, rendered, "list")
+                if CRAWL_DELAY_MS > 0:
+                    time.sleep(CRAWL_DELAY_MS / 1000.0)
+                for a in discover_article_links(raw if raw else rendered, url):
+                    ap = urlparse(a).path
+                    if ap not in state["crawled"]:
+                        state["pending"].add(ap)
 
             if state["mode"] == "crawl":
-                new_articles = set()
                 cap_hit = False
                 for slug in ALLOWED_CATEGORIES:
                     if state["category_exhausted"][slug]:
@@ -873,10 +906,13 @@ def main():
                     start = state["category_cursor"][slug]
                     end = start + PAGES_PER_RUN_PER_CAT - 1
                     for n in range(start, end + 1):
+                        if n == 1:
+                            # 第 1 页已在上方通用步骤处理，避免重复渲染
+                            continue
                         if n > MAX_CAT_PAGES:
                             state["category_exhausted"][slug] = True
                             break
-                        path = f"/category-{slug}/" if n == 1 else f"/category-{slug}/{n}/"
+                        path = f"/category-{slug}/{n}/"
                         url = TARGET + path
                         ok, rendered, raw = render_page(page, url, path, raw_docs, state)
                         if not ok:
@@ -887,19 +923,20 @@ def main():
                                 break
                             continue
                         save_page(path, rendered, "list")
-                        # 总量上限：列表页也计入每日 MAX_PAGES_PER_RUN 配额
-                        if pages_rendered >= MAX_PAGES_PER_RUN:
+                        if counter[0] >= MAX_PAGES_PER_RUN:
                             state["category_cursor"][slug] = n + 1
                             cap_hit = True
                             break
                         if CRAWL_DELAY_MS > 0:
                             time.sleep(CRAWL_DELAY_MS / 1000.0)
-                        arts = discover_article_links(raw if raw else rendered, url)
-                        fresh = [urlparse(a).path for a in arts
-                                 if urlparse(a).path not in state["crawled"]]
-                        if fresh:
+                        fresh_found = False
+                        for a in discover_article_links(raw if raw else rendered, url):
+                            ap = urlparse(a).path
+                            if ap not in state["crawled"]:
+                                state["pending"].add(ap)
+                                fresh_found = True
+                        if fresh_found:
                             state["category_miss"][slug] = 0
-                            new_articles.update(fresh)
                         else:
                             state["category_miss"][slug] += 1
                             if state["category_miss"][slug] >= CONSEC_MISS_LIMIT:
@@ -910,36 +947,21 @@ def main():
                         state["category_cursor"][slug] = end + 1
                     if cap_hit:
                         break
-                # BFS 渲染新发现的文章
-                bfs_articles(new_articles, "crawl")
-                if all(state["category_exhausted"][s] for s in ALLOWED_CATEGORIES):
+                # 所有分类已抓完 且 待处理队列清空 -> 转 maintenance
+                if (all(state["category_exhausted"][s] for s in ALLOWED_CATEGORIES)
+                        and not state["pending"]):
                     state["mode"] = "maintenance"
                     state["completed_at"] = _now()
                     print("==> 全部分类抓取完成，进入 maintenance（维护/增量更新）模式")
-            else:
-                # maintenance：检查各分类第 1 页捕获新帖 + 抽样复查更新
-                new_articles = set()
-                for slug in ALLOWED_CATEGORIES:
-                    path = f"/category-{slug}/"
-                    url = TARGET + path
-                    ok, rendered, raw = render_page(page, url, path, raw_docs, state)
-                    if not ok:
-                        continue
-                    save_page(path, rendered, "list")
-                    if CRAWL_DELAY_MS > 0:
-                        time.sleep(CRAWL_DELAY_MS / 1000.0)
-                    arts = discover_article_links(raw if raw else rendered, url)
-                    for a in arts:
-                        ap = urlparse(a).path
-                        if ap not in state["crawled"]:
-                            new_articles.add(ap)
-                bfs_articles(new_articles, "maintenance-new")
-                # 抽样复查已抓文章（检测新评论/内容更新）
+
+            # ---- 排空待处理队列（跨运行续爬，保证全量备份不丢页）----
+            drain_frontier(page, raw_docs, save_page, state, counter)
+
+            # ---- maintenance：抽样复查已抓文章（检测新评论/内容更新）----
+            if state["mode"] == "maintenance":
                 paths = list(state["crawled"].keys())
                 if paths:
                     idx = state["recheck_idx"] % len(paths)
-                    step = max(1, len(paths) // max(1, RECHECK_PER_RUN)) \
-                        if RECHECK_PER_RUN < len(paths) else 1
                     sample = paths[idx: idx + RECHECK_PER_RUN] \
                         if idx + RECHECK_PER_RUN <= len(paths) \
                         else paths[idx:] + paths[: RECHECK_PER_RUN - (len(paths) - idx)]
@@ -951,6 +973,8 @@ def main():
                             continue
                         save_page(path, rendered, "recheck")
                         state["stats"]["rechecks"] += 1
+                        if counter[0] >= MAX_PAGES_PER_RUN:
+                            break
                         if CRAWL_DELAY_MS > 0:
                             time.sleep(CRAWL_DELAY_MS / 1000.0)
         finally:
@@ -961,9 +985,10 @@ def main():
     build_hub(OUT_DIR)
 
     # 后处理：补全缺失资源 + 剥离注入/分析脚本
-    fill_missing(state)
-    stripped = strip_injection_scripts(set())
-    stripped_analytics = strip_analytics_scripts()
+    # （仅扫描本轮新产生的文件，避免随镜像增长而每轮全量重扫导致超时）
+    fill_missing(state, since=run_start_ts)
+    stripped = strip_injection_scripts(set(), since=run_start_ts)
+    stripped_analytics = strip_analytics_scripts(since=run_start_ts)
 
     (OUT_DIR / ".nojekyll").write_text("", encoding="utf-8")
 
@@ -982,7 +1007,7 @@ def main():
         "target": TARGET,
         "mode": state["mode"],
         "completed_at": state["completed_at"],
-        "pages_rendered_this_run": pages_rendered,
+        "pages_rendered_this_run": counter[0],
         "crawled_total": len(state["crawled"]),
         "search_index_items": n_idx,
         "stats": state["stats"],
@@ -995,7 +1020,7 @@ def main():
     (OUT_DIR / ".mirror-meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"==> 渲染完成：本轮渲染 {pages_rendered} 页，已抓总计 {len(state['crawled'])} 个，"
+    print(f"==> 渲染完成：本轮渲染 {counter[0]} 页，已抓总计 {len(state['crawled'])} 个，"
           f"搜索索引 {n_idx} 条，模式={state['mode']}，"
           f"失效页记录 {len(state.get('dead', {}))} 个 / 失效资源 {len(state.get('dead_assets', {}))} 个，"
           f"HTML 校验 {_html_count} 个，输出目录 {OUT_DIR}")
@@ -1006,7 +1031,7 @@ def _is_relative_ref(ref):
                                 "javascript:", "mailto:", "tel:", "#"))
 
 
-def fill_missing(state=None, raw_url_map=None):
+def fill_missing(state=None, raw_url_map=None, since=None):
     """扫描已保存文件中所有「站内资源」引用，下载 Playwright 未捕获的缺失资源。
     仅补全资源（CSS/JS/图片/字体等），不抓取页面（页面由主爬虫负责，且可避免误抓
     /record/<用户>.html 等 404 噪声与中文/空格路径崩溃）。对永久失效（404/410）的资源
@@ -1019,6 +1044,12 @@ def fill_missing(state=None, raw_url_map=None):
              + glob.glob(str(OUT_DIR / "**" / "*.css"), recursive=True)
              + glob.glob(str(OUT_DIR / "**" / "*.js"), recursive=True))
     for fp in files:
+        if since is not None:
+            try:
+                if os.path.getmtime(fp) < since:
+                    continue
+            except OSError:
+                continue
         try:
             text = open(fp, encoding="utf-8", errors="replace").read()
         except Exception:
@@ -1118,13 +1149,19 @@ def fill_missing(state=None, raw_url_map=None):
     return count
 
 
-def strip_injection_scripts(raw_saved=None):
+def strip_injection_scripts(raw_saved=None, since=None):
     """剥离 document.write/writeln 注入型脚本标签（注入内容已烘焙进 DOM）。"""
     if raw_saved is None:
         raw_saved = set()
     js_files = glob.glob(str(OUT_DIR / "**" / "*.js"), recursive=True)
     injection_basenames = set()
     for jf in js_files:
+        if since is not None:
+            try:
+                if os.path.getmtime(jf) < since:
+                    continue
+            except OSError:
+                continue
         try:
             src = open(jf, encoding="utf-8", errors="replace").read()
         except Exception:
@@ -1139,6 +1176,12 @@ def strip_injection_scripts(raw_saved=None):
     html_files = (glob.glob(str(OUT_DIR / "**" / "*.html"), recursive=True)
                   + glob.glob(str(OUT_DIR / "**" / "*.htm"), recursive=True))
     for hf in html_files:
+        if since is not None:
+            try:
+                if os.path.getmtime(hf) < since:
+                    continue
+            except OSError:
+                continue
         try:
             soup = BeautifulSoup(open(hf, encoding="utf-8", errors="replace").read(),
                                  "html.parser")
@@ -1167,7 +1210,7 @@ def strip_injection_scripts(raw_saved=None):
     return removed
 
 
-def strip_analytics_scripts():
+def strip_analytics_scripts(since=None):
     """剥离第三方统计脚本（51.la / Clarity / 百度 / Google / CNZZ / Matomo 等）。"""
     ANALYTICS_PATTERNS = [
         r"sdk\.51\.la", r"data-la-ev=", r"LA\.init\s*\(",
@@ -1181,6 +1224,12 @@ def strip_analytics_scripts():
                   + glob.glob(str(OUT_DIR / "**" / "*.htm"), recursive=True))
     removed = 0
     for hf in html_files:
+        if since is not None:
+            try:
+                if os.path.getmtime(hf) < since:
+                    continue
+            except OSError:
+                continue
         try:
             soup = BeautifulSoup(open(hf, encoding="utf-8", errors="replace").read(),
                                  "html.parser")
