@@ -233,9 +233,9 @@ def test_build_search_index():
 # ---------------------------------------------------------------------------
 # 每日上限 + 检查点提交
 # ---------------------------------------------------------------------------
-def test_max_pages_per_run_default_is_100():
-    # 防封 IP：默认每日渲染上限应为 100 页（列表+文章合计）
-    assert render.MAX_PAGES_PER_RUN == 100
+def test_max_pages_per_run_default_is_200():
+    # 防封 IP：默认每日渲染上限应为 200 页（列表+文章合计）；稳后可调大到 300
+    assert render.MAX_PAGES_PER_RUN == 200
 
 
 def test_checkpoint_outside_git_is_safe_and_saves_state(monkeypatch, tmp_path):
@@ -269,4 +269,72 @@ def test_checkpoint_commits_and_pushes_when_in_git(monkeypatch, tmp_path):
     joined = " ".join(" ".join(c) for c in calls)
     assert "commit" in joined and "push" in joined  # 确实提交并推送
     assert (tmp_path / ".crawl-state.json").exists()
+
+
+# ---------------------------------------------------------------------------
+# pending 待处理队列（跨运行续爬，保证「全量备份」不丢已发现文章）
+# ---------------------------------------------------------------------------
+def test_default_state_has_pending_set():
+    st = render.default_state()
+    assert "pending" in st and isinstance(st["pending"], set)
+
+
+def test_load_state_restores_pending_as_set(tmp_path):
+    p = tmp_path / ".crawl-state.json"
+    p.write_text(json.dumps(
+        {"pending": ["/zuankeba/1.html", "/zuankeba/2.html"],
+         "crawled": {"/zuankeba/1.html": {}}}, ensure_ascii=False),
+        encoding="utf-8")
+    st = render.load_state(p)
+    assert isinstance(st["pending"], set)
+    assert st["pending"] == {"/zuankeba/1.html", "/zuankeba/2.html"}
+
+
+def test_drain_frontier_persists_pending_across_cap(monkeypatch):
+    # 修复「已发现文章被丢弃」：drain_frontier 受每日上限约束时，
+    # 未渲染的文章与新发现的文章应留在 pending，供下次续爬（不丢页）。
+    monkeypatch.setattr(render, "MAX_PAGES_PER_RUN", 3)
+    monkeypatch.setattr(render, "CRAWL_DELAY_MS", 0)
+    monkeypatch.setattr(render, "TARGET", "https://new.xianbao.fun")
+    monkeypatch.setattr(render, "ORIGIN_NETLOC", "new.xianbao.fun")
+    monkeypatch.setattr(render, "ALL_NETLOCS", {"new.xianbao.fun"})
+
+    art = '<html><head><title>t</title></head><body>' \
+          '<a href="/zuankeba/6.html">6</a><a href="/zuankeba/7.html">7</a>' \
+          '<div class="content">内容</div></body></html>'
+    html_by_path = {p: art for p in ["/zuankeba/%d.html" % i for i in range(1, 6)]}
+
+    class FakePage:
+        def __init__(self):
+            self._url = None
+        def goto(self, url, wait_until=None, timeout=None):
+            self._url = url
+            class R:
+                status = 200
+            return R()
+        def wait_for_load_state(self, *a, **k):
+            pass
+        def wait_for_timeout(self, *a, **k):
+            pass
+        def evaluate(self, expr):
+            path = render.urlparse(self._url).path
+            return html_by_path.get(path, "<html><body>empty</body></html>")
+
+    state = {"pending": {"/zuankeba/1.html", "/zuankeba/2.html", "/zuankeba/3.html",
+                          "/zuankeba/4.html", "/zuankeba/5.html"},
+             "crawled": {}, "dead": {}}
+    counter = [0]
+    crawled = {}
+    def fake_save(path, rendered, kind):
+        counter[0] += 1
+        crawled[path] = {"hash": "x", "local": path, "last_check": ""}
+
+    render.drain_frontier(FakePage(), {}, fake_save, state, counter)
+
+    assert counter[0] == 3, counter[0]
+    assert set(crawled.keys()) == {"/zuankeba/1.html", "/zuankeba/2.html",
+                                     "/zuankeba/3.html"}
+    # 未渲染的 4/5 与新发现的 6/7 留在 pending（跨运行续爬，不丢页）
+    assert state["pending"] == {"/zuankeba/4.html", "/zuankeba/5.html",
+                                 "/zuankeba/6.html", "/zuankeba/7.html"}
 

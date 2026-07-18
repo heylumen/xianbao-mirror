@@ -88,7 +88,7 @@ xianbao-mirror/
 | `PAGES_PREFIX` | `/` | 部署路径前缀；GitHub Pages 项目页改为 `/<repo>` |
 | `PAGES_PER_RUN_PER_CAT` | `6` | `crawl` 模式每轮每分类抓取的列表页数（控制每日增量节奏） |
 | `RECHECK_PER_RUN` | `200` | `maintenance` 模式每轮抽样复查的已抓文章数（检测新评论/内容） |
-| `MAX_PAGES_PER_RUN` | `100` | 单轮渲染页面**总数硬上限（列表页 + 文章页合计）**，防封 IP / 控 Actions 额度。实测 5 分类约 2.6 万篇，按 100/天约需大半年；想提速可调到 200~300 |
+| `MAX_PAGES_PER_RUN` | `200` | 单轮渲染页面**总数硬上限（列表页 + 文章页合计）**，防封 IP / 控 Actions 额度。实测 5 分类约 2.6 万篇，按 200/天约需 130 天（约 4 个半月）；稳后可调大到 300~400 提速 |
 | `CHECKPOINT_EVERY` | `10` | 每渲染多少页做一次「检查点提交」（commit + push 状态与新页面）。中途取消/崩溃也不丢进度，次日从断点继续、不重复爬。`0` = 关闭（仅跑完才提交） |
 | `CONSEC_MISS_LIMIT` | `3` | 分类列表页连续无新文章达此次数，判定该分类已抓完 |
 | `MAX_CAT_PAGES` | `5000` | 单分类列表页安全上限（防死循环） |
@@ -101,12 +101,12 @@ xianbao-mirror/
 - `ALLOWED_CATEGORIES`：要镜像的分类 slug 白名单（默认 5 个，可增删）。
 - `DOMAIN_POOL`：参与轮换的源域名列表（默认 6 个已验证一致的 HTTPS 域名）。
 
-> 想加快全量覆盖：调大 `MAX_PAGES_PER_RUN`（如 200~300）效果最直接；也可调大 `PAGES_PER_RUN_PER_CAT`。注意 Actions 6 小时上限与仓库体积增长。
+> 想加快全量覆盖：调大 `MAX_PAGES_PER_RUN`（如 300~400）效果最直接；也可调大 `PAGES_PER_RUN_PER_CAT`。注意 Actions 6 小时上限与仓库体积增长。
 
 ### 断点续爬（不重复爬取的关键）
 
 - 进度由 `xianbao/.crawl-state.json` 记录（已抓路径集合、各分类游标、每篇内容签名、失效地址集），**每次运行结束会随 `xianbao/` 一起提交到仓库**。
-- **正常跑完**：次日从断点继续，已抓的页面直接跳过（`bfs_articles` 遇 `state["crawled"]` 内路径即跳过），不会重复爬。
+- **正常跑完**：次日从断点继续，已抓的页面直接跳过（`drain_frontier` 遇 `state["crawled"]` 内路径即跳过），不会重复爬。已发现但未渲染的文章保留在 `state["pending"]`（待处理队列），下次运行继续排空，确保「整个网站全量备份」不丢页。
 - **中途取消 / 崩溃**：因为启用了检查点提交（`CHECKPOINT_EVERY`），每渲染 10 页就会把进度推到 GitHub，所以**已提交的进度会保留**，次日接着爬、同样不重复。只要不手动取消整个仓库、不删 `.crawl-state.json` 即可。
 
 ---

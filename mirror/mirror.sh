@@ -19,7 +19,16 @@
 
 set -euo pipefail
 
-TARGET="${TARGET_URL:-https://new.xianbao.fun}"
+# 源域名：若显式传入 TARGET_URL 则用之；否则随机选一个已验证域名（与 render.py
+# 轮换策略一致），并把选择结果 export 给 render.py，保证 shell（如下载 favicon）
+# 与 python 使用同一域名。轮换可分散单域名请求频次，增强隐蔽性。
+if [ -n "${TARGET_URL:-}" ]; then
+  TARGET="$TARGET_URL"
+else
+  POOL=(new.xianbao.fun news.xianbao.fun new.ixbk.net news.ixbk.net new.ixbk.fun news.ixbk.fun)
+  TARGET="https://${POOL[$RANDOM % ${#POOL[@]}]}"
+  export TARGET_URL="$TARGET"
+fi
 OUT_DIR="xianbao"
 
 if [ -x "$HOME/.workbuddy/binaries/python/envs/default/Scripts/python.exe" ]; then
