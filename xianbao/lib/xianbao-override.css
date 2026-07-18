@@ -1,0 +1,32 @@
+/* xianbao-override.css — 镜像站响应式兜底（由 mirror.sh 注入，保守安全） */
+
+/* 窄屏防横向溢出：长串优惠码/链接不撑破布局 */
+html, body {
+    overflow-x: hidden;
+    word-break: break-word;
+}
+
+/* 图片自适应容器宽度，避免原站大图溢出 */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 窄屏（手机/平板）：让正文区域占满宽度，隐藏不必要的横向滚动 */
+@media screen and (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+    .container,
+    .wrap,
+    .main,
+    .content,
+    .page,
+    .layout {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        box-sizing: border-box !important;
+    }
+}
