@@ -34,6 +34,7 @@ import ssl
 import glob
 import hashlib
 import random
+import subprocess
 import urllib.request
 from pathlib import Path
 from urllib.parse import urlparse, unquote, urljoin, quote
@@ -73,8 +74,12 @@ PAGES_PREFIX = os.environ.get("PAGES_PREFIX", "/")
 PAGES_PER_RUN_PER_CAT = int(os.environ.get("PAGES_PER_RUN_PER_CAT", "6"))
 # maintenance 模式下每天抽样复查的已抓文章数（检测新评论/内容更新）。
 RECHECK_PER_RUN = int(os.environ.get("RECHECK_PER_RUN", "200"))
-# 单轮运行渲染页面总数安全上限（防止意外失控）。
-MAX_PAGES_PER_RUN = int(os.environ.get("MAX_PAGES_PER_RUN", "400"))
+# 单轮运行渲染页面总数硬上限（列表页 + 文章页合计），防封 IP / 控 Actions 额度。
+# 实测 5 分类合计约 2.6 万篇，按 100/天约需大半年；可调大（如 200~300）提速。
+MAX_PAGES_PER_RUN = int(os.environ.get("MAX_PAGES_PER_RUN", "100"))
+# 每渲染多少页做一次「检查点提交」（commit + push 状态与新页面），
+# 使中途取消/崩溃也不丢进度、次日不重复爬。0 = 关闭检查点（仅跑完才提交）。
+CHECKPOINT_EVERY = int(os.environ.get("CHECKPOINT_EVERY", "10"))
 # 分类列表页连续「无新文章」达到此次数，判定该分类已抓完。
 CONSEC_MISS_LIMIT = int(os.environ.get("CONSEC_MISS_LIMIT", "3"))
 # 单分类列表页安全上限（防止死循环）。
@@ -510,6 +515,51 @@ def save_state(path: Path, state):
                     encoding="utf-8")
 
 
+# 检查点计数（模块级，供 save_page 闭包累加后触发 checkpoint）
+_pages_since_ckpt = 0
+
+
+def _git(*args):
+    """包装 git 调用；失败返回带 stderr 的 CompletedProcess（不抛异常）。"""
+    try:
+        return subprocess.run(["git", *args], capture_output=True, text=True,
+                              timeout=120)
+    except Exception as e:  # 超时 / git 不存在
+        return subprocess.CompletedProcess(args, 1, "", str(e))
+
+
+def checkpoint(state, note=""):
+    """把已爬进度（状态文件 + 新页面）提交并推送到 GitHub。
+
+    作用：即便本次运行被手动取消或崩溃，已提交的进度会保留，次日从断点继续、
+    不重复爬取。非 git 工作区（如本地无仓库）时仅落地状态文件、跳过提交。
+    """
+    global _pages_since_ckpt
+    _pages_since_ckpt = 0
+    try:
+        save_state(OUT_DIR / ".crawl-state.json", state)
+    except Exception as e:
+        print(f"::warning:: 状态保存失败: {e}", file=sys.stderr)
+    # 仅当处于 git 工作区才尝试提交
+    if _git("rev-parse", "--is-inside-work-tree").stdout.strip() != "true":
+        return
+    _git("add", "xianbao/")
+    if _git("diff", "--cached", "--quiet").returncode == 0:
+        return  # 无变更，无需提交
+    msg = (f"mirror checkpoint: {state['mode']} "
+           f"累计{len(state['crawled'])} 失效{len(state.get('dead', {}))} {note}").strip()
+    c = _git("commit", "-m", msg)
+    if c.returncode != 0:
+        print(f"::warning:: checkpoint 提交失败: {c.stderr[:200]}", file=sys.stderr)
+        return
+    # 与远端同步后再推送，避免非快进拒绝（不同步也尝试，失败留待下次 checkpoint）
+    _git("pull", "--rebase", "origin", "main")
+    p = _git("push", "origin", "main")
+    if p.returncode != 0:
+        print(f"::warning:: checkpoint 推送失败（下次重试）: {p.stderr[:200]}",
+              file=sys.stderr)
+
+
 # ---------------------------------------------------------------------------
 # 搜索索引 + 落地页
 # ---------------------------------------------------------------------------
@@ -784,6 +834,12 @@ def main():
                         else:
                             state["stats"]["pages"] += 1
                 pages_rendered += 1
+                # 检查点提交：每渲染 CHECKPOINT_EVERY 页就把进度推到 GitHub，
+                # 中途取消/崩溃也不丢进度，次日从断点继续（不重复爬）。
+                global _pages_since_ckpt
+                _pages_since_ckpt += 1
+                if CHECKPOINT_EVERY > 0 and _pages_since_ckpt >= CHECKPOINT_EVERY:
+                    checkpoint(state, path)
 
             def bfs_articles(seed_paths, label=""):
                 nonlocal pages_rendered
@@ -810,6 +866,7 @@ def main():
 
             if state["mode"] == "crawl":
                 new_articles = set()
+                cap_hit = False
                 for slug in ALLOWED_CATEGORIES:
                     if state["category_exhausted"][slug]:
                         continue
@@ -830,6 +887,11 @@ def main():
                                 break
                             continue
                         save_page(path, rendered, "list")
+                        # 总量上限：列表页也计入每日 MAX_PAGES_PER_RUN 配额
+                        if pages_rendered >= MAX_PAGES_PER_RUN:
+                            state["category_cursor"][slug] = n + 1
+                            cap_hit = True
+                            break
                         if CRAWL_DELAY_MS > 0:
                             time.sleep(CRAWL_DELAY_MS / 1000.0)
                         arts = discover_article_links(raw if raw else rendered, url)
@@ -844,7 +906,10 @@ def main():
                                 state["category_exhausted"][slug] = True
                                 print(f"==> 分类 {slug} 判定已抓完（连续无新文章）")
                                 break
-                    state["category_cursor"][slug] = end + 1
+                    if not cap_hit:
+                        state["category_cursor"][slug] = end + 1
+                    if cap_hit:
+                        break
                 # BFS 渲染新发现的文章
                 bfs_articles(new_articles, "crawl")
                 if all(state["category_exhausted"][s] for s in ALLOWED_CATEGORIES):

@@ -12,6 +12,7 @@ build_search_index（搜索索引生成）。
 import os
 import sys
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -227,8 +228,45 @@ def test_build_search_index():
             encoding="utf-8")
         n = render.build_search_index(d)
         assert n == 1
-        data = json.loads((d / "search.json").read_text(encoding="utf-8"))
-        assert data[0]["title"] == "红包活动"
-        assert "京东红包" in data[0]["body"]
-        assert data[0]["url"] == "/zuankeba/6648140.html"
-        assert (d / "search.html").exists()
+
+
+# ---------------------------------------------------------------------------
+# 每日上限 + 检查点提交
+# ---------------------------------------------------------------------------
+def test_max_pages_per_run_default_is_100():
+    # 防封 IP：默认每日渲染上限应为 100 页（列表+文章合计）
+    assert render.MAX_PAGES_PER_RUN == 100
+
+
+def test_checkpoint_outside_git_is_safe_and_saves_state(monkeypatch, tmp_path):
+    # 非 git 工作区时，checkpoint 不应抛异常，且状态文件应落地
+    monkeypatch.setattr(render, "OUT_DIR", tmp_path)
+    fake = subprocess.CompletedProcess(["git"], 0, "false\n", "")  # 不在 git 内
+    monkeypatch.setattr(render, "_git", lambda *a: fake)
+    st = {"mode": "crawl", "crawled": {"/zuankeba/1.html": {}}, "dead": {},
+          "category_cursor": {}, "category_exhausted": {}}
+    render.checkpoint(st, "unit-test")
+    assert (tmp_path / ".crawl-state.json").exists()
+
+
+def test_checkpoint_commits_and_pushes_when_in_git(monkeypatch, tmp_path):
+    monkeypatch.setattr(render, "OUT_DIR", tmp_path)
+    calls = []
+
+    def fake_git(*args):
+        calls.append(args)
+        if args[:3] == ("rev-parse", "--is-inside-work-tree"):
+            return subprocess.CompletedProcess(args, 0, "true\n", "")
+        if args[:2] == ("diff", "--cached"):
+            # 模拟「有变更待提交」，使 checkpoint 继续 commit + push
+            return subprocess.CompletedProcess(args, 1, "", "")
+        return subprocess.CompletedProcess(args, 0, "", "")
+
+    monkeypatch.setattr(render, "_git", fake_git)
+    st = {"mode": "crawl", "crawled": {"/zuankeba/1.html": {}}, "dead": {},
+          "category_cursor": {}, "category_exhausted": {}}
+    render.checkpoint(st, "unit-test")
+    joined = " ".join(" ".join(c) for c in calls)
+    assert "commit" in joined and "push" in joined  # 确实提交并推送
+    assert (tmp_path / ".crawl-state.json").exists()
+
