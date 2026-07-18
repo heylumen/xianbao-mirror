@@ -1,24 +1,23 @@
-name: 周级备份 · Release 归档
+name: 年度备份 · Release 归档
 
-# 每周一打包「当前仓库快照」为 GitHub Release（tag 形如 backup-YYYY-Www）。
-# 注意：本工作流【不再重新渲染】——镜像内容由每日 backup.yml 增量维护，
-# 这里只做周期性归档，避免重复全量爬取。
-# 恢复粒度 = 周级；历史保留 = 最近约 30 周（超出自动清理最老 Release）。
+# 每年1月1日打包「当前仓库快照」为 GitHub Release（tag 形如 backup-YYYY）。
+# 仅做归档，不重新渲染（镜像内容由每日 backup.yml 增量维护）。
+# 恢复粒度 = 年级；历史保留 = 最近 5 年（超出自动清理最老 Release）。
 
 on:
   schedule:
-    - cron: "0 18 * * 1"   # 北京时间每周一 02:00（UTC 周一 18:00）
+    - cron: "0 18 1 1 *"   # 北京时间每年1月1日 02:00（UTC 1月1日 18:00）
   workflow_dispatch: {}
 
 permissions:
   contents: write
 
 concurrency:
-  group: weekly-backup
+  group: yearly-backup
   cancel-in-progress: false
 
 jobs:
-  weekly-backup:
+  yearly-backup:
     runs-on: ubuntu-latest
     env:
       PAGES_PREFIX: "/"
@@ -32,15 +31,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="backup-$(TZ=Asia/Shanghai date +%G-W%V)"
+          TAG="backup-$(TZ=Asia/Shanghai date +%Y)"
           TS="$(TZ=Asia/Shanghai date +%F)"
-          ARCHIVE="${RUNNER_TEMP:-/tmp}/weekly-backup-${TAG}.tar.gz"
+          ARCHIVE="${RUNNER_TEMP:-/tmp}/yearly-backup-${TAG}.tar.gz"
           tar --exclude='.git' --exclude='__pycache__' --exclude='backups' \
               --exclude='*.pyc' --exclude='*.tar.gz' -czf "$ARCHIVE" .
           SIZE=$(stat -c%s "$ARCHIVE" 2>/dev/null || echo 0)
           LIMIT=$((450*1024*1024))
           if [ "$SIZE" -gt "$LIMIT" ]; then
             echo "归档体积 $((SIZE/1024/1024))MB 超过 ${LIMIT} 字节限制，改为仅打包代码与配置"
+            echo "（xianbao/ 镜像内容已完整留存于每日 git 提交历史，可由对应日期提交恢复）"
             tar --exclude='.git' --exclude='__pycache__' --exclude='backups' \
                 --exclude='xianbao' --exclude='*.pyc' --exclude='*.tar.gz' \
                 -czf "$ARCHIVE" .
@@ -50,7 +50,7 @@ jobs:
           git push origin ":refs/tags/$TAG" >/dev/null 2>&1 || true
           create_release() {
             gh release create "$TAG" "$ARCHIVE" \
-              --title "周级备份 ${TAG}（生成于 ${TS}）" \
+              --title "年度备份 ${TAG}（生成于 ${TS}）" \
               --notes "自动归档快照（tag=${TAG}）。
           生成时间（北京时间）：${TS}
           内容：mirror 抓取脚本、配置文件；xianbao/ 镜像内容随每日提交留存于 git 历史。
@@ -58,21 +58,21 @@ jobs:
           }
           n=0
           until create_release; do
-            n=$((n+1)); [ "$n" -ge 5 ] && { echo "::error:: 周级备份创建失败（已重试 $n 次）"; exit 1; }
+            n=$((n+1)); [ "$n" -ge 5 ] && { echo "::error:: 年度备份创建失败（已重试 $n 次）"; exit 1; }
             echo "创建遇冲突，等待后重试 ($n/5)..."
             sleep 10
           done
-          echo "周级备份已发布: $TAG"
+          echo "年度备份已发布: $TAG"
 
-      - name: 滚动清理超额老备份（仅本工作流标签，保留最近 30 周）
+      - name: 滚动清理超额老备份（仅本工作流标签，保留最近 5 年）
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          KEEP=30
+          KEEP=5
           gh release list --limit 100 --json tagName \
-            | jq -r '.[] | select(.tagName | test("^backup-[0-9]{4}-W")) | .tagName' \
+            | jq -r '.[] | select(.tagName | test("^backup-[0-9]{4}$")) | .tagName' \
             | sort | head -n -"$KEEP" | while read -r old; do
               echo "清理超额老备份: $old"
               gh release delete "$old" --yes --delete-tag 2>/dev/null || true
             done
-          echo "滚动清理完成（保留最近 ${KEEP} 周）"
+          echo "滚动清理完成（保留最近 ${KEEP} 年）"

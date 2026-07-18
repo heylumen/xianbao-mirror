@@ -38,7 +38,8 @@ REQ_FILE="$(dirname "$0")/requirements.txt"
 
 echo "==> 开始渲染镜像目标站点: $TARGET -> $OUT_DIR"
 
-rm -rf "$OUT_DIR"
+# 增量镜像：保留已有 xianbao/ 产物并累加（不删除），由 render.py 的状态文件
+# (.crawl-state.json) 驱动「每天抓一批、抓完转维护」的节奏。
 mkdir -p "$OUT_DIR"
 
 if ! "$PY" "$(dirname "$0")/render.py"; then
@@ -129,6 +130,42 @@ for p in pathlib.Path(out_dir).rglob("*"):
         p.write_text(html, encoding="utf-8")
         count += 1
 print(f"覆盖 CSS 链接已注入 {count} 个页面")
+PY
+
+# ---------------------------------------------------------------------------
+# 修复 4：注入「站内搜索」悬浮按钮（search.html 由 render.py 生成）
+# ---------------------------------------------------------------------------
+echo "==> 注入站内搜索悬浮按钮"
+OUT_DIR="$OUT_DIR" PREFIX="${PAGES_PREFIX:-/}" "$PY" - <<'PY'
+import os, pathlib, re
+out_dir = os.environ["OUT_DIR"]
+prefix = os.environ.get("PREFIX", "/").rstrip("/")
+style = (
+  '<style>.xianbao-search-fab{position:fixed;right:18px;bottom:18px;z-index:9999;'
+  'width:48px;height:48px;border-radius:50%;background:#1f4fd6;color:#fff;'
+  'display:flex;align-items:center;justify-content:center;font-size:22px;'
+  'text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,.25)}'
+  '.xianbao-search-fab:hover{background:#1640b0}</style>'
+)
+fab = '<a class="xianbao-search-fab" href="%s/search.html" title="站内搜索">🔍</a>' % prefix
+marker = "xianbao-search-fab"
+count = 0
+for p in pathlib.Path(out_dir).rglob("*"):
+    if p.suffix.lower() not in (".html", ".htm") or p.name == "search.html":
+        continue
+    try:
+        html = p.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        continue
+    if marker in html:
+        continue
+    m = re.search(r"</body>", html, re.I) or re.search(r"</html>", html, re.I)
+    if m is None:
+        continue
+    html = html[:m.start()] + style + fab + "\n" + html[m.start():]
+    p.write_text(html, encoding="utf-8")
+    count += 1
+print(f"搜索悬浮按钮已注入 {count} 个页面")
 PY
 
 # ---------------------------------------------------------------------------
