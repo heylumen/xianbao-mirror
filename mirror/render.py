@@ -36,11 +36,12 @@ import hashlib
 import random
 import urllib.request
 from pathlib import Path
-from urllib.parse import urlparse, unquote, urljoin
+from urllib.parse import urlparse, unquote, urljoin, quote
 from collections import deque
 
 from bs4 import BeautifulSoup, Doctype, NavigableString
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+_ur = urllib.request  # 补全下载用的 urllib 别名
 
 # ---------------------------------------------------------------------------
 # 配置
@@ -78,6 +79,11 @@ MAX_PAGES_PER_RUN = int(os.environ.get("MAX_PAGES_PER_RUN", "400"))
 CONSEC_MISS_LIMIT = int(os.environ.get("CONSEC_MISS_LIMIT", "3"))
 # 单分类列表页安全上限（防止死循环）。
 MAX_CAT_PAGES = int(os.environ.get("MAX_CAT_PAGES", "5000"))
+
+# 失效地址（永久 404/410）记录：达到阈值后下次不再爬取，减少原站负担与暴露面。
+DEAD_FAIL_LIMIT = int(os.environ.get("DEAD_FAIL_LIMIT", "2"))
+# 失效记录的存活周期（天）：到期后再试一次（应对源站临时恢复）。0 = 永不过期。
+DEAD_TTL_DAYS = int(os.environ.get("DEAD_TTL_DAYS", "90"))
 
 NAV_TIMEOUT_MS = int(os.environ.get("NAV_TIMEOUT_MS", "30000"))
 CRAWL_DELAY_MS = int(os.environ.get("CRAWL_DELAY_MS", "200"))
@@ -186,6 +192,20 @@ def url_to_local(url: str):
 def is_asset_path(path: str) -> bool:
     ext = os.path.splitext(path)[1].lower()
     return ext in ASSET_EXT
+
+
+def _encode_url(absu: str) -> str:
+    """对非 ASCII / 空格路径做百分号编码，避免 urllib 抛 ascii/控制字符错误
+    （日志里大量 'ascii' codec can't encode / URL can't contain control characters）。"""
+    try:
+        p = urlparse(absu)
+        if not p.netloc:
+            return absu
+        enc_path = quote(p.path, safe="/%@")
+        enc_query = quote(p.query, safe="=&%@")
+        return p._replace(path=enc_path, query=enc_query).geturl()
+    except Exception:
+        return absu
 
 
 def is_allowed(url: str) -> bool:
@@ -416,6 +436,31 @@ def _now():
     return time.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
+def _now_ts():
+    return int(time.time())
+
+
+def is_dead(state, path):
+    """path 是否已被记录为永久失效（且在存活期内）。"""
+    rec = (state or {}).get("dead", {}).get(path)
+    if not rec:
+        return False
+    if DEAD_TTL_DAYS > 0 and (time.time() - rec.get("ts", 0)) > DEAD_TTL_DAYS * 86400:
+        return False  # 到期后允许再试一次
+    return True
+
+
+def record_dead(state, path, reason, permanent=True):
+    """记录一次永久失效。累计达到 DEAD_FAIL_LIMIT 后该地址即被视为 dead。"""
+    d = state.setdefault("dead", {})
+    rec = d.get(path) or {"reason": reason, "fails": 0, "ts": 0, "permanent": True}
+    rec["fails"] = rec.get("fails", 0) + 1
+    rec["reason"] = reason
+    rec["ts"] = _now_ts()
+    rec["permanent"] = permanent
+    d[path] = rec
+
+
 def default_state():
     return {
         "version": 2,
@@ -426,6 +471,8 @@ def default_state():
         "category_exhausted": {s: False for s in ALLOWED_CATEGORIES},
         "category_miss": {s: 0 for s in ALLOWED_CATEGORIES},
         "crawled": {},          # path -> {hash, local, last_check}
+        "dead": {},             # path -> {reason, fails, ts, permanent} 永久失效页（不再爬）
+        "dead_assets": {},      # 绝对URL -> {reason, ts} 永久失效资源（不再补）
         "recheck_idx": 0,
         "completed_at": None,
         "stats": {"pages": 0, "articles": 0, "rechecks": 0, "updated": 0},
@@ -575,13 +622,16 @@ a{{color:#1f4fd6;text-decoration:none}}a:hover{{text-decoration:underline}}
 # ---------------------------------------------------------------------------
 # 渲染页面（单页）
 # ---------------------------------------------------------------------------
-def render_page(page, url: str, path: str, raw_docs: dict):
-    """导航并渲染单页，返回 (ok, rendered_html, raw_html)。"""
+def render_page(page, url: str, path: str, raw_docs: dict, state=None):
+    """导航并渲染单页，返回 (ok, rendered_html, raw_html)。
+    若响应为永久失效（404/410），记录到 state.dead 并跳过，下次不再爬取。"""
+    _status = None
     _nav_ok = False
     for _attempt in range(3):
         try:
-            page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
+            _resp = page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
             _nav_ok = True
+            _status = _resp.status if _resp is not None else None
             break
         except PWTimeout:
             print(f"::warning:: 导航超时（第 {_attempt+1}/3 次）{url}", file=sys.stderr)
@@ -590,6 +640,10 @@ def render_page(page, url: str, path: str, raw_docs: dict):
         if _attempt < 2:
             time.sleep(2 ** _attempt)
     if not _nav_ok:
+        return (False, None, None)
+    if _status in (404, 410) and state is not None:
+        record_dead(state, path, f"HTTP {_status}", permanent=True)
+        print(f"==> 永久失效（{_status}），已记录跳过：{url}")
         return (False, None, None)
 
     local = url_to_local(url)
@@ -737,11 +791,11 @@ def main():
                 seen = set(state["crawled"].keys())
                 while queue and pages_rendered < MAX_PAGES_PER_RUN:
                     path = queue.popleft()
-                    if path in seen or path in state["crawled"]:
+                    if path in seen or path in state["crawled"] or is_dead(state, path):
                         continue
                     seen.add(path)
                     url = TARGET + path
-                    ok, rendered, raw = render_page(page, url, path, raw_docs)
+                    ok, rendered, raw = render_page(page, url, path, raw_docs, state)
                     if not ok:
                         continue
                     save_page(path, rendered, "article")
@@ -750,7 +804,8 @@ def main():
                     found = discover_article_links(raw if raw else rendered, url)
                     for a in found:
                         ap = urlparse(a).path
-                        if ap not in seen and ap not in state["crawled"]:
+                        if (ap not in seen and ap not in state["crawled"]
+                                and not is_dead(state, ap)):
                             queue.append(ap)
 
             if state["mode"] == "crawl":
@@ -766,7 +821,7 @@ def main():
                             break
                         path = f"/category-{slug}/" if n == 1 else f"/category-{slug}/{n}/"
                         url = TARGET + path
-                        ok, rendered, raw = render_page(page, url, path, raw_docs)
+                        ok, rendered, raw = render_page(page, url, path, raw_docs, state)
                         if not ok:
                             state["category_miss"][slug] += 1
                             if state["category_miss"][slug] >= CONSEC_MISS_LIMIT:
@@ -802,7 +857,7 @@ def main():
                 for slug in ALLOWED_CATEGORIES:
                     path = f"/category-{slug}/"
                     url = TARGET + path
-                    ok, rendered, raw = render_page(page, url, path, raw_docs)
+                    ok, rendered, raw = render_page(page, url, path, raw_docs, state)
                     if not ok:
                         continue
                     save_page(path, rendered, "list")
@@ -826,7 +881,7 @@ def main():
                     state["recheck_idx"] = (idx + RECHECK_PER_RUN) % len(paths)
                     for path in sample:
                         url = TARGET + path
-                        ok, rendered, raw = render_page(page, url, path, raw_docs)
+                        ok, rendered, raw = render_page(page, url, path, raw_docs, state)
                         if not ok:
                             continue
                         save_page(path, rendered, "recheck")
@@ -841,7 +896,7 @@ def main():
     build_hub(OUT_DIR)
 
     # 后处理：补全缺失资源 + 剥离注入/分析脚本
-    fill_missing({})
+    fill_missing(state)
     stripped = strip_injection_scripts(set())
     stripped_analytics = strip_analytics_scripts()
 
@@ -868,6 +923,8 @@ def main():
         "stats": state["stats"],
         "stripped_scripts": stripped,
         "stripped_analytics": stripped_analytics,
+        "dead_pages": len(state.get("dead", {})),
+        "dead_assets": len(state.get("dead_assets", {})),
         "html_count": _html_count,
     }
     (OUT_DIR / ".mirror-meta.json").write_text(
@@ -875,6 +932,7 @@ def main():
 
     print(f"==> 渲染完成：本轮渲染 {pages_rendered} 页，已抓总计 {len(state['crawled'])} 个，"
           f"搜索索引 {n_idx} 条，模式={state['mode']}，"
+          f"失效页记录 {len(state.get('dead', {}))} 个 / 失效资源 {len(state.get('dead_assets', {}))} 个，"
           f"HTML 校验 {_html_count} 个，输出目录 {OUT_DIR}")
 
 
@@ -883,10 +941,14 @@ def _is_relative_ref(ref):
                                 "javascript:", "mailto:", "tel:", "#"))
 
 
-def fill_missing(raw_url_map=None):
-    """扫描已保存文件中所有站内引用，下载 Playwright 未捕获的缺失资源。"""
+def fill_missing(state=None, raw_url_map=None):
+    """扫描已保存文件中所有「站内资源」引用，下载 Playwright 未捕获的缺失资源。
+    仅补全资源（CSS/JS/图片/字体等），不抓取页面（页面由主爬虫负责，且可避免误抓
+    /record/<用户>.html 等 404 噪声与中文/空格路径崩溃）。对永久失效（404/410）的资源
+    记录到 state.dead_assets，下次不再重试。"""
     if raw_url_map is None:
         raw_url_map = {}
+    dead_assets = (state or {}).get("dead_assets", {}) or {}
     refs = set()
     files = (glob.glob(str(OUT_DIR / "**" / "*.html"), recursive=True)
              + glob.glob(str(OUT_DIR / "**" / "*.css"), recursive=True)
@@ -922,6 +984,7 @@ def fill_missing(raw_url_map=None):
     ctx = ssl.create_default_context()
     req_hd = {"User-Agent": USER_AGENT, "Accept-Language": "zh-CN,zh;q=0.9"}
     count = 0
+    skipped_dead = 0
     for ref in refs:
         if ref.startswith(PAGES_PREFIX):
             ref = ref[len(PAGES_PREFIX):]
@@ -941,22 +1004,39 @@ def fill_missing(raw_url_map=None):
         else:
             continue
         absu = absu.split("#")[0]
+        # 仅补全资源（非页面），避免误抓 /record/<用户>.html 等 404 个人主页
+        if not is_asset_path(urlparse(absu).path):
+            continue
+        if absu in dead_assets:
+            skipped_dead += 1
+            continue  # 已记录失效，不再重试
         local = url_to_local(absu)
         if not local or (OUT_DIR / local).exists():
             continue
         body = None
         ctype = ""
+        req_url = _encode_url(absu)  # 处理中文/空格路径，避免 ascii/控制字符错误
         for _attempt in range(3):
             try:
-                req = _ur.Request(absu, headers=req_hd)
+                req = _ur.Request(req_url, headers=req_hd)
                 with _ur.urlopen(req, timeout=30, context=ctx) as r:
                     body = r.read()
                 ctype = r.headers.get("content-type", "")
                 break
+            except _ur.HTTPError as he:
+                if he.code in (404, 410):
+                    if state is not None:
+                        state.setdefault("dead_assets", {})[absu] = {
+                            "reason": f"HTTP {he.code}", "ts": _now_ts()}
+                    print(f"::warning:: 资源永久失效（{he.code}），已记录跳过：{absu}",
+                          file=sys.stderr)
+                    break
+                print(f"::warning:: 补全下载失败（第 {_attempt+1}/3 次）{absu}: HTTP {he.code}",
+                      file=sys.stderr)
             except Exception as e:
                 print(f"::warning:: 补全下载失败（第 {_attempt+1}/3 次）{absu}: {e}", file=sys.stderr)
-                if _attempt < 2:
-                    time.sleep(2 ** _attempt)
+            if _attempt < 2:
+                time.sleep(2 ** _attempt)
         if body is None:
             continue
         outp = OUT_DIR / local
@@ -968,6 +1048,8 @@ def fill_missing(raw_url_map=None):
         count += 1
     if count:
         print(f"  [fill] 补全资源 {count} 个")
+    if skipped_dead:
+        print(f"  [fill] 跳过已记录失效资源 {skipped_dead} 个")
     return count
 
 
