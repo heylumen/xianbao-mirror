@@ -3162,7 +3162,24 @@
       "permanent": true
     }
   },
-  "dead_assets": {},
+  "dead_assets": {
+    "https://new.ixbk.fun/lib/xianbao-override.css": {
+      "reason": "HTTP 404",
+      "ts": 1784395113
+    },
+    "https://new.ixbk.fun/zb_users/theme/xianbao_theme/image/cateicon/smzdm.png": {
+      "reason": "HTTP 404",
+      "ts": 1784395122
+    },
+    "https://new.ixbk.fun/zb_users/theme/xianbao_theme/image/expression/$1.png": {
+      "reason": "HTTP 404",
+      "ts": 1784395134
+    },
+    "https://new.ixbk.fun/zb_users/theme/xianbao_theme/image/cateicon/15.png": {
+      "reason": "HTTP 404",
+      "ts": 1784395159
+    }
+  },
   "recheck_idx": 0,
   "completed_at": null,
   "stats": {

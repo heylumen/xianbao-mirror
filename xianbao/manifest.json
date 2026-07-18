@@ -1,0 +1,42 @@
+{
+  "short_name": "线报酷",
+  "name": "线报酷",
+  "description": "线报酷是一个专业分享各类生活优惠、游玩优惠、好价商品、促销分析、优惠秒杀等为一体的综合类线报平台。",
+  "icons": [
+    {
+      "src": "/zb_users/theme/xianbao_theme/image/iosicon/icon-64.png",
+      "type": "image/png",
+      "sizes": "64x64"
+    },{
+      "src": "/zb_users/theme/xianbao_theme/image/iosicon/icon-120.png",
+      "type": "image/png",
+      "sizes": "120x120"
+    },{
+      "src": "/zb_users/theme/xianbao_theme/image/iosicon/icon-144.png",
+      "type": "image/png",
+      "sizes": "144x144"
+    },{
+      "src": "/zb_users/theme/xianbao_theme/image/iosicon/icon-152.png",
+      "type": "image/png",
+      "sizes": "152x152"
+    },{
+      "src": "/zb_users/theme/xianbao_theme/image/iosicon/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },{
+      "src": "/zb_users/theme/xianbao_theme/image/iosicon/icon-384.png",
+      "type": "image/png",
+      "sizes": "384x384"
+    },
+    {
+      "src": "/zb_users/theme/xianbao_theme/image/iosicon/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#ffffff"
+}
