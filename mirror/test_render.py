@@ -165,6 +165,51 @@ def test_content_signature_differs_on_content_change():
 
 
 # ---------------------------------------------------------------------------
+# 失效地址（dead）记录 —— 减少原站负担与暴露面
+# ---------------------------------------------------------------------------
+def test_record_and_is_dead():
+    st = {"dead": {}}
+    assert not render.is_dead(st, "/zuankeba/1.html")
+    render.record_dead(st, "/zuankeba/1.html", "HTTP 404")
+    assert render.is_dead(st, "/zuankeba/1.html")
+    assert not render.is_dead(st, "/xiaodao/2.html")  # 其他地址不受影响
+
+
+def test_dead_ttl_expiry(monkeypatch):
+    st = {"dead": {}}
+    render.record_dead(st, "/zuankeba/1.html", "HTTP 404")
+    # 模拟远未来（远超 90 天 TTL），应过期允许重试
+    monkeypatch.setattr(render.time, "time", lambda: 10 ** 12)
+    assert not render.is_dead(st, "/zuankeba/1.html")
+
+
+def test_record_dead_keeps_fails_count():
+    st = {"dead": {}}
+    render.record_dead(st, "/x.html", "HTTP 404")
+    render.record_dead(st, "/x.html", "HTTP 404")
+    assert st["dead"]["/x.html"]["fails"] == 2
+
+
+# ---------------------------------------------------------------------------
+# _encode_url —— 非 ASCII / 空格路径编码
+# ---------------------------------------------------------------------------
+def test_encode_url_chinese():
+    out = render._encode_url("https://new.xianbao.fun/record/weibo/用户8018815048.html")
+    assert "%" in out
+    assert "用户" not in out  # 已编码
+
+
+def test_encode_url_space():
+    out = render._encode_url("https://new.xianbao.fun/record/douban-pinzu/momo (健康版）.html")
+    assert "%20" in out or "%EF" in out  # 空格/全角符号已编码
+
+
+def test_encode_url_plain():
+    out = render._encode_url("https://new.xianbao.fun/zb_users/1.css")
+    assert out == "https://new.xianbao.fun/zb_users/1.css"
+
+
+# ---------------------------------------------------------------------------
 # build_search_index —— 搜索索引生成
 # ---------------------------------------------------------------------------
 def test_build_search_index():
