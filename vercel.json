@@ -1,0 +1,7 @@
+{
+  "buildCommand": "echo 'xianbao/ 由 GitHub Actions 预渲染并提交，Vercel 直接发布该静态产物，无需在 Vercel 侧执行 Playwright'",
+  "outputDirectory": "xianbao",
+  "github": {
+    "silent": true
+  }
+}

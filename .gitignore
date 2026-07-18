@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# 每日镜像产物由 backup.yml 提交 xianbao/ 供发布；历史归档改为周级 Release
+# （weekly-backup.yml），不将每日快照写入 git 历史的 backups/ 目录。
+/backups/
+
+# .mirror-meta.json 含 generated_at 等每日变化字段，发布无需该元数据，留 git 仅产生 diff 噪音。
+xianbao/.mirror-meta.json

@@ -1,0 +1,72 @@
+name: 网站镜像 · 每日渲染
+
+on:
+  schedule:
+    # 北京时间每天 03:30 触发（UTC+8 对应 UTC 19:30）。
+    - cron: "30 19 * * *"
+  workflow_dispatch: {}   # 允许在 Actions 页面手动触发，便于首次验证
+
+# Vercel / Netlify 通过 Git 集成读取提交的 xianbao/ 目录直接发布，
+# 无需在 GitHub Actions 中部署，故只需 contents: write 提交镜像产物。
+permissions:
+  contents: write
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  mirror-backup:
+    runs-on: ubuntu-latest
+    # 部署到 Vercel / Netlify 等根域名，链接需改写为 /... 而非 /<repo>/...
+    env:
+      PAGES_PREFIX: "/"
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 配置 Git 身份
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: mirror/requirements.txt
+
+      - name: 缓存 Playwright 浏览器
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: "安装依赖（锁定版本）"
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mirror/requirements.txt
+          playwright install --with-deps chromium
+
+      - name: "单元测试（渲染核心函数回归门禁）"
+        run: python -m pytest mirror/test_render.py -q
+
+      - name: 执行网站渲染镜像（Playwright，输出到 xianbao/）
+        run: bash mirror/mirror.sh
+
+      - name: 提交镜像产物（xianbao/ 供 Vercel/Netlify 发布）
+        run: |
+          git rm --cached xianbao/.mirror-meta.json 2>/dev/null || true
+          git add xianbao/
+          if git diff --cached --quiet; then
+            echo "无变更，跳过提交"
+          else
+            DATE=$(TZ=Asia/Shanghai date +%F)
+            git commit -m "mirror: $DATE"
+            git pull --rebase origin main
+            git push
+          fi
