@@ -266,6 +266,27 @@ def test_rewrite_html_neutralizes_title_external_link():
     assert 'href="/xiaodigu/123.html"' in out  # 本地相对链接保留
 
 
+def test_rewrite_html_strips_domain_lock_redirect_script():
+    # 源站 hex 混淆的「域名锁定」脚本：检测 hostname 不在官方域名列表就跳回源站。
+    # 镜像站加载该脚本会把访客甩回 new.xianbao.fun，必须删除（这是之前“点帖子跳源站”
+    # 的真正根因——页面加载即 JS 重定向，而非 <a href> 问题）。
+    lock = (
+        '<script>if (!["\\x6e\\x65\\x77\\x2e\\x78\\x69\\x61\\x6e\\x62\\x61\\x6f\\x2e\\x66\\x75\\x6e"]'
+        '.includes(window["\\x6c\\x6f\\x63\\x61\\x74\\x69\\x6f\\x6e"]'
+        '["\\x68\\x6f\\x73\\x74\\x6e\\x61\\x6d\\x65"]))'
+        ' { window["\\x6c\\x6f\\x63\\x61\\x74\\x69\\x6f\\x6e"]'
+        '["\\x68\\x72\\x65\\x66"]'
+        ' = "\\x68\\x74\\x74\\x70\\x3a\\x2f\\x2f\\x6e\\x65\\x77\\x2e\\x78\\x69\\x61\\x6e\\x62\\x61\\x6f\\x2e\\x66\\x75\\x6e"; }</script>'
+    )
+    out = render.rewrite_html(lock + "<p>正文</p>")
+    assert "new.xianbao.fun" not in out        # 源站域名已移除
+    assert "location" not in out               # 整段脚本被删除
+    assert "<script>" not in out               # 内联脚本块被剥离
+    assert "正文" in out                        # 正文保留
+    # 普通内联脚本不受影响
+    html2 = '<script>console.log("hello")</script><p>ok</p>'
+    assert "console.log" in render.rewrite_html(html2)
+
 
 # ---------------------------------------------------------------------------
 # discover_article_links —— 仅文章链接
