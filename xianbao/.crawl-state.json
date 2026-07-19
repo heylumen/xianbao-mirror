@@ -31,11 +31,6 @@
     "xiaodao": 3
   },
   "pending": [
-    "/xiaodigu/6412068.html",
-    "/xiaodigu/6412075.html",
-    "/xiaodigu/6412077.html",
-    "/xiaodigu/6412157.html",
-    "/xiaodigu/6412188.html",
     "/xiaodigu/6412198.html",
     "/xiaodigu/6412247.html",
     "/xiaodigu/6412250.html",
@@ -4152,11 +4147,6 @@
     "/xiaodigu/6659093.html",
     "/xiaodigu/6659371.html",
     "/xiaodigu/6659794.html",
-    "/xinzuanba/308075.html",
-    "/xinzuanba/308076.html",
-    "/xinzuanba/308077.html",
-    "/xinzuanba/308078.html",
-    "/xinzuanba/308079.html",
     "/xinzuanba/308080.html",
     "/xinzuanba/308081.html",
     "/xinzuanba/308082.html",
@@ -6884,11 +6874,6 @@
     "/xinzuanba/6657830.html",
     "/xinzuanba/6658690.html",
     "/xinzuanba/6659576.html",
-    "/zuankeba/6512318.html",
-    "/zuankeba/6512324.html",
-    "/zuankeba/6512380.html",
-    "/zuankeba/6512451.html",
-    "/zuankeba/6512456.html",
     "/zuankeba/6512503.html",
     "/zuankeba/6512515.html",
     "/zuankeba/6512575.html",
@@ -16807,6 +16792,56 @@
       "hash": "56132e5c7d270bda469985664aa7b1f8d4e23db9095564a3715a6449240966d3",
       "local": "xiaodigu/6412057.html",
       "last_check": "2026-07-19T16:00:56+0000"
+    },
+    "/zuankeba/6512318.html": {
+      "hash": "dfa505c1d3bbda164b6a9672968425845a4ccc177f417b6ca49696e77047fc5b",
+      "local": "zuankeba/6512318.html",
+      "last_check": "2026-07-19T16:01:03+0000"
+    },
+    "/xiaodigu/6412068.html": {
+      "hash": "078a41afad16114687a6f6827df109ab1f864bceb68cfceb3edaca33a19b2b5f",
+      "local": "xiaodigu/6412068.html",
+      "last_check": "2026-07-19T16:01:09+0000"
+    },
+    "/zuankeba/6512324.html": {
+      "hash": "47c44839cd9f26695ee38f2cbe2aaebcc345ff8d97e39a43bb90a78209155f65",
+      "local": "zuankeba/6512324.html",
+      "last_check": "2026-07-19T16:01:19+0000"
+    },
+    "/xiaodigu/6412075.html": {
+      "hash": "e134e9ab766341447ca413cd30f4d56b89aafb59baaca03cc207b07e50234636",
+      "local": "xiaodigu/6412075.html",
+      "last_check": "2026-07-19T16:01:25+0000"
+    },
+    "/zuankeba/6512380.html": {
+      "hash": "4d3becafcd20cb9d26e5df043a7b5bb552b4e5d28dfc3ff29e2b824faa379359",
+      "local": "zuankeba/6512380.html",
+      "last_check": "2026-07-19T16:01:35+0000"
+    },
+    "/xiaodigu/6412077.html": {
+      "hash": "a9c34c50c72ddfbc07da3a9332b29542c02d304b8bccff91fa83e52bb537f4bc",
+      "local": "xiaodigu/6412077.html",
+      "last_check": "2026-07-19T16:01:42+0000"
+    },
+    "/zuankeba/6512451.html": {
+      "hash": "0d0a8ac42ebf31cb2797024e7577c6f25264f6c9ffea7ae6c67c1a61e8f7c199",
+      "local": "zuankeba/6512451.html",
+      "last_check": "2026-07-19T16:01:50+0000"
+    },
+    "/xiaodigu/6412157.html": {
+      "hash": "c3b1079723d2168d8a385547b90743c2b7982bec696a92c4e2a36098802e778d",
+      "local": "xiaodigu/6412157.html",
+      "last_check": "2026-07-19T16:01:55+0000"
+    },
+    "/zuankeba/6512456.html": {
+      "hash": "3ed2c6323318070af99ffa1d7df7815ee504542ca4204ca29dbe7eb55b8aba9d",
+      "local": "zuankeba/6512456.html",
+      "last_check": "2026-07-19T16:02:06+0000"
+    },
+    "/xiaodigu/6412188.html": {
+      "hash": "405dd92b6f209f7840b035a84f8a3dbc1dcefae8d1a7327fb1fb86694689f614",
+      "local": "xiaodigu/6412188.html",
+      "last_check": "2026-07-19T16:02:12+0000"
     }
   },
   "dead": {
@@ -16989,6 +17024,36 @@
       "fails": 1,
       "ts": 1784476842,
       "permanent": true
+    },
+    "/xinzuanba/308075.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784476858,
+      "permanent": true
+    },
+    "/xinzuanba/308076.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784476872,
+      "permanent": true
+    },
+    "/xinzuanba/308077.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784476886,
+      "permanent": true
+    },
+    "/xinzuanba/308078.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784476903,
+      "permanent": true
+    },
+    "/xinzuanba/308079.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784476917,
+      "permanent": true
     }
   },
   "dead_assets": {
@@ -17021,7 +17086,7 @@
   "completed_at": null,
   "stats": {
     "pages": 112,
-    "articles": 1279,
+    "articles": 1289,
     "rechecks": 0,
     "updated": 0
   }
