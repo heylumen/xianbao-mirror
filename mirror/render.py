@@ -462,13 +462,11 @@ def _build_article_nav(active_cat: str):
                  '<a href="/category-' + c + '/">' + CAT_LABELS[c] + '</a></li>')
     frag += (
         '</ul></div></nav>'
-        '<a class="dark-mode fr" href="javascript:switchNightMode()" target="_self" title="浅色模式">'
-        '<i class="iconfont icon-moon"></i><span class="xianbao-nav-text">浅色</span></a>'
-        '<span class="search-button fr" id="search-button" '
-        'onclick="var a=document.getElementById(\'search-area\');'
-        'if(a){a.style.display=a.style.display===\'block\'?\'none\':\'block\';}">'
-        '<i class="iconfont icon-search"></i><span class="xianbao-nav-text">搜索</span></span>'
-        '<div class="container br sb animated-fast fadeInUpMenu" id="search-area" style="display:none;">'
+        '<a class="dark-mode fr" href="javascript:switchNightMode()" target="_self" title="浅色/暗色模式">'
+        '<i class="iconfont icon-moon"></i></a>'
+        '<span class="search-button fr" id="search-button" title="搜索">'
+        '<i class="iconfont icon-search"></i></span>'
+        '<div class="container br sb animated-fast fadeInUpMenu hidden" id="search-area" style="display:none;">'
         '<form action="/search.html" class="searchform clearfix" method="get" name="search">'
         '<input autofocus="autofocus" class="s-input br fl" name="q" placeholder="请输入关键词..." type="text"/>'
         '<button class="s-button fr br transition brightness" id="searchsubmit" type="submit">搜 索</button>'
@@ -614,6 +612,7 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 "})();"
             )
             body.append(script)
+            _inject_nav_tools(soup)
     return str(soup)
 
 
@@ -679,7 +678,8 @@ def inject_dark_mode_sync(soup: BeautifulSoup) -> None:
     head.insert(0, Comment("xianbao-darkmode-sync"))
     sync = BeautifulSoup(
         '<script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);'
-        'if(m&&decodeURIComponent(m[1])==="1")document.documentElement.classList.add("night");'
+        'if(m&&decodeURIComponent(m[1])==="1"){document.documentElement.classList.add("night");'
+        'if(document.body)document.body.classList.add("night");}'
         '}catch(e){}})();</script>',
         "html.parser",
     )
@@ -692,7 +692,10 @@ def inject_dark_mode_sync(soup: BeautifulSoup) -> None:
         ):
             body.append(Comment("xianbao-darkmode-override"))
             override = BeautifulSoup(
-                '<script>function switchNightMode(){'
+                '<script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);'
+                'if(m&&decodeURIComponent(m[1])==="1"&&document.body)document.body.classList.add("night");'
+                '}catch(e){}})();'
+                'function switchNightMode(){'
                 'var m=document.cookie.match(/(?:^|; )night=([^;]*)/),'
                 'night=(m&&decodeURIComponent(m[1])==="1")?"1":"0",'
                 'next=night==="1"?"0":"1",d=new Date();'
@@ -1487,6 +1490,7 @@ def build_search_page(out_dir: Path, items: list) -> None:
     _sanitize_local_links(soup, out_dir)
     _prune_nav(soup, is_home=False)
     _remove_footer(soup)
+    _inject_nav_tools(soup)
     (out_dir / "search.html").write_text(str(soup), encoding="utf-8")
 
 
@@ -1917,6 +1921,13 @@ def _prune_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
     # 移除头部登录 / 用户中心图标（无后台、点击无效、暴露源站）
     for el in soup.select(".login.fr, .login"):
         el.decompose()
+    # 给首页/分类/搜索页头部按钮补 title 提示，与文章页保持一致
+    for el in soup.select(".header .dark-mode"):
+        if not el.get("title"):
+            el["title"] = "浅色/暗色模式"
+    for el in soup.select(".header .search-button, .header #search-button"):
+        if not el.get("title"):
+            el["title"] = "搜索"
     # 移除页脚「关于本站」块（保留「联系我们 / 关注我们」）
     for el in soup.select(".f-about"):
         el.decompose()
@@ -1941,6 +1952,35 @@ def _home_breadcrumb(soup) -> None:
         mbx.clear()
         if first_a:
             mbx.append(first_a)
+
+
+def _inject_nav_tools(soup: BeautifulSoup) -> None:
+    """注入移动端菜单与搜索按钮的自包含交互脚本。源站 common.js 被剥离后，
+    .m-nav-btn 与 #search-button 需要额外事件才能工作。幂等。"""
+    body = soup.body
+    if body is None:
+        return
+    if body.find("script", id="xianbao-nav-tools"):
+        return
+    script = soup.new_tag("script", id="xianbao-nav-tools")
+    script.string = (
+        "(function(){"
+        "function t(){var a=document.getElementById('search-area');"
+        "if(!a)return;var h=a.classList.contains('hidden');"
+        "var d=a.style.display==='none'||window.getComputedStyle(a).display==='none';"
+        "if(h||d){a.classList.remove('hidden');a.style.display='block';}"
+        "else{a.classList.add('hidden');a.style.display='none';}}"
+        "function m(){var n=document.querySelector('.responsive-nav');"
+        "var i=document.querySelector('.m-nav-btn i.iconfont');if(!n)return;"
+        "var o=n.style.display==='block';n.style.display=o?'none':'block';"
+        "if(i)i.classList.toggle('active',!o);}"
+        "var b=document.querySelector('.m-nav-btn');"
+        "if(b)b.addEventListener('click',m);"
+        "var s=document.getElementById('search-button');"
+        "if(s)s.addEventListener('click',t);"
+        "})();"
+    )
+    body.append(script)
 
 
 def _ensure_body_class(soup, cls: str) -> None:
@@ -1990,6 +2030,7 @@ def rebuild_category_page(
     if _aside:
         _aside.decompose()
     _ensure_body_class(soup, "xianbao-list")
+    _inject_nav_tools(soup)
     out_path.write_text(str(soup), encoding="utf-8")
 
 
