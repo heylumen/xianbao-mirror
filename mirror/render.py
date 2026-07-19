@@ -124,6 +124,26 @@ def strip_domain_lock_script(html: str) -> str:
     return re.sub(r"<script[^>]*>(.*?)</script>", _repl, html, flags=re.S)
 
 
+def strip_source_addr(html: str) -> str:
+    """外科手术式删除「原文地址：/ 阅读原文 / 查看原文」整行（<div>/<p> 包裹的
+    ``<strong>`` + 源站链接）。对镜像无意义且暴露源站，用户要求删除。仅删除匹配块、
+    不影响文档其余字节（无 favicon / analytics 漂移）。用于已提交 HTML 的就地清理。"""
+    html = re.sub(
+        r'<div[^>]*>\s*<strong[^>]*>\s*(?:原文地址|阅读原文|查看原文)[^<]*</strong>.*?</div>',
+        '', html, flags=re.S)
+    html = re.sub(
+        r'<p[^>]*>\s*<strong[^>]*>\s*(?:原文地址|阅读原文|查看原文)[^<]*</strong>.*?</p>',
+        '', html, flags=re.S)
+    return html
+
+
+def strip_breadcrumb_icon(html: str) -> str:
+    """外科手术式把面包屑分隔符 ``<i class="iconfont icon-right"></i>`` 替换为文本
+    「 › 」，避免依赖外部 iconfont CDN（at.alicdn.com）导致分隔符不显示、面包屑挤成
+    「首页赚客吧文章正文」一团。用于已提交 HTML 的就地清理。"""
+    return re.sub(r'<i[^>]*class="[^"]*icon-right[^"]*"[^>]*>\s*</i>', ' › ', html)
+
+
 def forum_thread_to_local(url: str, cat_slug: str = None):
     """v1.xianbao.net/thread-TID-页-序号.html -> /{cat_slug}/TID.html（门户本地路径）。
     非论坛帖子链接返回 None。cat_slug 缺省时回退 DEFAULT_THREAD_SLUG。"""
@@ -554,6 +574,23 @@ def rewrite_html(html: str, cat_slug: str = None) -> str:
             continue
         if _looks_like_domain_lock(_s.get_text() or ""):
             _s.decompose()
+    # 删除帖子正文里的「原文地址：」行（源站原文链接，镜像无意义且暴露源站，用户要求
+    # 删除）。定位含「原文地址/阅读原文/查看原文」的 <strong>，删除其块级父容器（整行）。
+    _addr_blks = []
+    for _strong in soup.find_all("strong"):
+        _st = _strong.get_text(strip=True)
+        if any(_m in _st for _m in ("原文地址", "阅读原文", "查看原文")):
+            _blk = _strong
+            while _blk is not None and _blk.name not in ("div", "p", "li", "tr", "section", "article"):
+                _blk = _blk.parent
+            if _blk is not None:
+                _addr_blks.append(_blk)
+    for _blk in _addr_blks:
+        _blk.decompose()
+    # 面包屑分隔符：源站用 iconfont 图标（依赖外部 CDN at.alicdn.com），本地/部分环境
+    # 不显示，导致「首页赚客吧文章正文」挤在一起。替换为文本分隔符，不再依赖外部字体。
+    for _i in soup.select("i.iconfont.icon-right"):
+        _i.replace_with(NavigableString(" › "))
     out = str(soup)
     out = re.sub(
         r"(window\.)?location\.href\s*=\s*(['\"])([^'\"]+)\2",

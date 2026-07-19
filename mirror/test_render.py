@@ -209,24 +209,29 @@ def test_rewrite_html_removes_protocol_relative_source_everywhere():
     assert 'href="/haodan/6654815.html"' in out
 
 
-def test_rewrite_html_neutralizes_yuan_address_source_link():
-    # “原文地址”块指向各分类真实后端（如 app.xdglt.com），点击即跳源站。
-    # rewrite_html 应中和其 href 为 “#”，保留文字但不跳离镜像。
+def test_rewrite_html_strips_source_addr_line():
+    # 用户要求删除帖子正文里的「原文地址：」行。rewrite_html 应定位含「原文地址」
+    # 的 <strong> 并删除其整行（块级父容器），而非仅中和 href。版权声明等其余块保留。
     html = (
         '<div class="art-copyright br"><div>'
         '<strong class="addr">原文地址：</strong>'
         '<a href="https://app.xdglt.com/mag/circle/v1/show/wapShowView?content_id=449149" '
-        'target="_blank" title="8点百度">app.xdglt.com/...</a></div></div>'
+        'target="_blank" title="8点百度">app.xdglt.com/...</a></div>'
+        '<div><strong class="copyright">版权声明：</strong>本站作为免费线报整合平台</div>'
+        '</div>'
     )
     out = render.rewrite_html(html)
-    assert 'href="#"' in out
-    assert "app.xdglt.com" in out  # 文字保留，仅中和跳转
-    assert 'target="_blank"' in out
+    assert "原文地址" not in out                 # 整行删除
+    assert "app.xdglt.com" not in out            # 源站 URL 一并消失
+    assert "版权声明" in out                      # 其余块保留
+    # 正文不受影响
+    body = '<article><div class="article-content">正文内容</div></article>'
+    assert "正文内容" in render.rewrite_html(body)
 
 
 def test_rewrite_html_neutralizes_x6d_everywhere():
     # 用户要求 xiaodao 完全不跳源站（连优惠也留站内），故 www.x6d.com 已纳入
-    # SOURCE_HOST_RE，任何位置的 x6d 链接（原文地址 + 正文优惠）都应中和。
+    # SOURCE_HOST_RE，正文优惠链接应中和；同时「原文地址：」整行应被删除。
     html = (
         '<div class="art-copyright br"><div>'
         '<strong class="addr">原文地址：</strong>'
@@ -234,9 +239,11 @@ def test_rewrite_html_neutralizes_x6d_everywhere():
         '<p>好价：<a href="https://www.x6d.com/item/888.html">点此领券</a></p>'
     )
     out = render.rewrite_html(html)
-    assert out.count('href="#"') == 2               # 原文地址 + 优惠均被中和
-    assert "www.x6d.com" not in out                 # 域名已中和
-    assert "点此领券" in out and "原文" in out        # 可见文字保留
+    assert "原文地址" not in out                  # 原文地址整行删除
+    assert "www.x6d.com" not in out              # 优惠域名已中和
+    assert 'href="#"' in out                     # 优惠链接被中和
+    assert "点此领券" in out                      # 优惠可见文字保留
+    assert "原文" not in out                      # 原文地址行已删除
 
 
 def test_rewrite_html_neutralizes_source_family_host_anywhere():
@@ -286,6 +293,48 @@ def test_rewrite_html_strips_domain_lock_redirect_script():
     # 普通内联脚本不受影响
     html2 = '<script>console.log("hello")</script><p>ok</p>'
     assert "console.log" in render.rewrite_html(html2)
+
+
+def test_rewrite_html_fixes_breadcrumb_separator():
+    # 源站面包屑分隔符用 iconfont 图标（依赖外部 CDN at.alicdn.com），本地/部分环境
+    # 不显示，导致「首页赚客吧文章正文」挤成一团。rewrite_html 应替换为文本「 › 」。
+    html = (
+        '<div class="mianbaoxie article-mbx">'
+        '<a href="/">首页</a><i class="iconfont icon-right"></i>'
+        '<a href="/category-zuankeba/">赚客吧</a><i class="iconfont icon-right"></i>'
+        '文章正文</div>'
+    )
+    out = render.rewrite_html(html)
+    assert "icon-right" not in out
+    assert out.count(" › ") == 2                  # 两个分隔符已替换
+    assert 'href="/"' in out and 'href="/category-zuankeba/"' in out  # 导航链接保留
+    assert "首页" in out and "赚客吧" in out and "文章正文" in out
+
+
+def test_strip_source_addr_regex():
+    # 已提交 HTML 就地清理：外科手术式删「原文地址：」整行，零漂移。
+    html = (
+        '<div class="art-copyright br">'
+        '<div><strong class="addr">原文地址：</strong>'
+        '<a href="#">http://www.zuanke8.com/thread-9543109-1-1.html</a></div>'
+        '<div><strong class="copyright">版权声明：</strong>本站声明</div></div>'
+    )
+    out = render.strip_source_addr(html)
+    assert "原文地址" not in out
+    assert "zuanke8.com" not in out
+    assert "版权声明" in out
+
+
+def test_strip_breadcrumb_icon_regex():
+    # 已提交 HTML 就地清理：面包屑分隔符 icon-right -> 文本「 › 」。
+    html = (
+        '<a href="/">首页</a><i class="iconfont icon-right"></i>'
+        '<a href="/category-x/">X</a><i class="iconfont icon-right"></i>文章正文'
+    )
+    out = render.strip_breadcrumb_icon(html)
+    assert "icon-right" not in out
+    assert out.count(" › ") == 2
+    assert "首页" in out and "X" in out and "文章正文" in out
 
 
 # ---------------------------------------------------------------------------
