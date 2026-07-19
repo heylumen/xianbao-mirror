@@ -348,6 +348,34 @@ def is_allowed(url: str) -> bool:
     return bool(CAT_RE.match(path) or ART_RE.match(path))
 
 
+# 源站图片懒加载代理：静态 HTML 里 <img src="/plus/api/image.php"> 只是占位符，
+# 图片滚动进入视口后由 JS（IntersectionObserver）替换为
+# /plus/api/image.php?imgurl=<真实图片URL>。该代理 URL 才是能取到图片字节的地址
+# （真实 CDN 做了 Referer 防盗链，直接下载会被 403；必须经源站代理转发）。
+# 因此这里把代理 URL 规范化为绝对形式（落在源站主域名上），交给 localize_images
+# 通过代理下载、并保存在真实 CDN 路径下，避免不同图片碰撞到同一本地文件。
+_IMG_PROXY_RE = re.compile(r"/plus/api/image\.php\b", re.I)
+
+
+def _proxy_abs_url(val: str):
+    """若 val 是源站图片代理 URL（相对 /plus/api/image.php 或绝对均可），
+    返回规范化的绝对代理 URL（落在 ORIGIN_NETLOC 上）；否则返回 None。"""
+    if not _IMG_PROXY_RE.search(val or ""):
+        return None
+    m = re.search(r"/plus/api/image\.php\?(.*)$", val, re.I | re.S)
+    if not m:
+        return None
+    qs = parse_qs(m.group(1))
+    real = qs.get("imgurl") or qs.get("url")
+    if not real:
+        return None
+    real = unquote(real[0])
+    if not real.startswith(("http://", "https://")):
+        # 解码后仍是相对/无效地址，放弃还原
+        return None
+    return "https://" + ORIGIN_NETLOC + "/plus/api/image.php?imgurl=" + quote(real, safe="")
+
+
 def fix_url(val: str, cat_slug: str = None) -> str:
     """改写单条链接：
     - 跨站 / 特殊协议：原样返回。
@@ -724,7 +752,16 @@ def rewrite_html(html: str, cat_slug: str = None) -> str:
                             new_parts.append(part)
                     tag[a] = ", ".join(new_parts)
                 else:
-                    tag[a] = fix_url(val.strip(), cat_slug)
+                    _v = val.strip()
+                    # 源站图片懒加载代理：规范化为绝对代理 URL 并绕过 fix_url
+                    # （否则 fix_url 会把源站域名链接改写成本地路径导致 404）。
+                    # 留下绝对代理 URL 由 localize_images 通过代理下载并本地化存储。
+                    if a in ("src", "data-src", "poster", "data-original"):
+                        _pa = _proxy_abs_url(_v)
+                        if _pa is not None:
+                            tag[a] = _pa
+                            continue
+                    tag[a] = fix_url(_v, cat_slug)
         style = tag.get("style")
         if style and "url(" in style:
             tag["style"] = re.sub(
@@ -2155,6 +2192,29 @@ def render_page(page, url: str, path: str, raw_docs: dict, state=None):
                 page.wait_for_timeout(1500)
             except Exception:
                 pass
+            # 触发懒加载：源站图片用 IntersectionObserver + 滚动懒加载，占位符
+            # <img src="/plus/api/image.php"> 需滚动进入视口后才被 JS 替换为
+            # image.php?imgurl=<真实CDN>。不滚动则永远停在占位符，镜像后图片 404。
+            # 逐段滚到页面底部再滚回顶部，等待所有占位符被替换，再读 DOM。
+            try:
+                page.evaluate(
+                    "() => new Promise(res => {"
+                    "  let y = 0; const step = 800;"
+                    "  const max = document.body.scrollHeight || 0;"
+                    "  const tick = () => {"
+                    "    window.scrollTo(0, Math.min(y, max)); y += step;"
+                    "    if (y <= max + step) { setTimeout(tick, 120); }"
+                    "    else { window.scrollTo(0, 0); res(); }"
+                    "  };"
+                    "  tick();"
+                    "})"
+                )
+            except Exception:
+                pass
+            try:
+                page.wait_for_timeout(1500)
+            except Exception:
+                pass
         try:
             dom = page.evaluate("document.documentElement.outerHTML")
         except Exception as e:
@@ -2704,6 +2764,26 @@ def _regen_qr(url: str, dst: Path) -> bool:
         return False
 
 
+def _proxy_pair(url: str):
+    """源站图片代理 URL -> (真实CDN地址, 实际下载地址)。
+
+    真实CDN地址用于本地保存路径（每图独立，避免碰撞到同一文件）；
+    实际下载地址走源站代理（真实 CDN 有 Referer 防盗链，直连会 403）。
+    非代理 URL 返回 (url, url)。"""
+    m = re.search(r"/plus/api/image\.php\?(.*)$", url, re.I | re.S)
+    if not m:
+        return (url, url)
+    qs = parse_qs(m.group(1))
+    real = qs.get("imgurl") or qs.get("url")
+    if not real:
+        return (url, url)
+    real = real[0]
+    if not real.startswith(("http://", "https://")):
+        return (url, url)
+    fetch = "https://" + ORIGIN_NETLOC + "/plus/api/image.php?imgurl=" + quote(real, safe="")
+    return (real, fetch)
+
+
 def localize_images(out_dir: Path, *, force: bool = False) -> dict:
     """下载文章页中的外站 <img>（src / data-src / data-original / srcset）到本地
     ``out_dir/zb_users/remote/<host>/<path>``，并把链接改写成站内相对路径。
@@ -2762,26 +2842,39 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
         if referer_hint:
             candidates.insert(0, referer_hint)
         last_err = None
+        downloaded = False
         for ref in candidates:
-            hdr = {
-                "User-Agent": USER_AGENT,
-                "Referer": ref,
-                "Accept": "image/avif,image/webp,image/*,*/*;q=0.8",
-            }
-            try:
-                req = urllib.request.Request(url, headers=hdr)
-                with urllib.request.urlopen(req, timeout=30) as r:
-                    data = r.read()
-                if not data:
-                    continue
-                ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip()
-                if not os.path.splitext(dst.name)[1]:
-                    ext = mimetypes.guess_extension(ctype) or ".bin"
-                    dst = dst.with_suffix(ext)
-                dst.write_bytes(data)
-                return True
-            except Exception as e:
-                last_err = e
+            for _retry in range(4):  # 0=首试；1-3=退避重试（应对源站 429/503 限流）
+                hdr = {
+                    "User-Agent": USER_AGENT,
+                    "Referer": ref,
+                    "Accept": "image/avif,image/webp,image/*,*/*;q=0.8",
+                }
+                try:
+                    req = urllib.request.Request(url, headers=hdr)
+                    with urllib.request.urlopen(req, timeout=30) as r:
+                        data = r.read()
+                    if not data:
+                        last_err = RuntimeError("空响应体")
+                        break
+                    ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip()
+                    if not os.path.splitext(dst.name)[1]:
+                        ext = mimetypes.guess_extension(ctype) or ".bin"
+                        dst = dst.with_suffix(ext)
+                    dst.write_bytes(data)
+                    downloaded = True
+                    break
+                except Exception as e:
+                    last_err = e
+                    code = getattr(e, "code", None)
+                    if code in (429, 503) and _retry < 3:
+                        time.sleep(2 * (_retry + 1))
+                        continue
+                    break
+            if downloaded:
+                break
+        if downloaded:
+            return True
         if last_err:
             print(f"::warning:: 远程图片下载失败 {url}: {last_err}", file=sys.stderr)
         return False
@@ -2807,7 +2900,8 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
             # 重生失败：保留外链（不比原来更差）
             failed_urls.append(url)
             return False
-        rel = rel_path(url)
+        real_url, fetch_url = _proxy_pair(url)
+        rel = rel_path(real_url)
         if rel is None:
             return False
         if (out_dir / rel).exists() and (out_dir / rel).stat().st_size > 0 and not force:
@@ -2816,7 +2910,7 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
             stats["rewritten"] += 1
             stats["reused"] += 1
             return True
-        if ensure_download(url, rel, referer_hint):
+        if ensure_download(fetch_url, rel, referer_hint):
             img[attr] = "/" + rel
             changed_flag = True
             stats["rewritten"] += 1
@@ -2874,7 +2968,8 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                             if QR_HOST_RE.search(urlparse(u).netloc):
                                 new_parts.append(part)
                                 continue
-                            rel = rel_path(u)
+                            real_url, fetch_url = _proxy_pair(u)
+                            rel = rel_path(real_url)
                             if rel is None:
                                 new_parts.append(part)
                                 continue
@@ -2887,7 +2982,7 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                                 changed_flag = True
                                 stats["rewritten"] += 1
                                 stats["reused"] += 1
-                            elif ensure_download(u, rel, referer_hint):
+                            elif ensure_download(fetch_url, rel, referer_hint):
                                 toks[0] = "/" + rel
                                 new_parts.append(" ".join(toks))
                                 modified = True
