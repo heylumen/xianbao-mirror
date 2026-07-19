@@ -195,6 +195,36 @@ print(f"文章页站外模板已剥离 {count} 个")
 PY
 
 # ---------------------------------------------------------------------------
+# 修复 5：对全部 HTML 文件重新执行链接改写，修复历史产物中残留的源站绝对链接
+# （如 https://new.ixbk.net/haodan/xxx.html）。render.rewrite_html 会跳过外部
+# 链接（如京东、淘宝 CDN），仅把属于源站的 URL 改写为本地路径。幂等可重入。
+# ---------------------------------------------------------------------------
+echo "==> 重写所有 HTML 中的源站绝对链接为本地路径"
+OUT_DIR="$OUT_DIR" PAGES_PREFIX="${PAGES_PREFIX:-/}" TARGET_URL="$TARGET" "$PY" - <<'PY'
+import os, sys, pathlib
+sys.path.insert(0, "mirror")
+import render
+out_dir = pathlib.Path(os.environ["OUT_DIR"])
+count = 0
+for p in out_dir.rglob("*"):
+    if p.suffix.lower() not in (".html", ".htm"):
+        continue
+    try:
+        html = p.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        continue
+    try:
+        new_html = render.rewrite_html(html)
+    except Exception:
+        continue
+    if new_html != html:
+        p.write_text(new_html, encoding="utf-8")
+        count += 1
+print(f"已重写 {count} 个 HTML 文件的源站链接")
+PY
+
+
+# ---------------------------------------------------------------------------
 # 可选：注入 Vercel Analytics / Speed Insights（默认关闭，避免 Netlify 部署 404 噪音）
 # 在 Vercel 后台开启分析后，设 INJECT_VERCEL_ANALYTICS=1 再运行本脚本。
 # ---------------------------------------------------------------------------

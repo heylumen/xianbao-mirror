@@ -1,12 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="zh-CN">
 <head>
-<link rel="icon" href="/favicon.ico">
-
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="/favicon.ico" rel="icon"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>线报酷镜像</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css">
+<link href="/lib/xianbao-override.css" rel="stylesheet"/>
 <style>
 body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}
 .wrap{max-width:900px;margin:0 auto;padding:24px 16px}
@@ -34,29 +34,29 @@ h1{font-size:24px;margin:0 0 8px}
 </style>
 <!-- Vercel Analytics + Speed Insights (injected by mirror.sh) -->
 <script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)}</script>
-<script defer src="/_vercel/insights/script.js"></script>
+<script defer="" src="/_vercel/insights/script.js"></script>
 <script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments)}</script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
+<script defer="" src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>线报酷镜像</h1>
-  <p class="desc">本镜像仅增量备份 5 个分类（每日更新，含评论）。</p>
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="输入关键词，如 红包 / 活动 / 教程…">
-    <button id="searchBtn">搜索</button>
-  </div>
-  <div class="tabs">
-    <span class="tab active" data-cat="all">全部</span>
-    <span class="tab" data-cat="zuankeba">赚客吧</span>
-    <span class="tab" data-cat="xinzuanba">新赚客吧</span>
-    <span class="tab" data-cat="xiaodigu">小嘀咕</span>
-    <span class="tab" data-cat="huluxia">葫芦侠</span>
-    <span class="tab" data-cat="xiaodao">小道</span>
-  </div>
-<div id="all" class="panel active">
-  <h2 style="font-size:18px;margin:0 0 12px">全部<span class="count">25 篇</span></h2>
-  <div class="list"><div class="it"><a href="/xiaodao/6656126.html">千问夏日专享1亓买蜜雪柠檬水</a></div>
+<h1>线报酷镜像</h1>
+<p class="desc">本镜像仅增量备份 5 个分类（每日更新，含评论）。</p>
+<div class="search-bar">
+<input id="searchInput" placeholder="输入关键词，如 红包 / 活动 / 教程…" type="text"/>
+<button id="searchBtn">搜索</button>
+</div>
+<div class="tabs">
+<span class="tab active" data-cat="all">全部</span>
+<span class="tab" data-cat="zuankeba">赚客吧</span>
+<span class="tab" data-cat="xinzuanba">新赚客吧</span>
+<span class="tab" data-cat="xiaodigu">小嘀咕</span>
+<span class="tab" data-cat="huluxia">葫芦侠</span>
+<span class="tab" data-cat="xiaodao">小刀</span>
+</div>
+<div class="panel active" id="all">
+<h2 style="font-size:18px;margin:0 0 12px">全部<span class="count">25 篇</span></h2>
+<div class="list"><div class="it"><a href="/xiaodao/6656126.html">千问夏日专享1亓买蜜雪柠檬水</a></div>
 <div class="it"><a href="/xiaodao/6656125.html">天猫领2亓红包0.01亓撸实物</a></div>
 <div class="it"><a href="/huluxia/6653687.html">支付宝领一瓶无糖可乐</a></div>
 <div class="it"><a href="/huluxia/6651783.html">合金弹头注册抽红包</a></div>
@@ -82,17 +82,17 @@ h1{font-size:24px;margin:0 0 8px}
 <div class="it"><a href="/huluxia/6638761.html">知识答题抽奖</a></div>
 <div class="it"><a href="/huluxia/6638759.html">拳皇注册抽红包</a></div></div>
 </div>
-<div id="zuankeba" class="panel">
-  <h2 style="font-size:18px;margin:0 0 12px">赚客吧<span class="count">0 篇</span></h2>
-  <div class="empty">暂无文章</div>
+<div class="panel" id="zuankeba">
+<h2 style="font-size:18px;margin:0 0 12px">赚客吧<span class="count">0 篇</span></h2>
+<div class="empty">暂无文章</div>
 </div>
-<div id="xinzuanba" class="panel">
-  <h2 style="font-size:18px;margin:0 0 12px">新赚客吧<span class="count">0 篇</span></h2>
-  <div class="empty">暂无文章</div>
+<div class="panel" id="xinzuanba">
+<h2 style="font-size:18px;margin:0 0 12px">新赚客吧<span class="count">0 篇</span></h2>
+<div class="empty">暂无文章</div>
 </div>
-<div id="xiaodigu" class="panel">
-  <h2 style="font-size:18px;margin:0 0 12px">小嘀咕<span class="count">25 篇</span></h2>
-  <div class="list"><div class="it"><a href="/xiaodigu/6555149.html">点球大战主要看哪边黑人主罚的比较多</a></div>
+<div class="panel" id="xiaodigu">
+<h2 style="font-size:18px;margin:0 0 12px">小嘀咕<span class="count">25 篇</span></h2>
+<div class="list"><div class="it"><a href="/xiaodigu/6555149.html">点球大战主要看哪边黑人主罚的比较多</a></div>
 <div class="it"><a href="/xiaodigu/6555078.html">中了啊</a></div>
 <div class="it"><a href="/xiaodigu/6555062.html">红色火箭口令 13.69%</a></div>
 <div class="it"><a href="/xiaodigu/6555055.html">梁赠送你免费3天豪华绿钻会员卡</a></div>
@@ -118,9 +118,9 @@ h1{font-size:24px;margin:0 0 8px}
 <div class="it"><a href="/xiaodigu/6554024.html">眉毛日看广告</a></div>
 <div class="it"><a href="/xiaodigu/6553984.html">中国移动 灵犀口令 夏日好运连连</a></div></div>
 </div>
-<div id="huluxia" class="panel">
-  <h2 style="font-size:18px;margin:0 0 12px">葫芦侠<span class="count">25 篇</span></h2>
-  <div class="list"><div class="it"><a href="/huluxia/6653687.html">支付宝领一瓶无糖可乐</a></div>
+<div class="panel" id="huluxia">
+<h2 style="font-size:18px;margin:0 0 12px">葫芦侠<span class="count">25 篇</span></h2>
+<div class="list"><div class="it"><a href="/huluxia/6653687.html">支付宝领一瓶无糖可乐</a></div>
 <div class="it"><a href="/huluxia/6651783.html">合金弹头注册抽红包</a></div>
 <div class="it"><a href="/huluxia/6651774.html">免费领取网易云音乐会员</a></div>
 <div class="it"><a href="/huluxia/6651770.html">广西健康科普答题抽奖</a></div>
@@ -146,9 +146,9 @@ h1{font-size:24px;margin:0 0 8px}
 <div class="it"><a href="/huluxia/6630412.html">交行领立减金</a></div>
 <div class="it"><a href="/huluxia/6630407.html">中国移动云盘领支付红包</a></div></div>
 </div>
-<div id="xiaodao" class="panel">
-  <h2 style="font-size:18px;margin:0 0 12px">小道<span class="count">25 篇</span></h2>
-  <div class="list"><div class="it"><a href="/xiaodao/6656126.html">千问夏日专享1亓买蜜雪柠檬水</a></div>
+<div class="panel" id="xiaodao">
+<h2 style="font-size:18px;margin:0 0 12px">小刀<span class="count">25 篇</span></h2>
+<div class="list"><div class="it"><a href="/xiaodao/6656126.html">千问夏日专享1亓买蜜雪柠檬水</a></div>
 <div class="it"><a href="/xiaodao/6656125.html">天猫领2亓红包0.01亓撸实物</a></div>
 <div class="it"><a href="/xiaodao/6641958.html">百度打车AI寻宝领多张打车券</a></div>
 <div class="it"><a href="/xiaodao/6640740.html">茶百道抽5000份0.1亓饮品券</a></div>
