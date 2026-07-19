@@ -165,3 +165,77 @@ def test_localize_images_qr_regen(tmp_path):
     qr_files = list((tmp_path / "zb_users" / "remote" / "qr").glob("*.png"))
     assert qr_files and qr_files[0].stat().st_size > 0
 
+
+# ---------------------------------------------------------------------------
+# 7) 可访问性：文章页 UI 清理（收藏/重新抓取/举报/评论表单/失效控件）
+# ---------------------------------------------------------------------------
+def test_strip_chrome_removes_article_ui():
+    html = """<html><head><title>帖</title></head><body>
+    <header>header</header>
+    <div class="content container clearfix" id="content">
+      <div class="article-box fl mb" id="mainbox">
+        <article class="art-main br mb sb">
+          <div class="art-head mb"><h1 class="art-title">标题</h1>
+            <div class="head-info">
+              <span class="report"><a href="javascript:;" onclick="xc_report_reportbut(1)">举报</a></span>
+            </div>
+          </div>
+          <div class="art-content"><p>正文</p></div>
+          <div class="mochu_us_shoucang">
+            <button class="mochu-us-coll mochu-us-colluser">收藏文章</button>
+            <button class="mochu-us-copy mochu-us-colluser">复制文案</button>
+            <button class="mochu-us-zhua mochu-us-colluser" onclick="update(1)">重新抓取</button>
+          </div>
+        </article>
+      </div>
+      <div class="art-fujia sb br mb clearfix" id="art-fujia">
+        <div class="mianbaoxie"><p>本文由系统自动重新抓取更新于...</p></div>
+        <div class="art-fujia-content">
+          <div class="post-comment clearfix br mb kuangxian" id="comment">
+            <div class="comment-list">
+              <div class="title">评论列表
+                <span class="fr pinglunshunxu noselect" onclick="pinglunshunxu();">↹ 顺序</span>
+                <span class="fr showlouzhu noselect">只看楼主</span>
+              </div>
+              <div class="ul"><div class="li transition"><div class="c-neirong">评论</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="post-comment clearfix sb br" id="commentbox">
+        <div class="mianbaoxie"><p>线报酷内部交流互动版块 （已有 <span class="emphasize">0</span> 条评论）</p></div>
+        <div class="art-comment-content"><span id="com-tishi">欢迎您发表评论：</span><form></form></div>
+      </div>
+    </div>
+    </body></html>"""
+    out = render.strip_chrome(html, cat_slug="xiaodigu")
+    assert "收藏文章" not in out
+    assert "重新抓取" not in out
+    assert "举报" not in out
+    assert "线报酷内部交流互动" not in out
+    assert "欢迎您发表评论" not in out
+    assert "pinglunshunxu" not in out
+    assert "showlouzhu" not in out
+    assert "评论" in out
+    # 返回列表链接保留
+    assert "back-to-list" in out
+
+
+# ---------------------------------------------------------------------------
+# 8) 可访问性：dark mode 同步注入，避免页面加载白闪
+# ---------------------------------------------------------------------------
+def test_inject_dark_mode_sync():
+    html = "<html><head><title>测试</title></head><body><p>正文</p></body></html>"
+    soup = render.BeautifulSoup(html, "html.parser")
+    render.inject_dark_mode_sync(soup)
+    out = str(soup)
+    assert "xianbao-darkmode-sync" in out
+    assert "xianbao-darkmode-override" in out
+    assert "document.documentElement.classList.add(\"night\")" in out
+    assert "function switchNightMode()" in out
+    # 幂等：再次注入不应重复
+    render.inject_dark_mode_sync(soup)
+    out2 = str(soup)
+    assert out2.count("xianbao-darkmode-sync") == out.count("xianbao-darkmode-sync")
+    assert out2.count("function switchNightMode()") == out.count("function switchNightMode()")
+
