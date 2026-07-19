@@ -223,6 +223,31 @@ for p in out_dir.rglob("*"):
 print(f"已重写 {count} 个 HTML 文件的源站链接")
 PY
 
+# ---------------------------------------------------------------------------
+# 修复 6：外科手术式删除源站主题 common.js 引用。该脚本在运行时会把文本节点中的
+# URL 自动链接化，破坏 .author 结构并重复注入评论「顺序」控件。
+# ---------------------------------------------------------------------------
+echo "==> 删除 common.js 引用（修复评论作者显示与重复顺序按钮）"
+OUT_DIR="$OUT_DIR" "$PY" - <<'PY'
+import os, sys, pathlib
+sys.path.insert(0, "mirror")
+import render
+out_dir = pathlib.Path(os.environ["OUT_DIR"])
+count = 0
+for p in out_dir.rglob("*"):
+    if p.suffix.lower() not in (".html", ".htm"):
+        continue
+    try:
+        html = p.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        continue
+    new_html = render.strip_common_js(html)
+    if new_html != html:
+        p.write_text(new_html, encoding="utf-8")
+        count += 1
+print(f"已删除 {count} 个 HTML 文件中的 common.js 引用")
+PY
+
 
 # ---------------------------------------------------------------------------
 # 可选：注入 Vercel Analytics / Speed Insights（默认关闭，避免 Netlify 部署 404 噪音）
