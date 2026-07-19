@@ -14,6 +14,7 @@ import sys
 import json
 import subprocess
 import tempfile
+import importlib
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -144,6 +145,21 @@ def test_fix_url_protocol_relative_unchanged():
     assert render.fix_url("//cdn.example.com/x") == "//cdn.example.com/x"
 
 
+def test_fix_url_protocol_relative_source_rewritten():
+    # 协议相对链接若属于源站，应改写成本地路径，避免点击后跳到源站
+    assert render.fix_url("//new.xianbao.fun/zuankeba/6656382.html") == "/zuankeba/6656382.html"
+
+
+def test_fix_url_protocol_relative_source_disallowed():
+    # 非白名单分类也改成站内相对路径，不再跳活站
+    assert render.fix_url("//new.xianbao.fun/haodan/6654815") == "/haodan/6654815.html"
+
+
+def test_fix_url_window_open_in_html():
+    html = '<script>window.open("https://new.xianbao.fun/haodan/6654815");</script>'
+    out = render.rewrite_html(html)
+    assert 'window.open("/haodan/6654815.html")' in out
+
 def test_fix_url_bare_origin_root():
     assert render.fix_url("https://new.xianbao.fun") == "/"
     assert render.fix_url("https://new.xianbao.fun/") == "/"
@@ -173,6 +189,33 @@ def test_discover_article_excludes_other_category_posts():
     html = '<a href="/haodan/6654815.html">好单</a>'
     links = render.discover_article_links(html, "https://new.xianbao.fun/")
     assert links == []
+
+
+def test_TARGET_without_scheme_is_normalized(monkeypatch):
+    # 当 TARGET_URL 只给域名没给 scheme 时，模块应自动补 https://，避免 ORIGIN 缺 scheme
+    # 导致 discover_article_links 把相对路径拼成错误 URL。
+    orig = os.environ.get("TARGET_URL")
+    monkeypatch.setenv("TARGET_URL", "news.xianbao.fun")
+    importlib.reload(render)
+    try:
+        assert render.TARGET.startswith("https://")
+        assert render.ORIGIN.startswith("https://")
+        assert render.ORIGIN_NETLOC == "news.xianbao.fun"
+        # 验证此时 discover_article_links 仍能正确解析相对文章链接
+        links = render.discover_article_links(
+            '<a href="/zuankeba/6656382.html">x</a>', render.ORIGIN + "/category-zuankeba/"
+        )
+        assert any("/zuankeba/6656382.html" in l for l in links)
+    finally:
+        if orig is None:
+            monkeypatch.delenv("TARGET_URL", raising=False)
+        else:
+            monkeypatch.setenv("TARGET_URL", orig)
+        importlib.reload(render)
+        # 恢复测试文件顶部的固定值，保证后续测试稳定
+        render.TARGET = "https://new.xianbao.fun"
+        render.ORIGIN = "https://new.xianbao.fun"
+        render.ORIGIN_NETLOC = "new.xianbao.fun"
 
 
 # ---------------------------------------------------------------------------

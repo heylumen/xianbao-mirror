@@ -64,6 +64,8 @@ DOMAIN_POOL = [
 ALL_NETLOCS = set(DOMAIN_POOL)
 
 TARGET = os.environ.get("TARGET_URL", "").rstrip("/") or random.choice(DOMAIN_POOL)
+if not TARGET.startswith(("http://", "https://")):
+    TARGET = "https://" + TARGET
 OUT_DIR = Path(os.environ.get("OUT_DIR", "xianbao"))
 ORIGIN = TARGET
 ORIGIN_NETLOC = urlparse(TARGET).netloc
@@ -228,9 +230,10 @@ def is_allowed(url: str) -> bool:
 
 def fix_url(val: str) -> str:
     """改写单条链接：
-    - 跨站 / 协议相对 / 特殊协议：原样返回。
+    - 跨站 / 特殊协议：原样返回。
+    - 协议相对链接 //domain/path：若 domain 属于源站则按内部链接处理，否则保留。
     - 同源资源（CSS/JS/图片等）：改写为本地前缀。
-    - 同源页面：白名单内 -> 本地前缀；非白名单 -> 原站绝对地址（跳活站）。
+    - 同源页面：白名单内 -> 本地前缀；非白名单 -> 本地相对路径（不再跳活站）。
     """
     v = (val or "").strip()
     if not v:
@@ -239,8 +242,14 @@ def fix_url(val: str) -> str:
     if "#" in v:
         v, frag = v.split("#", 1)
     if v.startswith("//"):
-        return v + ("#" + frag if frag else "")
-    if v.startswith(("http://", "https://")):
+        # 协议相对链接：先按 https 解析，判断是否为源站；若属于源站则按内部链接处理，
+        # 否则保持协议相对（外部 CDN 等）。这样可避免点击后跳到源站。
+        parsed = urlparse("https:" + v)
+        if parsed.netloc not in ALL_NETLOCS:
+            return v + ("#" + frag if frag else "")
+        path = parsed.path or "/"
+        netloc = parsed.netloc
+    elif v.startswith(("http://", "https://")):
         parsed = urlparse(v)
         if parsed.netloc not in ALL_NETLOCS:
             return v + ("#" + frag if frag else "")
@@ -336,7 +345,7 @@ def discover_article_links(html: str, base_url: str):
                 continue
             absu = href
         elif href.startswith("/"):
-            absu = ORIGIN + href
+            absu = urljoin(ORIGIN, href)
         else:
             absu = urljoin(base_url, href)
             if urlparse(absu).netloc not in ALL_NETLOCS:
@@ -353,7 +362,7 @@ def discover_article_links(html: str, base_url: str):
 
 def rewrite_html(html: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
-    attrs = ("href", "src", "data-src", "poster", "data-href", "data-url", "srcset")
+    attrs = ("href", "src", "data-src", "poster", "data-href", "data-url", "srcset", "action")
     for tag in soup.find_all(True):
         for a in attrs:
             val = tag.get(a)
@@ -391,8 +400,10 @@ def rewrite_html(html: str) -> str:
     if _t:
         _tt = _t.get_text()
         if _tt:
+            for _loc in ALL_NETLOCS:
+                _tt = _tt.replace(_loc, "线报酷镜像")
             _t.clear()
-            _t.append(_tt.replace("new.xianbao.fun", "线报酷镜像"))
+            _t.append(_tt)
     for c in list(soup.contents):
         if isinstance(c, Doctype):
             break
@@ -405,6 +416,23 @@ def rewrite_html(html: str) -> str:
         r"(window\.)?location\.href\s*=\s*(['\"])([^'\"]+)\2",
         lambda m: (m.group(1) or "") + "location.href = " + m.group(2)
                   + fix_url(m.group(3)) + m.group(2),
+        out,
+    )
+    out = re.sub(
+        r"(window\.)?location\s*=\s*(['\"])([^'\"]+)\2",
+        lambda m: (m.group(1) or "") + "location = " + m.group(2)
+                  + fix_url(m.group(3)) + m.group(2),
+        out,
+    )
+    out = re.sub(
+        r"(window\.)?location\.(replace|assign)\s*\(\s*(['\"])([^'\"]+)\3\s*\)",
+        lambda m: (m.group(1) or "") + "location." + m.group(2) + "("
+                  + m.group(3) + fix_url(m.group(4)) + m.group(3) + ")",
+        out,
+    )
+    out = re.sub(
+        r"window\.open\s*\(\s*(['\"])([^'\"]+)\1\s*",
+        lambda m: "window.open(" + m.group(1) + fix_url(m.group(2)) + m.group(1),
         out,
     )
     if not re.match(r'\s*<!DOCTYPE', out, re.IGNORECASE):
@@ -765,7 +793,7 @@ def build_hub(out_dir: Path):
         "xinzuanba": "新赚客吧",
         "xiaodigu": "小嘀咕",
         "huluxia": "葫芦侠",
-        "xiaodao": "小道",
+        "xiaodao": "小刀",
     }
     by_cat = {s: [] for s in ALLOWED_CATEGORIES}
     for p in out_dir.rglob("*.html"):
@@ -1262,7 +1290,7 @@ def fill_missing(state=None, raw_url_map=None, since=None):
                 continue
             absu = ref
         elif ref.startswith("/"):
-            absu = ORIGIN + ref
+            absu = urljoin(ORIGIN, ref)
         else:
             continue
         absu = absu.split("#")[0]
