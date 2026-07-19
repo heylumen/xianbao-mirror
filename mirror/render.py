@@ -460,10 +460,34 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
         for cl in box.select(".comment-list"):
             if not cl.find_all(class_="li"):
                 cl.decompose()
-    # 7) 评论列表头部删除失效控件“顺序/只看楼主”，并确保真实评论可见
+    # 7) 评论列表头部保留“顺序/只看楼主”控件，并改写为镜像自包含实现
+    #    （源站依赖的 JS 已被剥离，这里注入等效的内联函数）。
+    #    对旧版已处理文件（控件被误删），在标题中自动补回控件。
     for cl in soup.find_all(class_="comment-list"):
+        title = cl.find(class_="title")
+        if title is not None:
+            has_pinglun = bool(title.find(class_="pinglunshunxu"))
+            has_show = bool(title.find(class_="showlouzhu"))
+            if not has_pinglun:
+                span = soup.new_tag("span", **{"class": "fr pinglunshunxu noselect"})
+                span["onclick"] = "xianbaoPinglunshunxu();"
+                span.string = "↹ 顺序"
+                title.append(span)
+            if not has_show:
+                span = soup.new_tag("span", **{"class": "fr showlouzhu noselect"})
+                span["onclick"] = "xianbaoShowlouzhu();"
+                span.string = "只看楼主"
+                title.append(span)
         for ctl in cl.find_all(class_=["pinglunshunxu", "showlouzhu"]):
-            ctl.decompose()
+            cls = ctl.get("class", [])
+            if "pinglunshunxu" in cls:
+                ctl["onclick"] = "xianbaoPinglunshunxu();"
+            if "showlouzhu" in cls:
+                ctl["onclick"] = "xianbaoShowlouzhu();"
+            # 给原本无 href 的 span 加上手型指针，避免用户看不出可点击（幂等）
+            style = ctl.get("style", "")
+            if not re.search(r"\bcursor\s*:\s*pointer", style, re.I):
+                ctl["style"] = (style + ";cursor:pointer;").lstrip(";")
         style = cl.get("style", "")
         if style:
             style = re.sub(r"\bdisplay\s*:\s*none\s*;?", "", style, flags=re.I).strip(" ;")
@@ -471,17 +495,22 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 cl["style"] = style
             else:
                 del cl["style"]
-        cl["style"] = (cl.get("style", "") + ";display:block;").lstrip(";") if cl.get("style") else "display:block;"
-    # 3) 插入「返回列表」链接（仅当能确定分类时）
+        # 幂等：仅在尚未声明 display 时强制可见
+        existing_display = re.search(r"\bdisplay\s*:", cl.get("style", ""), re.I)
+        if not existing_display:
+            cl["style"] = (cl.get("style", "") + ";display:block;").lstrip(";") if cl.get("style") else "display:block;"
+    # 3) 插入「返回列表」链接 + 评论控件脚本（仅当能确定分类时）
     if cat_slug:
         body = soup.body
         if body is not None:
-            # 幂等：去除旧链接/标记，避免重复运行后多出
+            # 幂等：去除旧链接/标记/脚本，避免重复运行后多出
             for _a in body.find_all("a", class_="back-to-list"):
                 _a.decompose()
             for _c in body.find_all(string=lambda s: isinstance(s, Comment)
                                     and "xianbao-chrome-stripped" in s):
                 _c.extract()
+            for _s in body.find_all("script", id="xianbao-comment-tools"):
+                _s.decompose()
             a = soup.new_tag("a", href=f"/category-{cat_slug}/")
             a["class"] = "back-to-list"
             a["style"] = ("display:inline-block;margin:14px 0 0;color:#1f4fd6;"
@@ -489,6 +518,36 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
             a.string = "← 返回列表"
             body.insert(0, a)
             body.insert(0, Comment("xianbao-chrome-stripped"))
+            # 注入自包含的评论控件脚本（顺序/只看楼主）
+            script = soup.new_tag("script", id="xianbao-comment-tools")
+            script.string = (
+                "(function(){"
+                "var xianbaoLouzhuState={};"
+                "window.xianbaoPinglunshunxu=function(){"
+                "document.querySelectorAll('.comment-list').forEach(function(cl){"
+                "var uls=Array.from(cl.children).filter(function(c){"
+                "return c.classList&&c.classList.contains('ul');});"
+                "if(uls.length>1){uls.reverse().forEach(function(ul){cl.appendChild(ul);});}"
+                "});};"
+                "window.xianbaoShowlouzhu=function(){"
+                "var author='',els=document.querySelectorAll('.head-info .author a,.art-head .author a');"
+                "for(var i=0;i<els.length;i++){var t=els[i].textContent.trim();if(t){author=t;break;}}"
+                "if(!author){return;}"
+                "var showOnly=!xianbaoLouzhuState[author];"
+                "xianbaoLouzhuState[author]=showOnly;"
+                "document.querySelectorAll('.comment-list').forEach(function(cl){"
+                "cl.querySelectorAll('.ul').forEach(function(ul){"
+                "var aEl=ul.querySelector('.author'),aText=aEl?aEl.textContent.trim():'';"
+                "if(showOnly){"
+                "ul.style.display=(aText===author||aText===author+'楼主')?'':'none';"
+                "}else{ul.style.display='';}"
+                "});});"
+                "document.querySelectorAll('.showlouzhu').forEach(function(el){"
+                "el.textContent=showOnly?'查看全部':'只看楼主';});"
+                "};"
+                "})();"
+            )
+            body.append(script)
     return str(soup)
 
 

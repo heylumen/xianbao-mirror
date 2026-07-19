@@ -177,6 +177,7 @@ def test_strip_chrome_removes_article_ui():
         <article class="art-main br mb sb">
           <div class="art-head mb"><h1 class="art-title">标题</h1>
             <div class="head-info">
+              <span class="author"><a href="/record/xiaodigu/楼主名.html">楼主名</a></span>
               <span class="report"><a href="javascript:;" onclick="xc_report_reportbut(1)">举报</a></span>
             </div>
           </div>
@@ -222,8 +223,13 @@ def test_strip_chrome_removes_article_ui():
     assert "举报" not in out
     assert "线报酷内部交流互动" not in out
     assert "欢迎您发表评论" not in out
-    assert "pinglunshunxu" not in out
-    assert "showlouzhu" not in out
+    # 顺序/只看楼主控件保留，并被改写为镜像自包含实现
+    assert "pinglunshunxu" in out
+    assert "showlouzhu" in out
+    assert 'onclick="xianbaoPinglunshunxu();"' in out
+    assert 'onclick="xianbaoShowlouzhu();"' in out
+    assert "xianbaoPinglunshunxu=function" in out
+    assert "xianbaoShowlouzhu=function" in out
     # 评论列表及评论内容保留，并强制可见
     assert "comment-list" in out
     assert "评论" in out
