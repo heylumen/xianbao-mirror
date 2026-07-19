@@ -224,9 +224,9 @@ def test_rewrite_html_neutralizes_yuan_address_source_link():
     assert 'target="_blank"' in out
 
 
-def test_rewrite_html_keeps_deal_links_inside_same_domain():
-    # 同一域名（如 x6d.com）既作源站后端（原文地址），又作优惠内容链接。
-    # 仅“原文地址”块内的链接被中和，普通优惠链接（同域名）必须保留可点击。
+def test_rewrite_html_neutralizes_x6d_everywhere():
+    # 用户要求 xiaodao 完全不跳源站（连优惠也留站内），故 www.x6d.com 已纳入
+    # SOURCE_HOST_RE，任何位置的 x6d 链接（原文地址 + 正文优惠）都应中和。
     html = (
         '<div class="art-copyright br"><div>'
         '<strong class="addr">原文地址：</strong>'
@@ -234,8 +234,9 @@ def test_rewrite_html_keeps_deal_links_inside_same_domain():
         '<p>好价：<a href="https://www.x6d.com/item/888.html">点此领券</a></p>'
     )
     out = render.rewrite_html(html)
-    assert 'href="#"' in out                       # 原文地址被中和
-    assert 'href="https://www.x6d.com/item/888.html"' in out  # 优惠链接保留
+    assert out.count('href="#"') == 2               # 原文地址 + 优惠均被中和
+    assert "www.x6d.com" not in out                 # 域名已中和
+    assert "点此领券" in out and "原文" in out        # 可见文字保留
 
 
 def test_rewrite_html_neutralizes_source_family_host_anywhere():
