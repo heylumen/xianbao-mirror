@@ -209,6 +209,63 @@ def test_rewrite_html_removes_protocol_relative_source_everywhere():
     assert 'href="/haodan/6654815.html"' in out
 
 
+def test_rewrite_html_neutralizes_yuan_address_source_link():
+    # “原文地址”块指向各分类真实后端（如 app.xdglt.com），点击即跳源站。
+    # rewrite_html 应中和其 href 为 “#”，保留文字但不跳离镜像。
+    html = (
+        '<div class="art-copyright br"><div>'
+        '<strong class="addr">原文地址：</strong>'
+        '<a href="https://app.xdglt.com/mag/circle/v1/show/wapShowView?content_id=449149" '
+        'target="_blank" title="8点百度">app.xdglt.com/...</a></div></div>'
+    )
+    out = render.rewrite_html(html)
+    assert 'href="#"' in out
+    assert "app.xdglt.com" in out  # 文字保留，仅中和跳转
+    assert 'target="_blank"' in out
+
+
+def test_rewrite_html_keeps_deal_links_inside_same_domain():
+    # 同一域名（如 x6d.com）既作源站后端（原文地址），又作优惠内容链接。
+    # 仅“原文地址”块内的链接被中和，普通优惠链接（同域名）必须保留可点击。
+    html = (
+        '<div class="art-copyright br"><div>'
+        '<strong class="addr">原文地址：</strong>'
+        '<a href="https://www.x6d.com/thread-123.html">原文</a></div></div>'
+        '<p>好价：<a href="https://www.x6d.com/item/888.html">点此领券</a></p>'
+    )
+    out = render.rewrite_html(html)
+    assert 'href="#"' in out                       # 原文地址被中和
+    assert 'href="https://www.x6d.com/item/888.html"' in out  # 优惠链接保留
+
+
+def test_rewrite_html_neutralizes_source_family_host_anywhere():
+    # 无歧义源站家族域名（app.xiaodigu.cn / app.xdglt.com / v1.xianbao.net 等）
+    # 不论出现在正文、标题还是版权块，任何 <a href> 都应中和，避免跳源站。
+    html = (
+        '<div class="d-biaoti"><a href="https://app.xiaodigu.cn/mag/circle/v1/show/wapShowView?content_id=1">标题</a></div>'
+        '<p>正文：<a href="https://app.xdglt.com/foo/bar">源站链接</a></p>'
+    )
+    out = render.rewrite_html(html)
+    assert 'href="#"' in out
+    assert "标题" in out and "源站链接" in out  # 可见文字保留
+    assert "app.xiaodigu.cn" not in out and "app.xdglt.com" not in out  # 域名已中和
+    # 京东优惠链接不受影响
+    html2 = '<a href="https://u.jd.com/abc">领券</a>'
+    assert 'href="https://u.jd.com/abc"' in render.rewrite_html(html2)
+
+
+def test_rewrite_html_neutralizes_title_external_link():
+    # 文章标题块 d-biaoti 内的外链一律中和（标题本就不该外跳），本地相对链接保留。
+    html = (
+        '<div class="d-biaoti"><a href="https://example.com/x">外链标题</a></div>'
+        '<div class="d-biaoti"><a href="/xiaodigu/123.html">本地标题</a></div>'
+    )
+    out = render.rewrite_html(html)
+    assert 'href="#"' in out
+    assert 'href="/xiaodigu/123.html"' in out  # 本地相对链接保留
+
+
+
 # ---------------------------------------------------------------------------
 # discover_article_links —— 仅文章链接
 # ---------------------------------------------------------------------------
