@@ -671,6 +671,7 @@ def test_rebuild_category_page_fixes_search_form(tmp_path):
     (cat_dir / "index.html").write_text(
         '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
         '<form action="/zb_system/cmd.php?act=search" method="post"><input name="q"/><input name="cate" type="hidden" value="16"/></form>'
+        '<script src="/zb_users/theme/xianbao_theme/script/meta.php?type=category&cateid=16"></script>'
         '<ul class="new-post"></ul></body></html>',
         encoding="utf-8")
     render.rebuild_category_page(cat_dir / "index.html", cat_dir / "index.html", tmp_path, [])
@@ -678,6 +679,7 @@ def test_rebuild_category_page_fixes_search_form(tmp_path):
     assert 'action="/search.html"' in html
     assert 'method="get"' in html
     assert 'name="cate"' not in html
+    assert "meta.php" not in html
 
 
 def test_rebuild_category_page_sanitizes_nonexistent_local_links(tmp_path):
