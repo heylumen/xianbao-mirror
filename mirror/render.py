@@ -650,6 +650,9 @@ fetch('/search.json').then(r=>r.json()).then(function(docs){
     }).join('');
   }
   q.addEventListener('input',go);
+  var params=new URLSearchParams(window.location.search);
+  var initial=params.get('q');
+  if(initial){{ q.value=initial; go(); }}
 }).catch(function(e){
   document.getElementById('r').innerHTML='<p>搜索索引加载失败：'+e+'</p>';
 });
@@ -769,6 +772,11 @@ body{{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;colo
 .wrap{{max-width:900px;margin:0 auto;padding:24px 16px}}
 h1{{font-size:24px;margin:0 0 8px}}
 .desc{{color:#666;margin:0 0 18px}}
+.search-bar{{display:flex;gap:10px;margin-bottom:18px;max-width:520px}}
+.search-bar input{{flex:1;padding:12px 16px;font-size:15px;border:1px solid #d7dbe5;border-radius:12px;outline:none}}
+.search-bar input:focus{{border-color:#1f4fd6;box-shadow:0 0 0 3px rgba(31,79,214,.12)}}
+.search-bar button{{padding:0 20px;background:#1f4fd6;color:#fff;border:none;border-radius:12px;font-size:15px;cursor:pointer}}
+.search-bar button:hover{{background:#1746b8}}
 .tabs{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}}
 .tab{{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid #d7dbe5;cursor:pointer;font-size:14px;transition:all .2s}}
 .tab:hover{{border-color:#1f4fd6;color:#1f4fd6}}
@@ -789,12 +797,24 @@ h1{{font-size:24px;margin:0 0 8px}}
 <div class="wrap">
   <h1>线报酷镜像</h1>
   <p class="desc">本镜像仅增量备份 5 个分类（每日更新，含评论）。</p>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="输入关键词，如 红包 / 活动 / 教程…">
+    <button id="searchBtn">搜索</button>
+  </div>
   <div class="tabs">
 {chr(10).join('    ' + t for t in tabs)}
   </div>
 {chr(10).join(panels)}
 </div>
 <script>
+function doSearch(){{
+  var q = document.getElementById('searchInput').value.trim();
+  if (q) {{ window.location.href = '/search.html?q=' + encodeURIComponent(q); }}
+}}
+document.getElementById('searchBtn').addEventListener('click', doSearch);
+document.getElementById('searchInput').addEventListener('keydown', function(e){{
+  if (e.key === 'Enter') {{ doSearch(); }}
+}});
 document.querySelectorAll('.tab').forEach(function(tab){{
   tab.addEventListener('click', function(){{
     var cat = this.dataset.cat;
