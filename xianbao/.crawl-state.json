@@ -31,10 +31,6 @@
     "xiaodao": 3
   },
   "pending": [
-    "/xiaodigu/6412823.html",
-    "/xiaodigu/6412826.html",
-    "/xiaodigu/6412838.html",
-    "/xiaodigu/6412847.html",
     "/xiaodigu/6412848.html",
     "/xiaodigu/6412960.html",
     "/xiaodigu/6413005.html",
@@ -4112,11 +4108,7 @@
     "/xiaodigu/6659093.html",
     "/xiaodigu/6659371.html",
     "/xiaodigu/6659794.html",
-    "/xinzuanba/308127.html",
-    "/xinzuanba/308128.html",
-    "/xinzuanba/34911.html",
-    "/xinzuanba/5833044.html",
-    "/xinzuanba/6206626.html",
+    "/xinzuanba/308126.html",
     "/xinzuanba/6206944.html",
     "/xinzuanba/6207068.html",
     "/xinzuanba/6207113.html",
@@ -6804,11 +6796,6 @@
     "/xinzuanba/6657830.html",
     "/xinzuanba/6658690.html",
     "/xinzuanba/6659576.html",
-    "/zuankeba/6514121.html",
-    "/zuankeba/6514124.html",
-    "/zuankeba/6514126.html",
-    "/zuankeba/6514158.html",
-    "/zuankeba/6514249.html",
     "/zuankeba/6514279.html",
     "/zuankeba/6514395.html",
     "/zuankeba/6514422.html",
@@ -17087,6 +17074,56 @@
       "hash": "1c7da12535164aae28180adefd6f84c8d90627280bdf3587595981364dc960c2",
       "local": "xiaodigu/6412817.html",
       "last_check": "2026-07-19T16:09:56+0000"
+    },
+    "/zuankeba/6514121.html": {
+      "hash": "416abe870a8be4ea76bf964aa07a4e2f125a009be5cf910d9f4da6b598a051f0",
+      "local": "zuankeba/6514121.html",
+      "last_check": "2026-07-19T16:10:05+0000"
+    },
+    "/xiaodigu/6412823.html": {
+      "hash": "ceaec684d0366b1ce3af6d56d737a04503d973d2f6aee8905cd26a83c70ea3bb",
+      "local": "xiaodigu/6412823.html",
+      "last_check": "2026-07-19T16:10:10+0000"
+    },
+    "/zuankeba/6514124.html": {
+      "hash": "9bc669122fc8ed3f29facd3a0c7209108b5d64a580d40f3a32cd4df30b40d1c6",
+      "local": "zuankeba/6514124.html",
+      "last_check": "2026-07-19T16:10:16+0000"
+    },
+    "/xiaodigu/6412826.html": {
+      "hash": "9281eea432926158d15a4d6a4cc209fdb7cd5ff7f6504147b40f52904fb5e755",
+      "local": "xiaodigu/6412826.html",
+      "last_check": "2026-07-19T16:10:22+0000"
+    },
+    "/zuankeba/6514126.html": {
+      "hash": "0b1fa154c9bd69da4201e500be4cac87f78c4ae378d73c5c3b5ea8cd8ce338ff",
+      "local": "zuankeba/6514126.html",
+      "last_check": "2026-07-19T16:10:28+0000"
+    },
+    "/xiaodigu/6412838.html": {
+      "hash": "222ecdeedf1c0620aa0610781282e4074e9b48e21ec402b8f05885ba835603e5",
+      "local": "xiaodigu/6412838.html",
+      "last_check": "2026-07-19T16:10:34+0000"
+    },
+    "/zuankeba/6514158.html": {
+      "hash": "39dd068b3ba6b87167d6c674ed8a914c7fea018cb613e85efb910cd2f76600e5",
+      "local": "zuankeba/6514158.html",
+      "last_check": "2026-07-19T16:10:40+0000"
+    },
+    "/xiaodigu/6412847.html": {
+      "hash": "cb635c75792d7335afa5d8ee746e8606cb465db8b3d067e8001c5bf4014eb98e",
+      "local": "xiaodigu/6412847.html",
+      "last_check": "2026-07-19T16:10:46+0000"
+    },
+    "/xinzuanba/6206626.html": {
+      "hash": "ae83825d5eb2f597f20684dd70bc484ed07b0ce07f576e84eb0b844357d06bf0",
+      "local": "xinzuanba/6206626.html",
+      "last_check": "2026-07-19T16:10:52+0000"
+    },
+    "/zuankeba/6514249.html": {
+      "hash": "d389b08cd694e6ba66d0744efd3000f6567b4e1f7b0cdbd76c3d633d28b4a1bb",
+      "local": "zuankeba/6514249.html",
+      "last_check": "2026-07-19T16:10:58+0000"
     }
   },
   "dead": {
@@ -17509,6 +17546,30 @@
       "fails": 1,
       "ts": 1784477382,
       "permanent": true
+    },
+    "/xinzuanba/308127.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784477399,
+      "permanent": true
+    },
+    "/xinzuanba/308128.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784477411,
+      "permanent": true
+    },
+    "/xinzuanba/34911.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784477423,
+      "permanent": true
+    },
+    "/xinzuanba/5833044.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784477435,
+      "permanent": true
     }
   },
   "dead_assets": {
@@ -17541,7 +17602,7 @@
   "completed_at": null,
   "stats": {
     "pages": 112,
-    "articles": 1359,
+    "articles": 1369,
     "rechecks": 0,
     "updated": 0
   }
