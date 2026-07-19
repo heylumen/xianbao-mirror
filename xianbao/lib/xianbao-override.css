@@ -67,3 +67,27 @@ html.night body { background-color: #232931 !important; }
         padding: 0 10px !important;
     }
 }
+
+/* 移动端汉堡菜单按钮修复：源站 .m-nav-btn 为 height:0 + 内部图标
+   position:absolute 脱离文档流，依赖父级 absolute 定位上下文；镜像里
+   .m-nav-btn 的 position 退化为 static 且移动端 media query 只补了 display:block，
+   导致零高度、图标飘到左上角、按钮不可点。这里强制右侧定位 + 固定高度 +
+   图标回归正常流，使其可见且可点。桌面端仍由源站规则 display:none 隐藏。 */
+@media screen and (max-width: 768px) {
+    .m-nav-btn {
+        position: absolute !important;
+        top: 0;
+        right: 52px;
+        display: block !important;
+        width: 50px !important;
+        height: 50px !important;
+        z-index: 60;
+        cursor: pointer;
+    }
+    .m-nav-btn i.iconfont {
+        position: static !important;
+        display: block;
+        line-height: 50px;
+        text-align: center;
+    }
+}
