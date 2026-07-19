@@ -528,6 +528,10 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
         for cl in box.select(".comment-list"):
             if not cl.find_all(class_="li"):
                 cl.decompose()
+        # 清理后若 commentbox 没有保留真实评论列表（只剩空壳或表单残骸），整体移除，
+        # 避免文章底部出现白色空白块
+        if not box.find(class_="comment-list"):
+            box.decompose()
     # 7) 评论控件（顺序/只看楼主）：仅作用于「主评论列表」（#comment 内），
     #    改写 onclick 指向镜像自包含函数；非主列表（如“交流列表”版块）原本就
     #    没有控件，移除上一版误加的重复控件，避免页面出现两组“顺序”。
@@ -1477,12 +1481,16 @@ def build_search_page(out_dir: Path, items: list) -> None:
 """
     if soup.body:
         soup.body.append(script)
-    # 样式补丁
+    # 样式补丁（含暗黑模式适配，避免移动端搜索框在夜间模式下仍为白色）
     style = soup.new_tag("style")
     style.string = """
 .search-top{padding:12px 16px;background:#fff;border-bottom:1px solid #eceef3}
-.search-top input{width:100%;box-sizing:border-box;padding:12px 16px;font-size:15px;border:1px solid #d7dbe5;border-radius:12px;outline:none}
+.search-top input{width:100%;box-sizing:border-box;padding:12px 16px;font-size:15px;border:1px solid #d7dbe5;border-radius:12px;outline:none;background:#fff;color:#333}
 .search-top input:focus{border-color:#1f4fd6}
+html.night .search-top{background:#2a2f38;border-color:#3a414d}
+html.night .search-top input{background:#1e2329;border-color:#3a414d;color:#e8eaed}
+html.night .search-top input::placeholder{color:#8b949e}
+html.night .search-top input:focus{border-color:#5c7cfa}
 """
     if soup.head:
         soup.head.append(style)
