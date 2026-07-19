@@ -115,7 +115,7 @@ if [ -f "$SRC_CSS" ]; then
   echo "覆盖 CSS 已复制 -> $OUT_DIR/lib/xianbao-override.css"
 fi
 PREFIX="${PAGES_PREFIX:-/}"
-CSSLINK="<link rel=\"stylesheet\" href=\"${PREFIX%/}/lib/xianbao-override.css?v=2\">"
+CSSLINK="<link rel=\"stylesheet\" href=\"${PREFIX%/}/lib/xianbao-override.css?v=3\">"
 OUT_DIR="$OUT_DIR" CSSLINK="$CSSLINK" "$PY" - <<'PY'
 import os, pathlib, re
 out_dir = os.environ["OUT_DIR"]
