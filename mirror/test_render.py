@@ -871,3 +871,102 @@ def test_build_search_index_includes_cat_and_comments(tmp_path):
     assert idx[0]["cat_label"] == "赚客吧"
     assert idx[0]["comments"] == 7
     assert (tmp_path / "search.html").exists()
+
+
+def test_prune_nav_removes_login_icon_and_about_and_hot_dropdown(tmp_path):
+    cat_dir = tmp_path / "category-zuankeba"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "index.html").write_text(
+        '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
+        '<div class="login fr"><a href="#"><i class="iconfont icon-user"></i></a></div>'
+        '<ul class="nav-ul">'
+        '<li id="nvabar-item-index"><a href="/">首页</a></li>'
+        '<li id="navbar-category-zuankeba"><a href="/category-zuankeba/">赚客吧</a>'
+        '<span class="toggle-btn"><i class="iconfont icon-down"></i></span>'
+        '<ul class="dropdown-nav nav-sb br sub-nav"><li><a href="#">赚客吧热帖</a></li></ul>'
+        '</li>'
+        '</ul>'
+        '<footer class="footer"><div class="f-about fl"><p class="title">关于本站</p></div>'
+        '<div class="f-contact fl"><p class="title">联系我们</p></div></footer>'
+        '</body></html>',
+        encoding="utf-8")
+    render.rebuild_category_page(
+        cat_dir / "index.html", cat_dir / "index.html", tmp_path, [],
+        cat="zuankeba", title="赚客吧")
+    html = (cat_dir / "index.html").read_text(encoding="utf-8")
+    # 登录图标移除
+    assert 'class="login' not in html
+    assert 'icon-user' not in html
+    # 热帖下拉移除，但「赚客吧」导航项本身保留
+    assert 'navbar-category-zuankeba' in html
+    assert '热帖' not in html
+    assert 'dropdown-nav' not in html
+    assert 'toggle-btn' not in html
+    # 关于本站移除，联系我们保留
+    assert '关于本站' not in html
+    assert 'f-about' not in html
+    assert '联系我们' in html
+    assert 'f-contact' in html
+
+
+def test_strip_chrome_removes_xiangguan():
+    html = (
+        '<html><head></head><body>'
+        '<div class="content"><p>正文内容</p></div>'
+        '<div class="xiangguan sb mt"><div class="clearfix">'
+        '<div class="mianbaoxie">猜你还会喜欢（红包）</div>'
+        '<div class="swiper">...</div></div></div>'
+        '</body></html>'
+    )
+    out = render.strip_chrome(html, cat_slug="huluxia")
+    assert "xiangguan" not in out
+    assert "猜你还会喜欢" not in out
+    assert "正文内容" in out  # 正文保留
+
+
+def test_ensure_minisearch_copies_vendor(tmp_path):
+    ok = render.ensure_minisearch(tmp_path)
+    assert ok
+    lib = tmp_path / "lib" / "minisearch.umd.min.js"
+    assert lib.exists() and lib.stat().st_size > 0
+
+
+def test_localize_images_downloads_and_rewrites(tmp_path, monkeypatch):
+    art = tmp_path / "xiaodigu"
+    art.mkdir()
+    (art / "6437971.html").write_text(
+        '<html><body><img alt="x" referrerpolicy="no-referrer" '
+        'src="https://pic.xiaodigu.cn/pic/20260608/1780914956809419802.jpg"></body></html>',
+        encoding="utf-8")
+
+    import urllib.request as urllib_request
+
+    captured = {}
+
+    class FakeResp:
+        headers = {"Content-Type": "image/jpeg"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def read(self):
+            return b"\xff\xd8\xff\xe0fakejpeg"
+
+    def fake_open(req, timeout=30):
+        captured["url"] = req.full_url
+        return FakeResp()
+
+    monkeypatch.setattr(urllib_request, "urlopen", fake_open)
+
+    stats = render.localize_images(tmp_path)
+    html = (art / "6437971.html").read_text(encoding="utf-8")
+    assert "/zb_users/remote/pic.xiaodigu.cn/pic/20260608/1780914956809419802.jpg" in html
+    local = tmp_path / "zb_users/remote/pic.xiaodigu.cn/pic/20260608/1780914956809419802.jpg"
+    assert local.exists()
+    assert stats["downloaded"] == 1
+    assert stats["rewritten"] == 1
+    assert captured["url"].startswith("https://pic.xiaodigu.cn/")
+

@@ -35,10 +35,11 @@ import glob
 import shutil
 import hashlib
 import random
+import mimetypes
 import subprocess
 import urllib.request
 from pathlib import Path
-from urllib.parse import urlparse, unquote, urljoin, quote
+from urllib.parse import urlparse, unquote, urljoin, quote, parse_qs
 from collections import deque
 import codecs
 
@@ -90,7 +91,10 @@ SOURCE_HOST_RE = re.compile(
     r"|^(?:app\.xdglt\.com|app\.xiaodigu\.cn|www\.zuanke8\.com|www\.x6d\.com"
     r"|v1\.xianbao\.net|v2\.xianbao\.net)$"
     r"|^(?:[a-z0-9-]+\.)*xianbao\.net$"
-    r"|^(?:[a-z0-9-]+\.)*ixbk\.(?:net|fun)$",
+    r"|^(?:[a-z0-9-]+\.)*ixbk\.(?:net|fun)$"
+    # 源站家族其余子域（h5.xdglt.com / m.xiaodigu.cn 等）：一并中和，避免点击跳回源站
+    r"|^(?:[a-z0-9-]+\.)*xdglt\.com$"
+    r"|^(?:[a-z0-9-]+\.)*xiaodigu\.cn$",
     re.I,
 )
 
@@ -427,6 +431,9 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     CHROME_RE = re.compile(r"(nav2-ul|rank-list|guanzhu|toolbar|xianbao-search-fab)", re.I)
     for el in soup.find_all(class_=CHROME_RE):
         el.decompose()
+    # 文章页底部「猜你还会喜欢」推荐流（依赖源站算法、非镜像内容），整块删除
+    for el in soup.select(".xiangguan"):
+        el.decompose()
     # 2) 残留的二维码 / 本页二维码工具条（指向原站）
     for el in soup.select(".qr, #qr, #toolbar"):
         el.decompose()
@@ -535,7 +542,13 @@ def rewrite_html(html: str, cat_slug: str = None) -> str:
         _h = _href.strip()
         _net = urlparse(_h).netloc.lower() if _h.startswith("http") else ""
         if _net and SOURCE_HOST_RE.match(_net):
-            _a["href"] = "#"
+            # 源站「文章页」链接改写为本地相对路径，保留帖间互链结构；
+            # 非文章链接（首页/用户中心等）中和置 #，避免点击跳回源站。
+            _p = urlparse(_h).path
+            if ART_RE.match(_p):
+                _a["href"] = _p
+            else:
+                _a["href"] = "#"
             continue
         if _h.startswith("http"):
             _parent_txt = _a.parent.get_text(" ", strip=True) if _a.parent else ""
@@ -727,14 +740,64 @@ def is_dead(state, path):
 
 
 def record_dead(state, path, reason, permanent=True):
-    """记录一次永久失效。累计达到 DEAD_FAIL_LIMIT 后该地址即被视为 dead。"""
+    """记录一次永久失效，并在首次标记时把最后好快照归档为 tombstone。"""
     d = state.setdefault("dead", {})
     rec = d.get(path) or {"reason": reason, "fails": 0, "ts": 0, "permanent": True}
+    first = rec.get("fails", 0) == 0
     rec["fails"] = rec.get("fails", 0) + 1
     rec["reason"] = reason
     rec["ts"] = _now_ts()
     rec["permanent"] = permanent
     d[path] = rec
+    if first:
+        _tombstone(state, path)
+
+
+def _tombstone(state, path):
+    """源站删帖时，把本地最后好快照复制到 archive/<cat>/<id>/dead.html，写 dead.meta.json。
+    源站关闭 / 删帖后，归档内容仍可访问（结构保留目标）。"""
+    local = path.lstrip("/")
+    src = OUT_DIR / local
+    if not src.exists():
+        return
+    m = re.search(r"/([^/]+)/(\d+)\.html$", "/" + local)
+    if not m:
+        return
+    arch = OUT_DIR / "archive" / m.group(1) / m.group(2)
+    arch.mkdir(parents=True, exist_ok=True)
+    try:
+        shutil.copy2(src, arch / "dead.html")
+        (arch / "dead.meta.json").write_text(
+            json.dumps({"original": "/" + local, "reason": "source_deleted",
+                        "ts": _now()}, ensure_ascii=False),
+            encoding="utf-8")
+        state.setdefault("tombstones", {})["/" + local] = str(arch / "dead.html")
+    except Exception as e:
+        print(f"::warning:: 墓碑保留失败 {path}: {e}", file=sys.stderr)
+
+
+def _archive_version(state, path, local):
+    """源站正文被编辑更新时，把旧快照归档为 archive/<cat>/<id>/v<ts>.html（保留最近 3 版）。"""
+    src = OUT_DIR / local.lstrip("/")
+    if not src.exists():
+        return
+    m = re.search(r"/([^/]+)/(\d+)\.html$", "/" + local)
+    if not m:
+        return
+    arch = OUT_DIR / "archive" / m.group(1) / m.group(2)
+    arch.mkdir(parents=True, exist_ok=True)
+    ts = time.strftime("%Y%m%dT%H%M%S")
+    try:
+        shutil.copy2(src, arch / f"v{ts}.html")
+        vers = state.setdefault("versions", {}).setdefault(path, [])
+        vers.append(ts)
+        while len(vers) > 3:
+            old_ts = vers.pop(0)
+            old = arch / f"v{old_ts}.html"
+            if old.exists():
+                old.unlink()
+    except Exception as e:
+        print(f"::warning:: 版本快照失败 {path}: {e}", file=sys.stderr)
 
 
 def default_state():
@@ -955,6 +1018,32 @@ fetch('/search.json').then(r=>r.json()).then(function(docs){
 """
 
 
+def _clean_text(text: str) -> str:
+    """去掉正文噪声（面包屑 / 版权声明 / 评论区 / 操作按钮），得到干净归档正文。"""
+    if "文章正文" in text:
+        text = text.split("文章正文", 1)[1]
+    if "版权声明" in text:
+        text = text.split("版权声明", 1)[0]
+    for m in ("举报", "收藏文章", "复制文案", "重新抓取",
+              "本文由系统自动重新抓取", "评论列表"):
+        text = text.replace(m, " ")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _to_rfc3339(time_str: str) -> str:
+    """'2026年06月17日 01:02' -> RFC3339（Atom 需要）。失败返回空串。"""
+    iso = _parse_time_to_iso(time_str)
+    if not iso:
+        return ""
+    try:
+        from datetime import datetime, timezone, timedelta
+        dt = datetime.strptime(iso, "%Y-%m-%d %H:%M:%S")
+        dt = dt.replace(tzinfo=timezone(timedelta(hours=8)))
+        return dt.isoformat()
+    except Exception:
+        return ""
+
+
 def build_search_index(out_dir: Path):
     items = []
     for idx, p in enumerate(out_dir.rglob("*.html")):
@@ -976,29 +1065,83 @@ def build_search_index(out_dir: Path):
                                 ".article-content, #article_content, .content")
                 or soup.body)
         text = main.get_text(" ", strip=True) if main else ""
-        # 评论数
-        comments = 0
-        head_info = soup.find(class_="head-info")
-        if head_info:
-            comment_span = head_info.find("span", class_="comment")
-            if comment_span:
-                cmt_m = re.search(r"(\d+)", comment_span.get_text(" ", strip=True))
-                if cmt_m:
-                    comments = int(cmt_m.group(1))
+        meta = _extract_article_meta(p)
+        content_clean = _clean_text(text)
         items.append({
             "id": str(idx + 1),
             "title": title,
             "url": "/" + rel,
-            "body": text[:300],
+            "body": text[:300],                  # 短摘要（兼容旧检索）
+            "content_clean": content_clean[:2000],  # 干净正文（提升检索质量/归档）
             "cat": cat,
             "cat_label": cat_label,
-            "comments": comments,
+            "comments": meta["comments"],
+            "author": meta["author"],
+            "tags": meta["tags"],
+            "time": meta["time"],
         })
     items.sort(key=lambda x: x["title"])
     (out_dir / "search.json").write_text(
         json.dumps(items, ensure_ascii=False), encoding="utf-8")
+    build_sitemap(out_dir, items)
+    build_atom(out_dir, items)
+    build_link_map(out_dir, items)
     build_search_page(out_dir, items)
     return len(items)
+
+
+def _mirror_base() -> str:
+    """站点绝对基址（sitemap/atom 需要）。由 env MIRROR_BASE_URL 指定，缺省占位。"""
+    return os.environ.get("MIRROR_BASE_URL", "https://xianbao-mirror.vercel.app").rstrip("/")
+
+
+def build_sitemap(out_dir: Path, items: list) -> None:
+    """生成 sitemap.xml（全站文章 URL），供搜索引擎抓取，提升原站关闭后可发现性。"""
+    base = _mirror_base()
+    urls = [f"  <url><loc>{base}{it['url']}</loc></url>" for it in items]
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+           + "\n".join(urls) + "\n</urlset>\n")
+    (out_dir / "sitemap.xml").write_text(xml, encoding="utf-8")
+
+
+def build_atom(out_dir: Path, items: list) -> None:
+    """生成 atom.xml（最近 50 篇，按发布时间倒序），作为新抓取内容的订阅源。"""
+    base = _mirror_base()
+    from xml.sax.saxutils import escape
+    recent = sorted(
+        (it for it in items if it.get("time")),
+        key=lambda x: x["time"], reverse=True)[:50]
+    entries = []
+    for it in recent:
+        updated = _to_rfc3339(it["time"]) or time.strftime("%Y-%m-%dT%H:%M:%S+08:00")
+        title = escape(it["title"])
+        entries.append(
+            f'  <entry>\n'
+            f'    <title>{title}</title>\n'
+            f'    <link href="{base}{it["url"]}"/>\n'
+            f'    <id>{base}{it["url"]}</id>\n'
+            f'    <updated>{updated}</updated>\n'
+            f'  </entry>')
+    feed = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<feed xmlns="http://www.w3.org/2005/Atom">\n'
+            f'  <title>线报酷镜像</title>\n'
+            f'  <id>{base}/</id>\n'
+            f'  <updated>{time.strftime("%Y-%m-%dT%H:%M:%S+08:00")}</updated>\n'
+            + "\n".join(entries) + "\n</feed>\n")
+    (out_dir / "atom.xml").write_text(feed, encoding="utf-8")
+
+
+def build_link_map(out_dir: Path, items: list) -> None:
+    """生成 link-map.json：源站各域名同路径 URL -> 本地路径，供死链重定向中间件使用。"""
+    m = {}
+    for it in items:
+        local = it["url"]  # /cat/id.html
+        m[local] = {"title": it["title"], "local": local}
+        for net in ALL_NETLOCS:
+            m[f"https://{net}{local}"] = {"local": local, "title": it["title"]}
+    (out_dir / "link-map.json").write_text(
+        json.dumps(m, ensure_ascii=False), encoding="utf-8")
 
 
 def _parse_time_to_iso(time_str: str) -> str:
@@ -1077,6 +1220,21 @@ def _build_rank_sidebar(items: list, soup) -> str:
     return div
 
 
+def ensure_minisearch(out_dir: Path) -> bool:
+    """把内置的 MiniSearch UMD 库复制到 out_dir/lib/，使搜索页不依赖外部 CDN
+    （jsdelivr 失效或源站删除都不影响站内搜索）。幂等：已存在且大小一致则跳过。"""
+    src = Path(__file__).resolve().parent / "vendor" / "minisearch.umd.min.js"
+    if not src.exists():
+        print("::warning:: vendor/minisearch.umd.min.js 缺失，搜索页将无 MiniSearch 库",
+              file=sys.stderr)
+        return False
+    dst = out_dir / "lib" / "minisearch.umd.min.js"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    if not dst.exists() or dst.stat().st_size != src.stat().st_size:
+        dst.write_bytes(src.read_bytes())
+    return dst.exists()
+
+
 def build_search_page(out_dir: Path, items: list) -> None:
     """生成源站风格的搜索页：复用 category-zuankeba 模板，替换主列表为 MiniSearch 搜索，
     并在右侧生成 12/24/48 小时榜。"""
@@ -1089,6 +1247,11 @@ def build_search_page(out_dir: Path, items: list) -> None:
     soup = BeautifulSoup(html, "html.parser")
     if soup.title:
         soup.title.string = "搜索-线报酷镜像"
+    # 注入 MiniSearch 库（内置 vendored 副本，不依赖外部 CDN，防 CDN 失效/源站删除）
+    ensure_minisearch(out_dir)
+    ms = soup.new_tag("script", src="/lib/minisearch.umd.min.js")
+    if soup.head:
+        soup.head.append(ms)
     # 面包屑：首页 > 搜索
     mbx = soup.find(class_="mianbaoxie")
     if mbx:
@@ -1369,6 +1532,16 @@ def _extract_article_meta(path: Path) -> dict:
     if time_tag:
         pub_time = time_tag.get_text(" ", strip=True)
         pub_time = re.sub(r'\s+', ' ', pub_time).strip()
+    # 作者（源站正文含 class="author"，此前未被结构化提取）
+    author = ""
+    au = soup.find(class_="author")
+    if au:
+        author = re.sub(r'\s+', ' ', au.get_text(" ", strip=True)).strip()
+    # 标签（源站若有标签块则提取；无则空列表，不影响归档）
+    tags = []
+    tg = soup.find(class_=re.compile(r"tags", re.I))
+    if tg:
+        tags = [a.get_text(strip=True) for a in tg.find_all("a") if a.get_text(strip=True)]
     rel = "/" + path.relative_to(path.parent.parent).as_posix()
     m = re.search(r"/([^/]+)/(\d+)\.html$", rel)
     art_id = int(m.group(2)) if m else 0
@@ -1387,6 +1560,8 @@ def _extract_article_meta(path: Path) -> dict:
         "url": rel,
         "title": title or path.name,
         "time": pub_time,
+        "author": author,
+        "tags": tags,
         "comments": comments,
     }
 
@@ -1599,6 +1774,15 @@ def _prune_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
     # 删除次级快捷导航条（源站含大量未镜像分类）
     for nav2 in soup.find_all("ul", class_="nav2-ul"):
         nav2.decompose()
+    # 移除导航项内的「热帖」下拉子菜单（赚客吧/新赚吧等），用户要求只保留平铺分类
+    for sub in soup.select(".nav-ul .dropdown-nav, .nav-ul .sub-nav, .nav-ul .toggle-btn"):
+        sub.decompose()
+    # 移除头部登录 / 用户中心图标（无后台、点击无效、暴露源站）
+    for el in soup.select(".login.fr, .login"):
+        el.decompose()
+    # 移除页脚「关于本站」块（保留「联系我们 / 关注我们」）
+    for el in soup.select(".f-about"):
+        el.decompose()
 
 
 def _home_breadcrumb(soup) -> None:
@@ -1845,27 +2029,26 @@ def main():
                 local = url_to_local(url)
                 outp = OUT_DIR / local
                 outp.parent.mkdir(parents=True, exist_ok=True)
-                outp.write_text(rendered, encoding="utf-8")
                 sig = content_signature(rendered)
                 now = _now()
+                # 变更感知：recheck 且正文哈希变化 → 先归档旧快照，再覆盖写盘
                 if kind == "recheck":
                     prev = state["crawled"].get(path, {})
                     if prev.get("hash") != sig:
+                        _archive_version(state, path, local)
                         state["stats"]["updated"] += 1
-                    rec = state["crawled"].setdefault(
-                        path, {"hash": sig, "local": local, "last_check": now})
-                    rec["hash"] = sig
-                    rec["local"] = local
-                    rec["last_check"] = now
                 else:
                     is_new = path not in state["crawled"]
-                    state["crawled"][path] = {
-                        "hash": sig, "local": local, "last_check": now}
-                    if is_new:
-                        if ART_RE.match(path):
-                            state["stats"]["articles"] += 1
-                        else:
-                            state["stats"]["pages"] += 1
+                    if is_new and ART_RE.match(path):
+                        state["stats"]["articles"] += 1
+                    elif is_new:
+                        state["stats"]["pages"] += 1
+                outp.write_text(rendered, encoding="utf-8")
+                rec = state["crawled"].setdefault(
+                    path, {"hash": sig, "local": local, "last_check": now})
+                rec["hash"] = sig
+                rec["local"] = local
+                rec["last_check"] = now
                 counter[0] += 1
                 # 检查点提交：每渲染 CHECKPOINT_EVERY 页就把进度推到 GitHub，
                 # 中途取消/崩溃也不丢进度，次日从断点继续（不重复爬）。
@@ -1981,6 +2164,8 @@ def main():
     fill_missing(state, since=run_start_ts)
     stripped = strip_injection_scripts(set(), since=run_start_ts)
     stripped_analytics = strip_analytics_scripts(since=run_start_ts)
+    # 图片本地化：外站图下载到本地，防源站删帖/删图后无法查看
+    img_stats = localize_images(OUT_DIR)
 
     (OUT_DIR / ".nojekyll").write_text("", encoding="utf-8")
 
@@ -2008,6 +2193,7 @@ def main():
         "dead_pages": len(state.get("dead", {})),
         "dead_assets": len(state.get("dead_assets", {})),
         "html_count": _html_count,
+        "images_localized": img_stats,
     }
     (OUT_DIR / ".mirror-meta.json").write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -2247,5 +2433,303 @@ def strip_analytics_scripts(since=None):
     return removed
 
 
+# 二维码服务：这些外站图片本质是「扫码跳活动」，其内容（编码串）就藏在 URL 参数里，
+# 完全可在本地用 qrcode 库重生，从而彻底去掉对 qrickit.com 等第三方服务的依赖。
+QR_HOST_RE = re.compile(r"(qrickit\.com|qrserver\.com|qr\.alipay\.com|qrcode\.)", re.I)
+
+
+def _qr_payload(url: str):
+    """从二维码服务图片 URL 中提取应编码的内容；无法提取返回 None。"""
+    p = urlparse(url)
+    q = parse_qs(p.query)
+    if "d" in q:                      # qrickit.com?d=<data>
+        return q["d"][0]
+    if "data" in q:                   # api.qrserver.com?data=<data>
+        return q["data"][0]
+    if "qr.alipay.com" in p.netloc or "qr.alyipay.com" in p.netloc:
+        return url                    # 支付宝短码：内容即该 URL 本身
+    return None
+
+
+def _regen_qr(url: str, dst: Path) -> bool:
+    """用 qrcode 库把二维码内容重生为本地 PNG。成功返回 True。"""
+    try:
+        import io
+        import qrcode
+    except ImportError:
+        return False
+    payload = _qr_payload(url)
+    if not payload:
+        return False
+    try:
+        img = qrcode.make(payload)
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        data = buf.getvalue()
+        if not data:
+            return False
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_bytes(data)
+        return True
+    except Exception as e:
+        print(f"::warning:: 二维码本地重生失败 {url}: {e}", file=sys.stderr)
+        return False
+
+
+def localize_images(out_dir: Path, *, force: bool = False) -> dict:
+    """下载文章页中的外站 <img>（src / data-src / data-original / srcset）到本地
+    ``out_dir/zb_users/remote/<host>/<path>``，并把链接改写成站内相对路径。
+    目的：源站删帖 / 删图后，镜像站仍可正常查看（防删帖）。
+
+    特性：
+      - 幂等：本地已存在且非空则跳过下载；URL 按 host+path 去重，单图只下一遍。
+      - 多 Referer 重试：部分 CDN（如 at.alicdn.com）会按 Referer 防盗链，依次尝试
+        多个候选 Referer，显著提升商品图抓取成功率。
+      - 二维码本地重生：qrickit.com 等二维码图片不再外链，改用 qrcode 本地生成 PNG。
+      - 下载失败的外站图保留原链接（不比原来更差），并记录到 ``.dead_remote_imgs.json``。
+      - 每次全量扫描已镜像的 5 个文章目录；即便后续 render 把本地化后的 HTML 重新
+        覆盖回外站链接，下一轮 localize 也会再次修正，保证持久可查。
+    """
+    out_dir = Path(out_dir)
+    remote_re = re.compile(r"^https?://", re.I)
+    illegal = re.compile(r'[\\:*?"<>|]')
+
+    def rel_path(url: str):
+        """外站图片 URL -> 站内相对路径（无前缀）。非 http(s) 或本机返回 None。"""
+        p = urlparse(url.strip())
+        if not p.scheme or not p.netloc:
+            return None
+        if p.netloc.lower() in ("localhost", "127.0.0.1", "0.0.0.0"):
+            return None
+        raw_segs = (unquote(p.path or "") or "index").split("/")
+        segs = []
+        for s in raw_segs:
+            s = illegal.sub("_", s)
+            # 跳过路径前导斜杠产生的空段、以及 . / ..（避免目录穿越/脏名）
+            if s in ("", ".", ".."):
+                continue
+            segs.append(s)
+        if not segs:
+            segs = ["index"]
+        rel = "zb_users/remote/" + p.netloc + "/" + "/".join(segs)
+        if rel.endswith("/"):
+            rel += "index"
+        return rel
+
+    def qr_local_rel(url: str):
+        payload = _qr_payload(url)
+        if not payload:
+            return None
+        h = hashlib.md5(payload.encode("utf-8")).hexdigest()[:12]
+        return f"zb_users/remote/qr/{h}.png"
+
+    def ensure_download(url: str, rel: str, referer_hint: str = None) -> bool:
+        dst = out_dir / rel
+        if dst.exists() and dst.stat().st_size > 0 and not force:
+            return True
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        # 候选 Referer：先试当前文章页（最贴近源站上下文），再试各源站域名
+        candidates = ["https://new.xianbao.fun/", "https://new.ixbk.net/",
+                      "https://new.xianbao.net/"]
+        if referer_hint:
+            candidates.insert(0, referer_hint)
+        last_err = None
+        for ref in candidates:
+            hdr = {
+                "User-Agent": USER_AGENT,
+                "Referer": ref,
+                "Accept": "image/avif,image/webp,image/*,*/*;q=0.8",
+            }
+            try:
+                req = urllib.request.Request(url, headers=hdr)
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    data = r.read()
+                if not data:
+                    continue
+                ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip()
+                if not os.path.splitext(dst.name)[1]:
+                    ext = mimetypes.guess_extension(ctype) or ".bin"
+                    dst = dst.with_suffix(ext)
+                dst.write_bytes(data)
+                return True
+            except Exception as e:
+                last_err = e
+        if last_err:
+            print(f"::warning:: 远程图片下载失败 {url}: {last_err}", file=sys.stderr)
+        return False
+
+    def handle_img_attr(img, attr, url, referer_hint, stats, failed_urls):
+        """处理单个 <img> 属性里的外站 URL。返回是否改写了该属性。"""
+        nonlocal changed_flag
+        # 二维码服务：本地重生
+        if QR_HOST_RE.search(urlparse(url).netloc):
+            rel = qr_local_rel(url)
+            if rel and (out_dir / rel).exists() and not force:
+                img[attr] = "/" + rel
+                changed_flag = True
+                stats["rewritten"] += 1
+                stats["reused"] += 1
+                return True
+            if rel and _regen_qr(url, out_dir / rel):
+                img[attr] = "/" + rel
+                changed_flag = True
+                stats["rewritten"] += 1
+                stats["qr_regen"] = stats.get("qr_regen", 0) + 1
+                return True
+            # 重生失败：保留外链（不比原来更差）
+            failed_urls.append(url)
+            return False
+        rel = rel_path(url)
+        if rel is None:
+            return False
+        if (out_dir / rel).exists() and (out_dir / rel).stat().st_size > 0 and not force:
+            img[attr] = "/" + rel
+            changed_flag = True
+            stats["rewritten"] += 1
+            stats["reused"] += 1
+            return True
+        if ensure_download(url, rel, referer_hint):
+            img[attr] = "/" + rel
+            changed_flag = True
+            stats["rewritten"] += 1
+            stats["downloaded"] += 1
+            return True
+        failed_urls.append(url)
+        return False
+
+    stats = {"scanned": 0, "images_total": 0, "downloaded": 0,
+             "reused": 0, "rewritten": 0, "failed": 0, "qr_regen": 0}
+    failed_urls = []
+
+    for cat in ALLOWED_CATEGORIES:
+        for sub in (cat, f"category-{cat}"):
+            cat_dir = out_dir / sub
+            if not cat_dir.is_dir():
+                continue
+            for hf in cat_dir.rglob("*.html"):
+                # 跳过归档快照（archive/<cat>/<id>/...），其图片已随原帖本地化
+                if "/archive/" in hf.as_posix().replace("\\", "/"):
+                    continue
+                stats["scanned"] += 1
+                try:
+                    soup = BeautifulSoup(
+                        hf.read_text(encoding="utf-8", errors="replace"), "html.parser")
+                except Exception:
+                    continue
+                changed_flag = False
+                referer_hint = "https://" + DOMAIN_POOL[0] + "/" + \
+                    hf.relative_to(out_dir).as_posix()
+                for img in soup.find_all("img"):
+                    for attr in ("src", "data-src", "data-original"):
+                        val = img.get(attr)
+                        if not isinstance(val, str) or not val.strip():
+                            continue
+                        if not remote_re.match(val.strip()):
+                            continue
+                        url = val.strip()
+                        stats["images_total"] += 1
+                        handle_img_attr(img, attr, url, referer_hint, stats, failed_urls)
+                    # srcset（逗号分隔的 url [描述符] 列表，跳过二维码）
+                    ss = img.get("srcset")
+                    if isinstance(ss, str) and ss.strip():
+                        new_parts = []
+                        modified = False
+                        for part in (s.strip() for s in ss.split(",")):
+                            toks = part.split()
+                            if not toks:
+                                new_parts.append(part)
+                                continue
+                            u = toks[0]
+                            if not remote_re.match(u):
+                                new_parts.append(part)
+                                continue
+                            if QR_HOST_RE.search(urlparse(u).netloc):
+                                new_parts.append(part)
+                                continue
+                            rel = rel_path(u)
+                            if rel is None:
+                                new_parts.append(part)
+                                continue
+                            stats["images_total"] += 1
+                            if (out_dir / rel).exists() and \
+                                    (out_dir / rel).stat().st_size > 0 and not force:
+                                toks[0] = "/" + rel
+                                new_parts.append(" ".join(toks))
+                                modified = True
+                                changed_flag = True
+                                stats["rewritten"] += 1
+                                stats["reused"] += 1
+                            elif ensure_download(u, rel, referer_hint):
+                                toks[0] = "/" + rel
+                                new_parts.append(" ".join(toks))
+                                modified = True
+                                changed_flag = True
+                                stats["rewritten"] += 1
+                                stats["downloaded"] += 1
+                            else:
+                                new_parts.append(part)
+                                failed_urls.append(u)
+                        if modified:
+                            img["srcset"] = ", ".join(new_parts)
+                if changed_flag:
+                    try:
+                        hf.write_text(str(soup), encoding="utf-8")
+                    except Exception as e:
+                        print(f"::warning:: 重写 {hf} 失败: {e}", file=sys.stderr)
+
+    # 顶层页面（站点首页/搜索页）同样可能有外站图或二维码，纳入本地化保证持久可查
+    for top in ("index.html", "search.html"):
+        hf = out_dir / top
+        if not hf.is_file():
+            continue
+        stats["scanned"] += 1
+        try:
+            soup = BeautifulSoup(
+                hf.read_text(encoding="utf-8", errors="replace"), "html.parser")
+        except Exception:
+            continue
+        changed_flag = False
+        referer_hint = "https://" + DOMAIN_POOL[0] + "/" + top
+        for img in soup.find_all("img"):
+            for attr in ("src", "data-src", "data-original"):
+                val = img.get(attr)
+                if not isinstance(val, str) or not val.strip():
+                    continue
+                if not remote_re.match(val.strip()):
+                    continue
+                url = val.strip()
+                stats["images_total"] += 1
+                handle_img_attr(img, attr, url, referer_hint, stats, failed_urls)
+        if changed_flag:
+            try:
+                hf.write_text(str(soup), encoding="utf-8")
+            except Exception as e:
+                print(f"::warning:: 重写 {hf} 失败: {e}", file=sys.stderr)
+
+    if failed_urls:
+        (out_dir / ".dead_remote_imgs.json").write_text(
+            json.dumps(sorted(set(failed_urls)), ensure_ascii=False, indent=2),
+            encoding="utf-8")
+    print(f"==> 图片本地化：扫描 {stats['scanned']} 篇文章，"
+          f"外站图 {stats['images_total']} 处，下载 {stats['downloaded']}，"
+          f"二维码重生 {stats.get('qr_regen', 0)}，复用 {stats['reused']}，"
+          f"改写 {stats['rewritten']}，失败 {stats['failed']}")
+    return stats
+
+
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="线报酷镜像渲染/本地化脚本")
+    parser.add_argument(
+        "command", nargs="?", default="crawl",
+        choices=["crawl", "localize"],
+        help="crawl=完整抓取渲染（默认）；localize=仅把已缓存帖子中的外站图片"
+             "下载到本地并改写链接（防删帖），不重新抓取")
+    parser.add_argument("--force", action="store_true",
+                        help="localize 模式：强制重新下载已存在的图片")
+    args = parser.parse_args()
+    if args.command == "localize":
+        OUT_DIR.mkdir(parents=True, exist_ok=True)
+        localize_images(OUT_DIR, force=args.force)
+    else:
+        main()

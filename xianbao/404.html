@@ -25,6 +25,20 @@
   }
   .e404-btns a:hover { background: #c1121f; }
   .e404-foot { font-size: 13px; color: #999; margin-top: 18px; }
+  .e404-search { margin: 22px auto 8px; max-width: 460px; display: flex; gap: 8px; }
+  .e404-search input {
+    flex: 1; padding: 11px 14px; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 15px; outline: none;
+  }
+  .e404-search input:focus { border-color: #e63946; }
+  .e404-search button {
+    padding: 11px 18px; border: 0; border-radius: 8px; background: #e63946;
+    color: #fff; font-size: 15px; cursor: pointer;
+  }
+  .e404-search button:hover { background: #c1121f; }
+  .e404-cats { margin: 14px 0 4px; font-size: 14px; color: #555; }
+  .e404-cats a { color: #e63946; text-decoration: none; margin: 0 8px; }
+  .e404-cats a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -35,6 +49,17 @@
     您访问的地址无效、已被移动或从未存在。<br/>
     这是线报酷的静态镜像站点，仅收录近期内容；更早的历史文章可能未被抓取。
   </p>
+<form class="e404-search" action="/search.html" method="get" role="search">
+  <input type="search" name="q" placeholder="在镜像站内搜索关键词…" aria-label="站内搜索"/>
+  <button type="submit">搜索</button>
+</form>
+<div class="e404-cats">
+  <a href="/category-zuankeba/">赚客吧</a>
+  <a href="/category-xinzuanba/">新赚客吧</a>
+  <a href="/category-xiaodigu/">小嘀咕</a>
+  <a href="/category-huluxia/">葫芦侠</a>
+  <a href="/category-xiaodao/">小刀</a>
+</div>
 <div class="e404-btns">
 <a href="/">返回首页</a>
 </div>
