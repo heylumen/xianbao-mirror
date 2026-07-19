@@ -494,6 +494,41 @@ def _build_article_nav(active_cat: str):
     return BeautifulSoup(frag, "html.parser").find("header")
 
 
+# 图片点击放大（fancybox）初始化脚本。源站用 common.js 给裸 <img data-fancybox>
+# 绑定点击放大（Fancybox v5 原生支持裸 <img data-fancybox>，会从 src 取图并按下
+# data-fancybox 值自动分组），我们剥离 common.js 后该行为失效。此脚本复用页面已
+# 加载的 Fancybox v5 库（/zb_users/theme/xianbao_theme/script/fancybox.js），调用
+# 官方 Fancybox.bind('[data-fancybox]') 恢复点击放大；轻量重试应对脚本加载顺序边缘。
+FANCYBOX_INIT_JS = (
+    "(function(){"
+    "function xbInitFb(){"
+    "if(typeof window.Fancybox==='undefined')return false;"
+    "if(window.__xbFbBound)return true;"
+    "window.__xbFbBound=true;"
+    "document.addEventListener('click',function(e){"
+    "var el=e.target.closest?e.target.closest('img[data-fancybox]'):null;"
+    "if(!el)return;"
+    "e.preventDefault();"
+    "var g=el.getAttribute('data-fancybox');"
+    "var nodes=Array.prototype.slice.call(document.querySelectorAll(\"img[data-fancybox='\"+g+\"']\"));"
+    "var items=nodes.map(function(im){"
+    "var s=im.getAttribute('src')||im.getAttribute('data-src')||'';"
+    "if(s.charAt(0)==='/')s=location.origin+s;"
+    "return {src:s,type:'image'};"
+    "});"
+    "var idx=nodes.indexOf(el);"
+    "if(idx>0){items=items.slice(idx).concat(items.slice(0,idx));}"
+    "Fancybox.show(items,{});"
+    "});"
+    "return true;"
+    "}"
+    "if(!xbInitFb()){"
+    "var n=0,iv=setInterval(function(){if(xbInitFb()||++n>50){clearInterval(iv);}},100);"
+    "}"
+    "})();"
+)
+
+
 def strip_chrome(html: str, cat_slug: str = None) -> str:
     """剥离文章页的站外模板（侧边热门榜 / 页脚外链 / 悬浮搜索 / 二维码工具条等），
     仅保留正文 + 评论，并在顶部注入源站风格导航（分类标签 + 搜索 + 浅色模式），
@@ -634,6 +669,12 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 "})();"
             )
             body.append(script)
+            # 注入图片点击放大（fancybox）初始化：源站 common.js 被剥离后，
+            # 裸 <img data-fancybox> 的点击放大失效，这里用已加载的 fancybox 库自包含恢复。
+            if body.find("script", id="xianbao-fancybox-init") is None:
+                fb = soup.new_tag("script", id="xianbao-fancybox-init")
+                fb.string = FANCYBOX_INIT_JS
+                body.append(fb)
             _inject_nav_tools(soup)
     return str(soup)
 
@@ -2867,7 +2908,9 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                 except Exception as e:
                     last_err = e
                     code = getattr(e, "code", None)
-                    if code in (429, 503) and _retry < 3:
+                    # 429/503 限流，或无状态码的瞬时网络错误（SSL EOF / 连接重置）
+                    # 均退避重试；403/404 等永久错误不重试。
+                    if _retry < 3 and (code in (429, 503) or code is None):
                         time.sleep(2 * (_retry + 1))
                         continue
                     break
