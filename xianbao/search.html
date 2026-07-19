@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="zh-CN">
 <head>
-<link href="/favicon.ico" rel="icon"/>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像 · 站内搜索</title>
-<link href="/lib/xianbao-override.css" rel="stylesheet"/>
+<link rel="stylesheet" href="/lib/xianbao-override.css">
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7/dist/umd/index.min.js"></script>
 <style>
   body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}
@@ -21,17 +19,12 @@
   .it p{margin:6px 0 0;color:#666;font-size:13px;line-height:1.6}
   .meta{color:#999;font-size:12px;margin-top:4px}
 </style>
-<!-- Vercel Analytics + Speed Insights (injected by mirror.sh) -->
-<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)}</script>
-<script defer src="/_vercel/insights/script.js"></script>
-<script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments)}</script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
 <div class="wrap">
-<h1>线报酷镜像 · 站内搜索</h1>
-<input autofocus="" id="q" placeholder="输入关键词，如 红包 / 活动 / 教程…"/>
-<div id="r"></div>
+  <h1>线报酷镜像 · 站内搜索</h1>
+  <input id="q" placeholder="输入关键词，如 红包 / 活动 / 教程…" autofocus>
+  <div id="r"></div>
 </div>
 <script>
 fetch('/search.json').then(r=>r.json()).then(function(docs){
