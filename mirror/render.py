@@ -450,13 +450,28 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     # 5) 移除“本文由系统自动重新抓取...”提示行
     for el in soup.select("#art-fujia > .mianbaoxie"):
         el.decompose()
-    # 6) 移除评论表单区（线报酷内部交流互动版块 / 登录注册提示 / 发表评论框），只保留评论列表
-    for el in soup.select("#commentbox"):
-        el.decompose()
-    # 7) 评论列表头部删除失效控件“顺序/只看楼主”
-    for title in soup.select(".comment-list > .title"):
-        for ctl in title.find_all(class_=["pinglunshunxu", "showlouzhu"]):
+    # 6) 移除评论表单区（#postcmt / .compost）和版块标题（.mianbaoxie），保留真实评论列表
+    for box in soup.select("#commentbox"):
+        for el in box.select("#postcmt, .compost"):
+            el.decompose()
+        for el in box.select(".mianbaoxie"):
+            el.decompose()
+        # #commentbox 里的 .comment-list 是 AJAX 空占位（无 .li），直接删除
+        for cl in box.select(".comment-list"):
+            if not cl.find_all(class_="li"):
+                cl.decompose()
+    # 7) 评论列表头部删除失效控件“顺序/只看楼主”，并确保真实评论可见
+    for cl in soup.find_all(class_="comment-list"):
+        for ctl in cl.find_all(class_=["pinglunshunxu", "showlouzhu"]):
             ctl.decompose()
+        style = cl.get("style", "")
+        if style:
+            style = re.sub(r"\bdisplay\s*:\s*none\s*;?", "", style, flags=re.I).strip(" ;")
+            if style:
+                cl["style"] = style
+            else:
+                del cl["style"]
+        cl["style"] = (cl.get("style", "") + ";display:block;").lstrip(";") if cl.get("style") else "display:block;"
     # 3) 插入「返回列表」链接（仅当能确定分类时）
     if cat_slug:
         body = soup.body
@@ -1446,6 +1461,7 @@ def build_search_page(out_dir: Path, items: list) -> None:
     _fix_search_form(soup)
     _sanitize_local_links(soup, out_dir)
     _prune_nav(soup, is_home=False)
+    _remove_footer(soup)
     (out_dir / "search.html").write_text(str(soup), encoding="utf-8")
 
 
@@ -1852,6 +1868,16 @@ def _prune_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
         el.decompose()
 
 
+def _remove_footer(soup) -> None:
+    """移除页脚（联系我们/关注我们/QQ/微信/微博/二维码），这些属于源站联系方式，
+    与镜像内容无关且用户要求首页不显示。"""
+    for tag in ("footer", "div"):
+        for el in soup.find_all(tag, class_=lambda c: isinstance(c, (str, list)) and "footer" in (c if isinstance(c, str) else " ".join(c))):
+            el.decompose()
+    for el in soup.find_all("footer"):
+        el.decompose()
+
+
 def _home_breadcrumb(soup) -> None:
     """首页面包屑仅保留「首页」。就地修改 soup。"""
     mbx = soup.find(class_="mianbaoxie")
@@ -1891,6 +1917,7 @@ def rebuild_category_page(
     _fix_search_form(soup)
     _sanitize_local_links(soup, out_dir)
     _prune_nav(soup, active_cat=cat if not is_home else None, is_home=is_home)
+    _remove_footer(soup)
     if is_home:
         _home_breadcrumb(soup)
     out_path.write_text(str(soup), encoding="utf-8")

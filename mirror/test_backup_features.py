@@ -204,7 +204,15 @@ def test_strip_chrome_removes_article_ui():
       </div>
       <div class="post-comment clearfix sb br" id="commentbox">
         <div class="mianbaoxie"><p>线报酷内部交流互动版块 （已有 <span class="emphasize">0</span> 条评论）</p></div>
-        <div class="art-comment-content"><span id="com-tishi">欢迎您发表评论：</span><form></form></div>
+        <div class="art-comment-content">
+          <div class="compost" id="postcmt"><span id="com-tishi">欢迎您发表评论：</span><form></form></div>
+          <div class="comment-list mt" style="display:none;">
+            <p class="title">交流列表</p>
+            <label id="AjaxCommentBegin"></label>
+            <div class="pagebar" style="display:none;"><div class="nav-links"></div></div>
+            <label id="AjaxCommentEnd"></label>
+          </div>
+        </div>
       </div>
     </div>
     </body></html>"""
@@ -216,7 +224,13 @@ def test_strip_chrome_removes_article_ui():
     assert "欢迎您发表评论" not in out
     assert "pinglunshunxu" not in out
     assert "showlouzhu" not in out
+    # 评论列表及评论内容保留，并强制可见
+    assert "comment-list" in out
     assert "评论" in out
+    assert "display:block" in out.replace(" ", "")
+    # 空占位/版块标题已删除
+    assert "交流列表" not in out
+    assert "线报酷内部交流互动" not in out
     # 返回列表链接保留
     assert "back-to-list" in out
 
@@ -239,3 +253,21 @@ def test_inject_dark_mode_sync():
     assert out2.count("xianbao-darkmode-sync") == out.count("xianbao-darkmode-sync")
     assert out2.count("function switchNightMode()") == out.count("function switchNightMode()")
 
+
+# ---------------------------------------------------------------------------
+# 9) 页脚移除：首页/分类页/搜索页不应显示源站联系方式
+# ---------------------------------------------------------------------------
+def test_remove_footer():
+    html = """<!DOCTYPE html><html><head><title>首页</title></head><body>
+<footer><div class="main container">
+  <div class="f-contact fl"><p class="title pb1">联系我们</p><p>QQ: 2771128168</p></div>
+  <div class="f-qr fr"><p class="title pb1">关注我们</p><img src="qr.png"></div>
+</div></footer>
+</body></html>"""
+    soup = render.BeautifulSoup(html, "html.parser")
+    render._remove_footer(soup)
+    out = str(soup)
+    assert "联系我们" not in out
+    assert "关注我们" not in out
+    assert "QQ" not in out
+    assert "footer" not in out

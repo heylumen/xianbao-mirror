@@ -902,11 +902,12 @@ def test_prune_nav_removes_login_icon_and_about_and_hot_dropdown(tmp_path):
     assert '热帖' not in html
     assert 'dropdown-nav' not in html
     assert 'toggle-btn' not in html
-    # 关于本站移除，联系我们保留
+    # 关于本站 / 联系我们 / 关注我们 全部移除（页脚属于源站联系方式，镜像不展示）
     assert '关于本站' not in html
     assert 'f-about' not in html
-    assert '联系我们' in html
-    assert 'f-contact' in html
+    assert '联系我们' not in html
+    assert 'f-contact' not in html
+    assert 'footer' not in html
 
 
 def test_strip_chrome_removes_xiangguan():
