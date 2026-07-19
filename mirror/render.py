@@ -456,9 +456,9 @@ def rewrite_html(html: str, cat_slug: str = None) -> str:
                 style,
             )
     # 中和指向源站后端的跳转链接，分三层（互不冲突）：
-    # 1) 无歧义“源站家族”域名（xianbao.*/ixbk.*/xdglt.*/xiaodigu.cn/zuanke8.com 等）
-    #    任何位置的 <a href> 都中和；www.x6d.com 故意排除——它对 xiaodao 既是源站后端
-    #    又是优惠内容链接，不能按域名一刀切。
+    # 1) 无歧义“源站家族”域名（xianbao.*/ixbk.*/xdglt.*/xiaodigu.cn/zuanke8.com/www.x6d.com 等）
+    #    任何位置的 <a href> 都中和。www.x6d.com 已纳入（用户要求 xiaodao 完全不跳源站，
+    #    连正文优惠链接也一并中和），详见上方 SOURCE_HOST_RE 注释。
     # 2) “原文地址 / 阅读原文 / 来源”等标记块内的 <a>（精准，保留同域名的优惠链接）。
     # 3) 文章标题块 d-biaoti 内的外链（标题本就不该外跳，保留本地相对链接）。
     # 中和方式：保留可见文字，href 置 “#”，点击不再离开镜像站。
