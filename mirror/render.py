@@ -441,10 +441,32 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     for st in soup.find_all("style"):
         if st.string and "xianbao-search-fab" in st.string:
             st.decompose()
+    # 4) 文章页操作按钮：收藏、复制文案、重新抓取、举报
+    for _cls in ("mochu_us_shoucang", "mochu-us-coll", "mochu-us-zhua",
+                 "mochu-us-copy", "report"):
+        for el in soup.find_all(class_=re.compile(r"(^|\b)" + re.escape(_cls)
+                                                   + r"($|\b)", re.I)):
+            el.decompose()
+    # 5) 移除“本文由系统自动重新抓取...”提示行
+    for el in soup.select("#art-fujia > .mianbaoxie"):
+        el.decompose()
+    # 6) 移除评论表单区（线报酷内部交流互动版块 / 登录注册提示 / 发表评论框），只保留评论列表
+    for el in soup.select("#commentbox"):
+        el.decompose()
+    # 7) 评论列表头部删除失效控件“顺序/只看楼主”
+    for title in soup.select(".comment-list > .title"):
+        for ctl in title.find_all(class_=["pinglunshunxu", "showlouzhu"]):
+            ctl.decompose()
     # 3) 插入「返回列表」链接（仅当能确定分类时）
     if cat_slug:
         body = soup.body
         if body is not None:
+            # 幂等：去除旧链接/标记，避免重复运行后多出
+            for _a in body.find_all("a", class_="back-to-list"):
+                _a.decompose()
+            for _c in body.find_all(string=lambda s: isinstance(s, Comment)
+                                    and "xianbao-chrome-stripped" in s):
+                _c.extract()
             a = soup.new_tag("a", href=f"/category-{cat_slug}/")
             a["class"] = "back-to-list"
             a["style"] = ("display:inline-block;margin:14px 0 0;color:#1f4fd6;"
@@ -500,8 +522,53 @@ def discover_article_links(html: str, base_url: str):
     return out
 
 
+def inject_dark_mode_sync(soup: BeautifulSoup) -> None:
+    """在 <head> 顶部同步写入 night 主题类，避免 DOMContentLoaded 后再切换造成整页白闪；
+    在 <body> 末尾覆盖 switchNightMode，使其同步切换 document.documentElement
+    与 document.body 的 night 类，与初始注入保持一致。
+    """
+    head = soup.find("head")
+    if head is None:
+        return
+    # 幂等：已注入则跳过
+    if any(
+        isinstance(c, Comment) and "xianbao-darkmode-sync" in c
+        for c in head.contents
+    ):
+        return
+    head.insert(0, Comment("xianbao-darkmode-sync"))
+    sync = BeautifulSoup(
+        '<script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);'
+        'if(m&&decodeURIComponent(m[1])==="1")document.documentElement.classList.add("night");'
+        '}catch(e){}})();</script>',
+        "html.parser",
+    )
+    head.insert(1, sync)
+    body = soup.find("body")
+    if body is not None:
+        if not any(
+            isinstance(c, Comment) and "xianbao-darkmode-override" in c
+            for c in body.contents
+        ):
+            body.append(Comment("xianbao-darkmode-override"))
+            override = BeautifulSoup(
+                '<script>function switchNightMode(){'
+                'var m=document.cookie.match(/(?:^|; )night=([^;]*)/),'
+                'night=(m&&decodeURIComponent(m[1])==="1")?"1":"0",'
+                'next=night==="1"?"0":"1",d=new Date();'
+                'd.setTime(d.getTime()+6048e5);'
+                'document.cookie="night="+next+";expires="+d.toUTCString()+";path=/";'
+                'document.documentElement.classList.toggle("night",next==="1");'
+                'if(document.body)document.body.classList.toggle("night",next==="1");'
+                '}</script>',
+                "html.parser",
+            )
+            body.append(override)
+
+
 def rewrite_html(html: str, cat_slug: str = None) -> str:
     soup = BeautifulSoup(html, "html.parser")
+    inject_dark_mode_sync(soup)
     attrs = ("href", "src", "data-src", "poster", "data-href", "data-url",
              "data-yuanurl", "srcset", "action")
     for tag in soup.find_all(True):
