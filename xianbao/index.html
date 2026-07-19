@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<link rel="icon" href="/favicon.ico">
-
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像</title>
@@ -12,6 +10,11 @@ body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color
 .wrap{max-width:900px;margin:0 auto;padding:24px 16px}
 h1{font-size:24px;margin:0 0 8px}
 .desc{color:#666;margin:0 0 18px}
+.search-bar{display:flex;gap:10px;margin-bottom:18px;max-width:520px}
+.search-bar input{flex:1;padding:12px 16px;font-size:15px;border:1px solid #d7dbe5;border-radius:12px;outline:none}
+.search-bar input:focus{border-color:#1f4fd6;box-shadow:0 0 0 3px rgba(31,79,214,.12)}
+.search-bar button{padding:0 20px;background:#1f4fd6;color:#fff;border:none;border-radius:12px;font-size:15px;cursor:pointer}
+.search-bar button:hover{background:#1746b8}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
 .tab{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid #d7dbe5;cursor:pointer;font-size:14px;transition:all .2s}
 .tab:hover{border-color:#1f4fd6;color:#1f4fd6}
@@ -27,16 +30,15 @@ h1{font-size:24px;margin:0 0 8px}
 .empty{padding:30px;text-align:center;color:#999}
 .count{color:#999;font-size:13px;margin-left:8px}
 </style>
-<!-- Vercel Analytics + Speed Insights (injected by mirror.sh) -->
-<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)}</script>
-<script defer src="/_vercel/insights/script.js"></script>
-<script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments)}</script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
 <div class="wrap">
   <h1>线报酷镜像</h1>
   <p class="desc">本镜像仅增量备份 5 个分类（每日更新，含评论）。</p>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="输入关键词，如 红包 / 活动 / 教程…">
+    <button id="searchBtn">搜索</button>
+  </div>
   <div class="tabs">
     <span class="tab active" data-cat="all">全部</span>
     <span class="tab" data-cat="zuankeba">赚客吧</span>
@@ -664,6 +666,14 @@ h1{font-size:24px;margin:0 0 8px}
 </div>
 </div>
 <script>
+function doSearch(){
+  var q = document.getElementById('searchInput').value.trim();
+  if (q) { window.location.href = '/search.html?q=' + encodeURIComponent(q); }
+}
+document.getElementById('searchBtn').addEventListener('click', doSearch);
+document.getElementById('searchInput').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') { doSearch(); }
+});
 document.querySelectorAll('.tab').forEach(function(tab){
   tab.addEventListener('click', function(){
     var cat = this.dataset.cat;
@@ -674,6 +684,5 @@ document.querySelectorAll('.tab').forEach(function(tab){
   });
 });
 </script>
-<style>.xianbao-search-fab{position:fixed;right:18px;bottom:18px;z-index:9999;width:48px;height:48px;border-radius:50%;background:#1f4fd6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,.25)}.xianbao-search-fab:hover{background:#1640b0}</style><a class="xianbao-search-fab" href="/search.html" title="站内搜索">🔍</a>
 </body>
 </html>
