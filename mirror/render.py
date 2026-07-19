@@ -518,7 +518,7 @@ FANCYBOX_INIT_JS = (
     "});"
     "var idx=nodes.indexOf(el);"
     "if(idx>0){items=items.slice(idx).concat(items.slice(0,idx));}"
-    "Fancybox.show(items,{});"
+    "Fancybox.show(items,{hideScrollbar:false});"
     "});"
     "return true;"
     "}"
@@ -526,6 +526,16 @@ FANCYBOX_INIT_JS = (
     "var n=0,iv=setInterval(function(){if(xbInitFb()||++n>50){clearInterval(iv);}},100);"
     "}"
     "})();"
+)
+
+# 内联防晃动样式：随 HTML 一起被缓存破坏，不依赖外部覆盖 CSS 是否新鲜。
+# 双保险：(a) 即使 Fancybox 仍给 <html> 加 with-fancybox，也强制滚动条常驻（文档宽度恒定）；
+# (b) hideScrollbar:false 已让 Fancybox 不再给 <body> 加 hide-scrollbar（无 margin-right 补偿）；
+# 这里再显式把 body 锁为 overflow:hidden 禁止背景滚动，且不改变宽度，因此开合全程零位移。
+FANCYBOX_NOSHIFT_CSS = (
+    "html.with-fancybox{overflow-y:scroll !important;overflow-x:hidden !important;}"
+    "html.with-fancybox body.hide-scrollbar{margin-right:0 !important;}"
+    "html.with-fancybox body{overflow:hidden !important;}"
 )
 
 
@@ -672,6 +682,9 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
             # 注入图片点击放大（fancybox）初始化：源站 common.js 被剥离后，
             # 裸 <img data-fancybox> 的点击放大失效，这里用已加载的 fancybox 库自包含恢复。
             if body.find("script", id="xianbao-fancybox-init") is None:
+                fb_style = soup.new_tag("style", id="xianbao-fancybox-noshift")
+                fb_style.string = FANCYBOX_NOSHIFT_CSS
+                body.append(fb_style)
                 fb = soup.new_tag("script", id="xianbao-fancybox-init")
                 fb.string = FANCYBOX_INIT_JS
                 body.append(fb)
@@ -1249,7 +1262,7 @@ SEARCH_HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像 · 站内搜索</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=2">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=3">
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7/dist/umd/index.min.js"></script>
 <style>
   body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}
@@ -1640,7 +1653,7 @@ def _build_legacy_hub(out_dir: Path):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=2">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=3">
 <style>
 body{{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}}
 .wrap{{max-width:900px;margin:0 auto;padding:24px 16px}}
