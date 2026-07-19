@@ -435,6 +435,16 @@ def rewrite_html(html: str) -> str:
         lambda m: "window.open(" + m.group(1) + fix_url(m.group(2)) + m.group(1),
         out,
     )
+    # 兜底：剔除任何残留的源站绝对/协议相对域名。典型场景是分享二维码组件
+    # `<img src="//x.com/api/qr.php?d=https://news.xianbao.fun/...">` 的 d= 参数——
+    # 该属性的 netloc 是二维码 API 而非源站，fix_url 不会改写其内部的源站 URL，
+    # 故在此做全局兜底，把源站域名整体抹掉、保留本地路径（d=/category-xxx/）。
+    # 由于仅匹配 ALL_NETLOCS，外部链接（京东/阿里 CDN 等）不受影响。幂等可重入。
+    out = re.sub(
+        r"(?:https?:)?//(?:" + "|".join(re.escape(n) for n in ALL_NETLOCS) + r")",
+        "",
+        out,
+    )
     if not re.match(r'\s*<!DOCTYPE', out, re.IGNORECASE):
         out = "<!DOCTYPE html>\n" + out
     return out

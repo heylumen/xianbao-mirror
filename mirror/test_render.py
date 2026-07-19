@@ -165,6 +165,26 @@ def test_fix_url_bare_origin_root():
     assert render.fix_url("https://new.xianbao.fun/") == "/"
 
 
+def test_rewrite_html_strips_source_domain_inside_qr_widget():
+    # 分享二维码组件：src 的 netloc 是二维码 API，内部 d= 参数才是源站绝对地址。
+    # fix_url 只改写属性顶层 URL（外部域名保持不变），故需 rewrite_html 的全局兜底
+    # 把 d= 里的源站域名抹掉、保留本地路径。
+    html = (
+        '<img src="//qr.example.com/api/qr.php?qrsize=200&amp;'
+        'd=https://news.xianbao.fun/category-zuankeba/">'
+    )
+    out = render.rewrite_html(html)
+    assert "news.xianbao.fun" not in out
+    assert "d=/category-zuankeba/" in out
+
+
+def test_rewrite_html_removes_protocol_relative_source_everywhere():
+    html = '<a href="//new.ixbk.net/haodan/6654815">x</a>'
+    out = render.rewrite_html(html)
+    assert "new.ixbk.net" not in out
+    assert 'href="/haodan/6654815.html"' in out
+
+
 # ---------------------------------------------------------------------------
 # discover_article_links —— 仅文章链接
 # ---------------------------------------------------------------------------
