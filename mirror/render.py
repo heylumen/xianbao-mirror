@@ -39,6 +39,7 @@ import urllib.request
 from pathlib import Path
 from urllib.parse import urlparse, unquote, urljoin, quote
 from collections import deque
+import codecs
 
 from bs4 import BeautifulSoup, Doctype, NavigableString, Comment
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
@@ -84,6 +85,43 @@ SOURCE_HOST_RE = re.compile(
     r"|^(?:[a-z0-9-]+\.)*ixbk\.(?:net|fun)$",
     re.I,
 )
+
+
+def _looks_like_domain_lock(text: str) -> bool:
+    """识别源站「域名锁定 / 防盗链」重定向脚本。
+
+    源站（new.xianbao.fun 等）在文章页注入一段内联脚本：检测当前 hostname 是否在其
+    官方域名列表内，不在就把访客 ``window.location.href = "http://new.xianbao.fun"``
+    甩回源站。该脚本常做 hex 混淆（如 ``window["\\x6c\\x6f..."]["\\x68\\x72..."]``），
+    原样搬进镜像后会让文章页一加载就跳回源站。对镜像毫无意义，必须删除。
+
+    判定：内联脚本同时含 ``hostname``、``location``、某源站域名，且把 location 赋值为
+    http(s) 源站 URL（方括号或点号记法均可）。
+    """
+    try:
+        _dec = codecs.decode(text, "unicode_escape")
+    except Exception:
+        _dec = text
+    _c = text + "\n" + _dec
+    if not ("hostname" in _c and "location" in _c):
+        return False
+    if not re.search(r"(xianbao|ixbk|xiaodigu|xdglt|zuanke8|x6d)", _c, re.I):
+        return False
+    # 把 location（任意记法：window.location.href / window["location"]["href"]）
+    # 赋值为 http(s):// 源站 URL，即视为域名锁定重定向脚本。
+    if re.search(r'location.{0,30}=.{0,6}https?://', _c, re.I):
+        return True
+    return False
+
+
+def strip_domain_lock_script(html: str) -> str:
+    """外科手术式删除「域名锁定」内联 ``<script>``，不影响文档其余字节（无 favicon /
+    analytics 漂移）。用于已提交 HTML 的就地清理，避免重跑 ``str(soup)`` 全量重序列化。"""
+    def _repl(m):
+        if _looks_like_domain_lock(m.group(1)):
+            return ""
+        return m.group(0)
+    return re.sub(r"<script[^>]*>(.*?)</script>", _repl, html, flags=re.S)
 
 
 def forum_thread_to_local(url: str, cat_slug: str = None):
@@ -509,6 +547,13 @@ def rewrite_html(html: str, cat_slug: str = None) -> str:
             c.extract()
         else:
             break
+    # 剥离源站「域名锁定 / 防盗链」内联脚本（hex 混淆的 window.location 重定向），
+    # 否则镜像站加载文章页会把访客甩回源站。该脚本对镜像无意义，直接删除。
+    for _s in soup.find_all("script"):
+        if _s.get("src"):
+            continue
+        if _looks_like_domain_lock(_s.get_text() or ""):
+            _s.decompose()
     out = str(soup)
     out = re.sub(
         r"(window\.)?location\.href\s*=\s*(['\"])([^'\"]+)\2",
