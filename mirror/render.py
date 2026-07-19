@@ -126,16 +126,6 @@ def _looks_like_domain_lock(text: str) -> bool:
     return False
 
 
-def strip_domain_lock_script(html: str) -> str:
-    """外科手术式删除「域名锁定」内联 ``<script>``，不影响文档其余字节（无 favicon /
-    analytics 漂移）。用于已提交 HTML 的就地清理，避免重跑 ``str(soup)`` 全量重序列化。"""
-    def _repl(m):
-        if _looks_like_domain_lock(m.group(1)):
-            return ""
-        return m.group(0)
-    return re.sub(r"<script[^>]*>(.*?)</script>", _repl, html, flags=re.S)
-
-
 def strip_source_addr(html: str) -> str:
     """外科手术式删除「原文地址：/ 阅读原文 / 查看原文」整行（<div>/<p> 包裹的
     ``<strong>`` + 源站链接）。对镜像无意义且暴露源站，用户要求删除。仅删除匹配块、
