@@ -149,6 +149,15 @@ def strip_source_addr(html: str) -> str:
     return html
 
 
+def strip_common_js(html: str) -> str:
+    """外科手术式删除源站主题 ``common.js`` 引用。该脚本在移动端会重新初始化评论控件，
+    并把文本节点中的 URL 自动链接化，破坏 ``.author`` 链接结构，导致用户名显示异常、
+    同时出现两个「顺序」按钮。仅删除匹配脚本标签，不影响文档其余字节。"""
+    return re.sub(
+        r'<script[^>]*src="[^"]*common\.js[^"]*"[^>]*>\s*</script>',
+        '', html, flags=re.S | re.I)
+
+
 def strip_breadcrumb_icon(html: str) -> str:
     """外科手术式把面包屑分隔符 ``<i class="iconfont icon-right"></i>`` 替换为文本
     「 › 」，避免依赖外部 iconfont CDN（at.alicdn.com）导致分隔符不显示、面包屑挤成
@@ -498,6 +507,10 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     for st in soup.find_all("style"):
         if st.string and "xianbao-search-fab" in st.string:
             st.decompose()
+    # 2c) 删除源站主题 common.js：它在运行时会把文本中的 URL 自动链接化，
+    # 错误地破坏 .author 链接结构；还会在移动端评论列表里重复注入「顺序」控件。
+    for _s in soup.find_all("script", src=re.compile(r"common\.js", re.I)):
+        _s.decompose()
     # 4) 文章页操作按钮：收藏、复制文案、重新抓取、举报
     for _cls in ("mochu_us_shoucang", "mochu-us-coll", "mochu-us-zhua",
                  "mochu-us-copy", "report"):
@@ -1838,38 +1851,57 @@ def _replace_new_post_list(html: str, items: list) -> str:
     return str(soup)
 
 
-def _build_pagination(soup, cat: str, page: int, total_pages: int):
-    """构造分页条 <div class='pagebar'> 替换原 pagebar。page 从 1 开始。"""
+def _build_pagination(soup, cat: str, page: int, total_pages: int, is_home: bool = False):
+    """构造分页条 <div class='pagebar'> 替换原 pagebar。page 从 1 开始。
+    is_home=True 时生成首页分页（/ /2/ /3/...），否则按分类分页。"""
+    def _page_href(p: int) -> str:
+        if is_home:
+            return "/" if p == 1 else f"/{p}/"
+        return f"/category-{cat}/" if p == 1 else f"/category-{cat}/{p}/"
+
     container = soup.new_tag("div", **{"class": "pagebar"})
     nav = soup.new_tag("div", **{"class": "nav-links"})
 
     if page > 1:
-        a = soup.new_tag("a", href=f"/category-{cat}/", **{"class": "br page-numbers", "title": "首页"})
+        a = soup.new_tag("a", href=_page_href(1), **{"class": "br page-numbers", "title": "首页"})
         a.string = "首页"
         nav.append(a)
-        prev_href = f"/category-{cat}/" if page == 2 else f"/category-{cat}/{page-1}/"
-        a = soup.new_tag("a", href=prev_href, **{"class": "br page-numbers", "title": "上一页"})
+        a = soup.new_tag("a", href=_page_href(page - 1), **{"class": "br page-numbers", "title": "上一页"})
         a.string = "上一页"
         nav.append(a)
 
-    for p in range(1, total_pages + 1):
+    # 页码：最多显示 5 个，与源站风格一致
+    if total_pages <= 5:
+        page_range = list(range(1, total_pages + 1))
+    else:
+        start = max(1, page - 2)
+        end = min(total_pages, start + 4)
+        if end - start < 4:
+            start = max(1, end - 4)
+        page_range = list(range(start, end + 1))
+
+    for p in page_range:
         if p == page:
             span = soup.new_tag("span", **{"class": "br page-numbers current"})
             span.string = str(p)
             nav.append(span)
         else:
-            href = f"/category-{cat}/" if p == 1 else f"/category-{cat}/{p}/"
-            a = soup.new_tag("a", href=href, **{"class": "br page-numbers", "title": f"第{p}页"})
+            a = soup.new_tag("a", href=_page_href(p), **{"class": "br page-numbers", "title": f"第{p}页"})
             a.string = str(p)
             nav.append(a)
 
     if page < total_pages:
-        a = soup.new_tag("a", href=f"/category-{cat}/{page+1}/", **{"class": "br page-numbers", "title": "下一页"})
+        a = soup.new_tag("a", href=_page_href(page + 1), **{"class": "br page-numbers", "title": "下一页"})
         a.string = "下一页"
         nav.append(a)
-        a = soup.new_tag("a", href=f"/category-{cat}/{total_pages}/", **{"class": "br page-numbers", "title": "最后一页"})
+        a = soup.new_tag("a", href=_page_href(total_pages), **{"class": "br page-numbers", "title": "最后一页"})
         a.string = "尾页"
         nav.append(a)
+
+    # 页码信息：与源站一致显示 "当前页 / 总页数 页"
+    total_span = soup.new_tag("span", **{"class": "br page-numbers page-total"})
+    total_span.string = f"{page} / {total_pages} 页"
+    nav.append(total_span)
 
     container.append(nav)
     old = soup.find(class_="pagebar")
@@ -1905,13 +1937,15 @@ def _fix_search_form(soup) -> None:
 
 def _sanitize_local_links(soup, out_dir: Path) -> None:
     """若分类页/首页出现指向不存在的本地页面链接，则中和为 #，避免 404。
-    但保留本站生成的分类分页链接（如 /category-zuankeba/2/），避免自误伤。"""
+    但保留本站生成的分类分页链接（如 /category-zuankeba/2/）和首页分页（/2/），
+    避免自误伤。"""
     cat_page_re = re.compile(r"^/category-(?:" + "|".join(ALLOWED_CATEGORIES) + r")/\d+/?$")
+    home_page_re = re.compile(r"^/\d+/?$")
     for a in soup.find_all("a", href=True):
         href = a["href"]
         if not href.startswith("/") or href.startswith("#"):
             continue
-        if cat_page_re.match(href):
+        if cat_page_re.match(href) or home_page_re.match(href):
             continue
         ext = os.path.splitext(href.split("?")[0])[1].lower()
         if ext in ASSET_EXT:
@@ -2022,10 +2056,10 @@ def rebuild_category_page(
     # 移除源站动态脚本（会往列表prepend置顶公告 / 实时推送），避免静态镜像出现源站链接
     for s in soup.find_all("script", src=re.compile(r"meta\.php")):
         s.decompose()
-    if is_home or total_pages <= 1:
-        _strip_pagination(soup)
+    if total_pages > 1:
+        _build_pagination(soup, cat or "", page, total_pages, is_home=is_home)
     else:
-        _build_pagination(soup, cat, page, total_pages)
+        _strip_pagination(soup)
     _fix_search_form(soup)
     _sanitize_local_links(soup, out_dir)
     _prune_nav(soup, active_cat=cat if not is_home else None, is_home=is_home)
@@ -2077,14 +2111,39 @@ def rebuild_category_pages(out_dir: Path) -> None:
 
 
 def build_hub(out_dir: Path):
-    """生成首页：使用源站 category-zuankeba 模板，填充本地赚客吧文章。"""
+    """生成首页：使用源站 category-zuankeba 模板，聚合所有分类文章并支持分页。"""
     cat = "zuankeba"
     template = out_dir / f"category-{cat}" / "index.html"
     if not template.exists():
         return _build_legacy_hub(out_dir)
     by_cat = _local_articles_by_cat(out_dir)
-    items = by_cat.get(cat, [])[:100]
-    rebuild_category_page(template, out_dir / "index.html", out_dir, items, title="首页", is_home=True)
+    # 首页聚合全部 5 个分类的最新文章，按文章 ID 降序
+    all_items = []
+    for c in ALLOWED_CATEGORIES:
+        all_items.extend(by_cat.get(c, []))
+    all_items.sort(key=lambda x: x["id"], reverse=True)
+    PAGESIZE = 100
+    total_pages = max(1, (len(all_items) + PAGESIZE - 1) // PAGESIZE)
+    for page in range(1, total_pages + 1):
+        start = (page - 1) * PAGESIZE
+        page_items = all_items[start:start + PAGESIZE]
+        if page == 1:
+            out_path = out_dir / "index.html"
+            page_title = "首页"
+        else:
+            out_path = out_dir / str(page) / "index.html"
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            page_title = f"首页 - 第{page}页"
+        rebuild_category_page(
+            template, out_path, out_dir, page_items,
+            cat="", page=page, total_pages=total_pages, title=page_title, is_home=True
+        )
+    # 清理不再需要的旧首页分页目录
+    for sub in out_dir.iterdir():
+        if sub.is_dir() and sub.name.isdigit():
+            page_num = int(sub.name)
+            if page_num > total_pages:
+                shutil.rmtree(sub)
 
 
 # ---------------------------------------------------------------------------
