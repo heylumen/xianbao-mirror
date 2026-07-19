@@ -3,13 +3,13 @@
 """存量文章页补丁：彻底消除 Fancybox 灯箱开合时评论区左右晃动。
 
 三处外科手术式修改（均幂等，可重复运行）：
-1. 覆盖 CSS 链接 /lib/xianbao-override.css?v=2 -> ?v=3（顺带把无版本号也升上去），
-   强制 CDN/浏览器重新拉取最新覆盖 CSS，避免仍回源修复前内容。
+1. 覆盖 CSS 链接 /lib/xianbao-override.css 升级到 ?v=4，强制 CDN/浏览器重新拉取。
 2. 内联初始化 JS 中 Fancybox.show(items,{}) -> Fancybox.show(items,{hideScrollbar:false})，
    从源头让 Fancybox 不再给 <body> 加 hide-scrollbar / margin-right 补偿。
-3. 在 <script id="xianbao-fancybox-init"> 前注入
-   <style id="xianbao-fancybox-noshift">...</style>，使防晃动样式随 HTML 一起被缓存破坏，
-   不再依赖外部覆盖 CSS 是否新鲜。
+3. 替换 <style id="xianbao-fancybox-noshift">...</style> 为全局强制版：
+   html{overflow-y:scroll !important;overflow-x:hidden !important;}body{margin-right:0 !important;}
+   不绑定 .with-fancybox 类，因为关闭动画中类会被 Fancybox 短暂移除/切换，导致绑定类
+   的规则失效一瞬间，滚动条恢复、宽度变化，评论区左晃。
 
 只做字符串替换，绝不 str(soup) 重序列化整篇，避免 favicon/Vercel 注入标记漂移。
 """
@@ -20,14 +20,15 @@ import sys
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "xianbao")
 
 NOSHIFT_CSS = (
-    "html.with-fancybox{overflow-y:scroll !important;overflow-x:hidden !important;}"
-    "html.with-fancybox body.hide-scrollbar{margin-right:0 !important;}"
-    "html.with-fancybox body{overflow:hidden !important;}"
+    "html{overflow-y:scroll !important;overflow-x:hidden !important;}"
+    "body{margin-right:0 !important;}"
 )
 STYLE_BLOCK = f'<style id="xianbao-fancybox-noshift">{NOSHIFT_CSS}</style>'
+# 匹配任何已注入的同名 style 块，无论内容新旧
+STYLE_ANY_RE = re.compile(r'<style id="xianbao-fancybox-noshift">.*?</style>')
 
 LINK_RE = re.compile(r'(/lib/xianbao-override\.css)(?:\?v=\d+)?')
-LINK_SUB = r'\1?v=3'
+LINK_SUB = r'\1?v=4'
 # 旧内联调用（无 hideScrollbar 选项）-> 新调用
 SHOW_RE = re.compile(r'Fancybox\.show\(items,\{\}\)')
 SHOW_SUB = 'Fancybox.show(items,{hideScrollbar:false})'
@@ -44,8 +45,10 @@ def patch_file(path):
     # 2) 内联 JS 加 hideScrollbar:false（幂等：已含则不动）
     if "hideScrollbar:false" not in html:
         html = SHOW_RE.sub(SHOW_SUB, html)
-    # 3) 注入内联防晃动 style（幂等：已存在则不动）
-    if 'id="xianbao-fancybox-noshift"' not in html:
+    # 3) 替换内联防晃动 style（幂等：无论旧内容都统一为新内容）
+    if 'id="xianbao-fancybox-noshift"' in html:
+        html = STYLE_ANY_RE.sub(STYLE_BLOCK, html)
+    else:
         marker = '<script id="xianbao-fancybox-init">'
         html = html.replace(marker, STYLE_BLOCK + marker, 1)
     if html != orig:
