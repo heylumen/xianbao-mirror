@@ -40,7 +40,7 @@ from pathlib import Path
 from urllib.parse import urlparse, unquote, urljoin, quote
 from collections import deque
 
-from bs4 import BeautifulSoup, Doctype, NavigableString
+from bs4 import BeautifulSoup, Doctype, NavigableString, Comment
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 _ur = urllib.request  # 补全下载用的 urllib 别名
 
@@ -268,8 +268,52 @@ def fix_url(val: str) -> str:
         if PAGES_PREFIX.endswith("/") and path.startswith("/"):
             path = path[1:]
         return PAGES_PREFIX + path + ("#" + frag if frag else "")
-    # 非白名单页面 -> 原站绝对地址（点击跳活站），已含规范化 .html
-    return "https://" + netloc + path + ("#" + frag if frag else "")
+    # 非白名单页面 -> 改为本地相对路径（留在镜像站内，不再跳转到原站）；
+    # 这些分类未镜像，点击会 404，但至少不会把用户带离镜像。
+    local = path.lstrip("/")
+    if PAGES_PREFIX.endswith("/") and path.startswith("/"):
+        local = path[1:]
+    return PAGES_PREFIX + local + ("#" + frag if frag else "")
+
+
+def strip_chrome(html: str, cat_slug: str = None) -> str:
+    """剥离文章页的站外模板（顶部导航 / 侧边热门榜 / 页脚外链 / 悬浮搜索 /
+    二维码工具条等），仅保留正文 + 评论，并插入「返回列表」链接，使镜像页
+    自包含、点击内部链接不再跳转到原站。
+
+    保留白名单分类的站内链接（已由 fix_url 改写为本地路径），只删除明显属于
+    原站框架的容器；文章正文与 AJAX 评论均保留。
+    """
+    try:
+        soup = BeautifulSoup(html, "html.parser")
+    except Exception:
+        return html
+    # 1) 整块删除的站外框架容器
+    for tag in ("header", "footer", "aside"):
+        for el in soup.find_all(tag):
+            el.decompose()
+    CHROME_RE = re.compile(r"(nav2-ul|rank-list|guanzhu|toolbar|xianbao-search-fab)", re.I)
+    for el in soup.find_all(class_=CHROME_RE):
+        el.decompose()
+    # 2) 残留的二维码 / 本页二维码工具条（指向原站）
+    for el in soup.select(".qr, #qr, #toolbar"):
+        el.decompose()
+    # 2b) 历史上的悬浮搜索按钮样式块（已无对应 <a>，属死代码）
+    for st in soup.find_all("style"):
+        if st.string and "xianbao-search-fab" in st.string:
+            st.decompose()
+    # 3) 插入「返回列表」链接（仅当能确定分类时）
+    if cat_slug:
+        body = soup.body
+        if body is not None:
+            a = soup.new_tag("a", href=f"/category-{cat_slug}/")
+            a["class"] = "back-to-list"
+            a["style"] = ("display:inline-block;margin:14px 0 0;color:#1f4fd6;"
+                          "text-decoration:none;font-size:14px;font-weight:600")
+            a.string = "← 返回列表"
+            body.insert(0, a)
+            body.insert(0, Comment("xianbao-chrome-stripped"))
+    return str(soup)
 
 
 def discover_article_links(html: str, base_url: str):
@@ -702,8 +746,7 @@ def _build_panel(cat_id: str, cat_label: str, items: list) -> str:
         for it in items:
             title = it["title"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
             lis.append(
-                f'<div class="it"><a href="{it["url"]}">{title}</a>'
-                f'<div class="meta">{it["url"]}</div></div>')
+                f'<div class="it"><a href="{it["url"]}">{title}</a></div>')
         content = '<div class="list">' + "\n".join(lis) + '</div>'
     active = " active" if cat_id == "all" else ""
     return (
@@ -720,7 +763,7 @@ def build_hub(out_dir: Path):
     cat_names = {
         "zuankeba": "赚客吧",
         "xinzuanba": "新赚客吧",
-        "xiaodigu": "小弟谷",
+        "xiaodigu": "小嘀咕",
         "huluxia": "葫芦侠",
         "xiaodao": "小道",
     }
@@ -755,10 +798,10 @@ def build_hub(out_dir: Path):
     all_items.sort(key=lambda x: x["id"], reverse=True)
 
     tabs = ['<span class="tab active" data-cat="all">全部</span>']
-    panels = [_build_panel("all", "全部", all_items[:200])]
+    panels = [_build_panel("all", "全部", all_items[:25])]
     for cat in ALLOWED_CATEGORIES:
         tabs.append(f'<span class="tab" data-cat="{cat}">{cat_names[cat]}</span>')
-        panels.append(_build_panel(cat, cat_names[cat], by_cat[cat][:200]))
+        panels.append(_build_panel(cat, cat_names[cat], by_cat[cat][:25]))
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -786,8 +829,8 @@ h1{{font-size:24px;margin:0 0 8px}}
 .list{{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden}}
 .it{{padding:14px 16px;border-bottom:1px solid #eceef3}}
 .it:last-child{{border-bottom:none}}
-.it a{{color:#1f4fd6;text-decoration:none;font-size:16px;font-weight:600}}
-.it a:hover{{text-decoration:underline}}
+.it a{{color:#222;text-decoration:none;font-size:16px;font-weight:600}}
+.it a:hover{{color:#1f4fd6;text-decoration:underline}}
 .it .meta{{color:#999;font-size:12px;margin-top:4px}}
 .empty{{padding:30px;text-align:center;color:#999}}
 .count{{color:#999;font-size:13px;margin-left:8px}}
@@ -885,6 +928,10 @@ def render_page(page, url: str, path: str, raw_docs: dict, state=None):
             tag = extract_refresh_tag(raw)
             if tag:
                 rendered = inject_refresh(rendered, fix_refresh_tag(tag))
+    # 文章页：剥离站外模板，使镜像自包含（分类内链接已为本地路径）
+    if local and ART_RE.match("/" + local):
+        cat_slug = local.split("/")[0]
+        rendered = strip_chrome(rendered, cat_slug=cat_slug)
     return (True, rendered, raw)
 
 

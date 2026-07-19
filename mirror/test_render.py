@@ -95,12 +95,37 @@ def test_fix_url_allowed_article_fragment():
 
 
 def test_fix_url_disallowed_page_absolute():
-    # 非白名单页面 -> 原站绝对地址（跳活站）
-    assert render.fix_url("/haodan/6654815") == "https://new.xianbao.fun/haodan/6654815.html"
+    # 非白名单页面 -> 本地相对路径（留在镜像站内，不再跳转到原站）
+    assert render.fix_url("/haodan/6654815") == "/haodan/6654815.html"
 
 
 def test_fix_url_disallowed_page_fragment():
-    assert render.fix_url("/haodan/6654815#c1") == "https://new.xianbao.fun/haodan/6654815.html#c1"
+    assert render.fix_url("/haodan/6654815#c1") == "/haodan/6654815.html#c1"
+
+
+def test_strip_chrome_removes_offsite_chrome():
+    html = (
+        '<html><head><style>.xianbao-search-fab{color:red}</style></head>'
+        '<body>'
+        '<header class="header sb"><a href="/category-xianbaoku/">线报酷</a></header>'
+        '<div class="content"><div class="article-box"><div class="article-content">'
+        '<h1>标题</h1><p>正文内容</p>'
+        '<div class="post-comment">评论区</div>'
+        '</div></div>'
+        '<aside><div class="rank-list">热门</div></aside>'
+        '<footer class="footer"><a href="https://beian.miit.gov.cn/">备案</a></footer>'
+        '<a class="xianbao-search-fab" href="/search.html">🔍</a>'
+        '</body></html>'
+    )
+    out = render.strip_chrome(html, cat_slug="huluxia")
+    assert "<header" not in out
+    assert "<footer" not in out
+    assert "rank-list" not in out
+    assert "xianbao-search-fab" not in out  # 锚点与死样式均移除
+    assert "返回列表" in out and 'href="/category-huluxia/"' in out
+    assert "post-comment" in out  # 评论保留
+    assert "article-content" in out  # 正文保留
+    assert "xianbao-chrome-stripped" in out  # 幂等标记
 
 
 def test_fix_url_asset_local():

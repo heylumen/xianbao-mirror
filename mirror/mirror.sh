@@ -142,39 +142,56 @@ print(f"覆盖 CSS 链接已注入 {count} 个页面")
 PY
 
 # ---------------------------------------------------------------------------
-# 修复 4：注入「站内搜索」悬浮按钮（search.html 由 render.py 生成）
+# 修复 4：剥离「文章页」站外模板（顶部导航 / 侧边热门榜 / 页脚外链 / 悬浮搜索 /
+# 二维码工具条），仅保留正文 + 评论，并插入「返回列表」链接。使镜像自包含、
+# 点击内部链接不再跳转到原站。幂等（已处理的页面带 xianbao-chrome-stripped 标记）。
+# 注：render.py 在渲染新文章时也已调用 strip_chrome，这里只补处理历史产物。
 # ---------------------------------------------------------------------------
-echo "==> 注入站内搜索悬浮按钮"
-OUT_DIR="$OUT_DIR" PREFIX="${PAGES_PREFIX:-/}" "$PY" - <<'PY'
-import os, pathlib, re
-out_dir = os.environ["OUT_DIR"]
-prefix = os.environ.get("PREFIX", "/").rstrip("/")
-style = (
-  '<style>.xianbao-search-fab{position:fixed;right:18px;bottom:18px;z-index:9999;'
-  'width:48px;height:48px;border-radius:50%;background:#1f4fd6;color:#fff;'
-  'display:flex;align-items:center;justify-content:center;font-size:22px;'
-  'text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,.25)}'
-  '.xianbao-search-fab:hover{background:#1640b0}</style>'
-)
-fab = '<a class="xianbao-search-fab" href="%s/search.html" title="站内搜索">🔍</a>' % prefix
-marker = "xianbao-search-fab"
+echo "==> 剥离文章页站外模板（使其自包含、不再跳原站）"
+OUT_DIR="$OUT_DIR" "$PY" - <<'PY'
+import os, re, pathlib
+from bs4 import BeautifulSoup, Comment
+out_dir = pathlib.Path(os.environ["OUT_DIR"])
+ALLOWED = {"zuankeba", "xinzuanba", "xiaodigu", "huluxia", "xiaodao"}
+MARKER = "xianbao-chrome-stripped"
+CHROME_RE = re.compile(r"(nav2-ul|rank-list|guanzhu|toolbar|xianbao-search-fab)", re.I)
 count = 0
-for p in pathlib.Path(out_dir).rglob("*"):
-    if p.suffix.lower() not in (".html", ".htm") or p.name == "search.html":
+for p in out_dir.rglob("*"):
+    if p.suffix.lower() not in (".html", ".htm"):
+        continue
+    parts = p.relative_to(out_dir).as_posix().split("/")
+    # 仅处理「分类/数字ID.html」形态的文章页
+    if len(parts) != 2 or not re.match(r"^\d+\.html$", parts[1]):
+        continue
+    cat = parts[0]
+    if cat not in ALLOWED:
         continue
     try:
         html = p.read_text(encoding="utf-8", errors="replace")
     except Exception:
         continue
-    if marker in html:
+    if MARKER in html:
         continue
-    m = re.search(r"</body>", html, re.I) or re.search(r"</html>", html, re.I)
-    if m is None:
-        continue
-    html = html[:m.start()] + style + fab + "\n" + html[m.start():]
-    p.write_text(html, encoding="utf-8")
+    soup = BeautifulSoup(html, "html.parser")
+    for tag in ("header", "footer", "aside"):
+        for el in soup.find_all(tag):
+            el.decompose()
+    for el in soup.find_all(class_=CHROME_RE):
+        el.decompose()
+    for el in soup.select(".qr, #qr, #toolbar"):
+        el.decompose()
+    body = soup.body
+    if body is not None:
+        a = soup.new_tag("a", href=f"/category-{cat}/")
+        a["class"] = "back-to-list"
+        a["style"] = ("display:inline-block;margin:14px 0 0;color:#1f4fd6;"
+                      "text-decoration:none;font-size:14px;font-weight:600")
+        a.string = "← 返回列表"
+        body.insert(0, a)
+        body.insert(0, Comment(MARKER))
+    p.write_text(str(soup), encoding="utf-8")
     count += 1
-print(f"搜索悬浮按钮已注入 {count} 个页面")
+print(f"文章页站外模板已剥离 {count} 个")
 PY
 
 # ---------------------------------------------------------------------------
