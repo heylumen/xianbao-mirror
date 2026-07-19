@@ -1,5 +1,45 @@
 # 本轮修复概览
 
+## 2026-07-19 文章页注入顶部导航、移除返回列表、修复重复“顺序”按钮
+
+1. **移除文章页「← 返回列表」**：
+   - `mirror/render.py`：不再注入 `back-to-list` 链接。
+
+2. **文章页注入源站风格顶部导航**（`xianbao-article-nav`）：
+   - 与首页/分类页保持一致：首页、赚客吧、新赚吧、小嘀咕、葫芦侠、小刀 + 搜索 + 浅色模式。
+   - 搜索按钮内联 onclick 展开/收起 `#search-area` 表单（源站 JS 已剥离，这里自包含实现）。
+   - 暗色切换使用已注入的 `switchNightMode()`，同步切换 `document.documentElement`/`body` 的 `night` 类。
+   - 图标字体走 CDN，离线时可能不显示，故额外提供「浅色/搜索」文字兜底，确保始终可用。
+
+3. **修复重复“顺序/只看楼主”按钮**（全量根因）：
+   - 源站 `#comment .comment-list`（评论列表）原本带控件；另一独立的“交流列表”块有真实评论但原本无控件。
+   - 上一版 `strip_chrome` 的 `for cl in soup.find_all(class_="comment-list")` 给两个列表都加了控件，导致页面出现两组“顺序”。
+   - 修复：仅主评论列表（`#comment .comment-list`）保留/补回控件，非主列表清理误加控件，评论内容仍保留。
+
+4. **修复样式重复追加**（幂等性）：
+   - 新增 `_ensure_cursor_pointer` / `_ensure_display_block`，清除旧值后再统一写入，避免多次运行后 `cursor:pointer` 和 `display:block` 重复累加。
+
+### 涉及文件
+- `mirror/render.py`：新增 `_build_article_nav`、`_ensure_cursor_pointer`、`_ensure_display_block`；改写 `strip_chrome` 的导航注入与评论控件逻辑。
+- `mirror/test_backup_features.py`：更新断言，验证“返回列表”已移除、导航已注入、控件唯一。
+- `mirror/test_render.py`：更新断言，验证源站 header 被清理但新导航已注入。
+- `xianbao/*/*.html`：全站 1242 个文章页重新处理。
+
+### 验证
+- `pytest mirror/test_render.py mirror/test_backup_features.py -q`：**85 passed**
+- 全量扫描 1242 个文章页：
+  - 0 个文件含多个 `pinglunshunxu` 按钮
+  - 0 个文件含多个 `showlouzhu` 按钮
+  - 0 个文件仍含“返回列表”
+  - 0 个文件缺失 `xianbao-article-nav` 导航
+  - 0 个文件 `cursor:pointer` 重复
+- 浏览器截图验证：`xianbao/zuankeba/6511148.html` 顶部显示完整导航、无返回列表、评论列表仅一组控件、交流列表评论保留且无控件。
+
+### 提交
+- Commit: `1c7c12ba` 已 push 至 `xfxx2022/xianbao-mirror` main（`21500838..1c7c12ba`）。
+
+---
+
 ## 2026-07-19 修复评论用户名显示与恢复顺序/只看楼主功能
 
 1. **保留并修复“顺序/只看楼主”控件**：
