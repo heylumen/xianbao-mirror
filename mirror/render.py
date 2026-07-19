@@ -52,6 +52,13 @@ _ur = urllib.request  # 补全下载用的 urllib 别名
 # 仅镜像这 5 个分类（slug 白名单）。分类列表页 /category-<slug>/ 与文章页
 # /<slug>/<数字ID>.html 都会被收录，其余一律排除。
 ALLOWED_CATEGORIES = ["zuankeba", "xinzuanba", "xiaodigu", "huluxia", "xiaodao"]
+CAT_LABELS = {
+    "zuankeba": "赚客吧",
+    "xinzuanba": "新赚吧",
+    "xiaodigu": "小嘀咕",
+    "huluxia": "葫芦侠",
+    "xiaodao": "小刀",
+}
 
 # 已验证内容完全一致的 6 个 HTTPS 域名（线报酷发布页列出）。每次运行随机选一个作
 # TARGET，分散单域名请求频次。所有域名内容相同、URL 结构一致，轮换不会碎片镜像。
@@ -961,23 +968,255 @@ def build_search_index(out_dir: Path):
         soup = BeautifulSoup(html, "html.parser")
         title = (soup.title.get_text(strip=True) if soup.title else "") or rel
         title = title.replace("线报酷镜像", "").replace("线报酷", "").strip().strip("-").strip() or rel
+        cat = rel.split("/")[0]
+        cat_label = CAT_LABELS.get(cat, cat)
         for t in soup(["script", "style"]):
             t.decompose()
         main = (soup.select_one("#post-content, .post-content, article .content, "
                                 ".article-content, #article_content, .content")
                 or soup.body)
         text = main.get_text(" ", strip=True) if main else ""
+        # 评论数
+        comments = 0
+        head_info = soup.find(class_="head-info")
+        if head_info:
+            comment_span = head_info.find("span", class_="comment")
+            if comment_span:
+                cmt_m = re.search(r"(\d+)", comment_span.get_text(" ", strip=True))
+                if cmt_m:
+                    comments = int(cmt_m.group(1))
         items.append({
             "id": str(idx + 1),
             "title": title,
             "url": "/" + rel,
             "body": text[:300],
+            "cat": cat,
+            "cat_label": cat_label,
+            "comments": comments,
         })
     items.sort(key=lambda x: x["title"])
     (out_dir / "search.json").write_text(
         json.dumps(items, ensure_ascii=False), encoding="utf-8")
-    (out_dir / "search.html").write_text(SEARCH_HTML, encoding="utf-8")
+    build_search_page(out_dir, items)
     return len(items)
+
+
+def _parse_time_to_iso(time_str: str) -> str:
+    """把 '2026年06月22日 14:47' 转成 ISO 日期字符串（用于排名筛选）。"""
+    m = re.search(r"(\d{4})年(\d{2})月(\d{2})日\s*(\d{2}):(\d{2})", time_str or "")
+    if not m:
+        return ""
+    return f"{m.group(1)}-{m.group(2)}-{m.group(3)} {m.group(4)}:{m.group(5)}:00"
+
+
+def _build_rank_sidebar(items: list, soup) -> str:
+    """根据本地文章生成右侧 12/24/48 小时榜 HTML。"""
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    # 按评论数排序取前 10 作为热门（本地镜像不保留实时阅读量，故用评论数近似）
+    sorted_by_comments = sorted(
+        [it for it in items if it.get("comments", 0) > 0],
+        key=lambda x: x.get("comments", 0), reverse=True)[:10]
+    # 也按时间窗口筛选
+    def _within(hours: int):
+        try:
+            cutoff = now - timedelta(hours=hours)
+        except Exception:
+            return []
+        out = []
+        for it in items:
+            iso = _parse_time_to_iso(it.get("time", ""))
+            if not iso:
+                continue
+            try:
+                dt = datetime.fromisoformat(iso)
+                if dt >= cutoff:
+                    out.append(it)
+            except Exception:
+                continue
+        return sorted(out, key=lambda x: x.get("comments", 0), reverse=True)[:10]
+
+    def _render_li(it: dict, rank: int) -> str:
+        title = it["title"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+        cat_label = it.get("cat_label", "")
+        comments = it.get("comments", 0)
+        return (
+            f'<li class="rank-item">'
+            f'<span class="rank-num">{rank}</span>'
+            f'<span class="rank-cat">{cat_label}</span>'
+            f'<a href="{it["url"]}" target="_blank" title="{title}">{title}</a>'
+            f'<span class="rank-com"><i class="iconfont icon-comment"></i>{comments}</span>'
+            f'</li>'
+        )
+
+    tabs = ["十二小时榜", "二十四小时榜", "四十八小时榜"]
+    windows = [12, 24, 48]
+    div = soup.new_tag("div", **{"class": "xianbao-rank-box"})
+    tab_hdr = soup.new_tag("div", **{"class": "rank-tabs"})
+    for i, (tab, hours) in enumerate(zip(tabs, windows)):
+        active = " active" if i == 0 else ""
+        span = soup.new_tag("span", **{"class": f"rank-tab{active}", "data-tab": str(hours)})
+        span.string = tab
+        tab_hdr.append(span)
+    div.append(tab_hdr)
+    for i, hours in enumerate(windows):
+        active = " active" if i == 0 else ""
+        panel = soup.new_tag("div", **{"class": f"rank-panel{active}", "data-panel": str(hours)})
+        ranked = _within(hours)
+        if not ranked:
+            ranked = sorted_by_comments
+        if ranked:
+            ul = soup.new_tag("ul", **{"class": "rank-list"})
+            for idx, it in enumerate(ranked, 1):
+                ul.append(BeautifulSoup(_render_li(it, idx), "html.parser"))
+            panel.append(ul)
+        else:
+            panel.append(soup.new_tag("p", **{"class": "empty"}))
+            panel.p.string = "暂无数据"
+        div.append(panel)
+    return div
+
+
+def build_search_page(out_dir: Path, items: list) -> None:
+    """生成源站风格的搜索页：复用 category-zuankeba 模板，替换主列表为 MiniSearch 搜索，
+    并在右侧生成 12/24/48 小时榜。"""
+    template = out_dir / "category-zuankeba" / "index.html"
+    if not template.exists():
+        # fallback 到旧版极简搜索页
+        (out_dir / "search.html").write_text(SEARCH_HTML, encoding="utf-8")
+        return
+    html = template.read_text(encoding="utf-8", errors="replace")
+    soup = BeautifulSoup(html, "html.parser")
+    if soup.title:
+        soup.title.string = "搜索-线报酷镜像"
+    # 面包屑：首页 > 搜索
+    mbx = soup.find(class_="mianbaoxie")
+    if mbx:
+        mbx.clear()
+        home_a = soup.new_tag("a", href="/", title="首页")
+        home_a.string = "首页"
+        mbx.append(home_a)
+        mbx.append(NavigableString(" › "))
+        mbx.append(NavigableString("搜索"))
+    # 搜索框：在 listbox 顶部加一个输入框
+    listbox = soup.find(class_="listbox")
+    search_top = None
+    if listbox:
+        search_top = soup.new_tag("div", **{"class": "search-top"})
+        inp = soup.new_tag("input", id="q", type="text", placeholder="输入关键词，如 红包 / 活动 / 教程…")
+        inp["autofocus"] = "autofocus"
+        search_top.append(inp)
+        # 插入到列表前面
+        ul = listbox.find("ul", class_="new-post")
+        if ul:
+            ul.insert_before(search_top)
+        else:
+            listbox.insert(0, search_top)
+    # 清空/保留列表容器，供前端填充
+    ul = soup.find("ul", class_="new-post")
+    if ul:
+        ul.clear()
+    # 移除源站分页
+    _strip_pagination(soup)
+    # 移除 meta.php 动态脚本
+    for s in soup.find_all("script", src=re.compile(r"meta\.php")):
+        s.decompose()
+    # 右侧 sidebar 生成排名
+    aside = soup.find("aside", id="sidebar")
+    if aside:
+        celan = aside.find(class_="theiaStickySidebar")
+        if celan:
+            celan.clear()
+            celan.append(_build_rank_sidebar(items, soup))
+    # 注入 MiniSearch 脚本
+    script = soup.new_tag("script")
+    script.string = """
+(function(){
+  var q = document.getElementById('q');
+  var ul = document.querySelector('ul.new-post');
+  if (!q || !ul) return;
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function render(res){
+    ul.innerHTML = '';
+    if (!res.length){
+      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">没有找到相关结果。</p></li>';
+      return;
+    }
+    res.slice(0,50).forEach(function(x){
+      var li = document.createElement('li');
+      li.className = 'article-list';
+      li.innerHTML = '<span class="figure cg16"></span>'
+        + '<p class="title">'
+        + '<span class="badge com"><i class="iconfont icon-comment"></i>' + (x.comments||0) + '</span>'
+        + '<a href="' + x.url + '" title="' + escapeHtml(x.title) + '" target="_blank" data-comments="' + (x.comments||0) + '" data-catename="' + escapeHtml(x.cat_label||'') + '">' + escapeHtml(x.title) + '</a>'
+        + '</p>';
+      ul.appendChild(li);
+    });
+  }
+  function go(){
+    var t = q.value.trim();
+    if (!t){ ul.innerHTML=''; return; }
+    fetch('/search.json').then(function(r){return r.json();}).then(function(docs){
+      if (!window.MiniSearch){ render([]); return; }
+      var ms = new MiniSearch({fields:['title','body'], storeFields:['title','url','body','cat_label','comments']});
+      ms.addAll(docs);
+      render(ms.search(t, {prefix:true, fuzzy:0.2, boost:{title:2}}));
+    }).catch(function(){
+      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">搜索索引加载失败。</p></li>';
+    });
+  }
+  q.addEventListener('input', go);
+  var params = new URLSearchParams(window.location.search);
+  var initial = params.get('q');
+  if (initial){ q.value = initial; go(); }
+  // 排名 tab 切换
+  document.querySelectorAll('.rank-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var hours = this.getAttribute('data-tab');
+      document.querySelectorAll('.rank-tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.rank-panel').forEach(function(p){ p.classList.remove('active'); });
+      this.classList.add('active');
+      var panel = document.querySelector('.rank-panel[data-panel=\"' + hours + '\"]');
+      if (panel) panel.classList.add('active');
+    });
+  });
+})();
+"""
+    if soup.body:
+        soup.body.append(script)
+    # 样式补丁
+    style = soup.new_tag("style")
+    style.string = """
+.search-top{padding:12px 16px;background:#fff;border-bottom:1px solid #eceef3}
+.search-top input{width:100%;box-sizing:border-box;padding:12px 16px;font-size:15px;border:1px solid #d7dbe5;border-radius:12px;outline:none}
+.search-top input:focus{border-color:#1f4fd6}
+.xianbao-rank-box{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:16px}
+.rank-tabs{display:flex;border-bottom:1px solid #eceef3}
+.rank-tab{flex:1;text-align:center;padding:12px 4px;font-size:13px;color:#666;cursor:pointer;background:#f9fafc}
+.rank-tab.active{color:#1f4fd6;font-weight:600;background:#fff;border-bottom:2px solid #1f4fd6}
+.rank-panel{display:none;padding:10px 14px}
+.rank-panel.active{display:block}
+.rank-list{list-style:none;margin:0;padding:0}
+.rank-item{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.rank-item:last-child{border-bottom:none}
+.rank-num{width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;background:#f0f0f0;color:#666;font-size:12px;margin-right:8px;flex-shrink:0}
+.rank-item:nth-child(1) .rank-num{background:#ff4d4f;color:#fff}
+.rank-item:nth-child(2) .rank-num{background:#ff7a45;color:#fff}
+.rank-item:nth-child(3) .rank-num{background:#ffa940;color:#fff}
+.rank-cat{color:#999;margin-right:8px;flex-shrink:0}
+.rank-item a{flex:1;color:#222;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-item a:hover{color:#1f4fd6}
+.rank-com{color:#999;margin-left:8px;flex-shrink:0}
+.empty{padding:20px 0;text-align:center;color:#999}
+"""
+    if soup.head:
+        soup.head.append(style)
+    _fix_search_form(soup)
+    _sanitize_local_links(soup, out_dir)
+    _prune_nav(soup, is_home=False)
+    (out_dir / "search.html").write_text(str(soup), encoding="utf-8")
 
 
 def _build_panel(cat_id: str, cat_label: str, items: list) -> str:
@@ -1115,7 +1354,7 @@ document.querySelectorAll('.tab').forEach(function(tab){{
 
 
 def _extract_article_meta(path: Path) -> dict:
-    """从本地文章 HTML 提取标题、发布时间等元数据。"""
+    """从本地文章 HTML 提取标题、发布时间、评论数等元数据。"""
     try:
         html = path.read_text(encoding="utf-8", errors="replace")
     except Exception:
@@ -1133,11 +1372,22 @@ def _extract_article_meta(path: Path) -> dict:
     rel = "/" + path.relative_to(path.parent.parent).as_posix()
     m = re.search(r"/([^/]+)/(\d+)\.html$", rel)
     art_id = int(m.group(2)) if m else 0
+    # 评论数：优先取 .head-info .comment 中的数字
+    comments = 0
+    head_info = soup.find(class_="head-info")
+    if head_info:
+        comment_span = head_info.find("span", class_="comment")
+        if comment_span:
+            cmt_text = comment_span.get_text(" ", strip=True)
+            cmt_m = re.search(r"(\d+)", cmt_text)
+            if cmt_m:
+                comments = int(cmt_m.group(1))
     return {
         "id": art_id,
         "url": rel,
         "title": title or path.name,
         "time": pub_time,
+        "comments": comments,
     }
 
 
@@ -1153,26 +1403,29 @@ def _local_articles_by_cat(out_dir: Path) -> dict:
             continue
         meta = _extract_article_meta(p)
         if meta:
+            meta["cat"] = cat
+            meta["cat_label"] = CAT_LABELS.get(cat, cat)
             by_cat[cat].append(meta)
     for cat in by_cat:
         by_cat[cat].sort(key=lambda x: x["id"], reverse=True)
     return by_cat
 
 
-def _format_list_time(time_str: str) -> str:
-    """从 '2026年06月22日 06:35' 提取列表展示时间（今天 HH:MM，否则 MM-DD）。"""
+def _format_list_time(time_str: str) -> tuple:
+    """从 '2026年06月22日 06:35' 提取列表展示时间（今天 HH:MM，否则 MM-DD）。
+    返回 (display_time, is_today)。"""
     m = re.search(r"(\d{4})年(\d{2})月(\d{2})日\s*(\d{2}):(\d{2})", time_str or "")
     if not m:
-        return ""
+        return ("", False)
     year, mon, day, hour, minute = m.groups()
     try:
         from datetime import datetime
         now = datetime.now()
         if now.year == int(year) and now.month == int(mon) and now.day == int(day):
-            return f"{hour}:{minute}"
-        return f"{mon}-{day}"
+            return (f"{hour}:{minute}", True)
+        return (f"{mon}-{day}", False)
     except Exception:
-        return f"{mon}-{day}"
+        return (f"{mon}-{day}", False)
 
 
 def _build_source_list_item(soup, item: dict):
@@ -1181,12 +1434,22 @@ def _build_source_list_item(soup, item: dict):
     figure = soup.new_tag("span", **{"class": "figure cg16"})
     li.append(figure)
     p = soup.new_tag("p", **{"class": "title"})
-    t = _format_list_time(item.get("time", ""))
+    t, is_today = _format_list_time(item.get("time", ""))
     if t:
-        time_badge = soup.new_tag("time", **{"class": "badge", "datetime": item["time"], "title": item["time"]})
+        time_classes = ["badge"]
+        if is_today:
+            time_classes.append("red")
+        time_badge = soup.new_tag("time", **{"class": " ".join(time_classes), "datetime": item["time"], "title": item["time"]})
         time_badge.string = t
         p.append(time_badge)
-    a = soup.new_tag("a", href=item["url"], title=item["title"])
+    comments = int(item.get("comments", 0) or 0)
+    comment_badge = soup.new_tag("span", **{"class": "badge com"})
+    comment_badge.append(soup.new_tag("i", **{"class": "iconfont icon-comment"}))
+    comment_badge.append(str(comments))
+    p.append(comment_badge)
+    a = soup.new_tag("a", href=item["url"], title=item["title"], target="_blank")
+    a["data-comments"] = str(comments)
+    a["data-catename"] = item.get("cat_label", "")
     a.string = item["title"]
     p.append(a)
     li.append(p)
@@ -1292,16 +1555,50 @@ def _sanitize_local_links(soup, out_dir: Path) -> None:
                 del a["target"]
 
 
-def _activate_home_nav(soup) -> None:
-    """将导航高亮从分类切回「首页」；就地修改 soup。"""
-    for li in soup.find_all("li", class_="active"):
-        li["class"] = [c for c in li.get("class", []) if c != "active"]
-    home_li = soup.find("li", id="nvabar-item-index")
-    if home_li:
-        cls = list(home_li.get("class", []) or [])
-        if "active" not in cls:
-            cls.append("active")
-        home_li["class"] = cls
+def _prune_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
+    """清理导航：只保留「首页」和已镜像的 5 个分类，其余（线报酷/我的关注/豆瓣线报/微博线报/好单线报/值得买/其他区等）全部删除。
+    同时补充葫芦侠、小刀两个没有独立 top-level 导航的分类。"""
+    nav = soup.find("ul", class_="nav-ul")
+    if not nav:
+        return
+    allowed_ids = {"nvabar-item-index"} | {f"navbar-category-{c}" for c in ALLOWED_CATEGORIES}
+    for li in list(nav.find_all("li", recursive=False)):
+        lid = li.get("id", "")
+        if lid not in allowed_ids:
+            li.decompose()
+    # 确保每个已镜像分类都有导航项
+    for cat in ALLOWED_CATEGORIES:
+        lid = f"navbar-category-{cat}"
+        if nav.find("li", id=lid):
+            continue
+        li = soup.new_tag("li", id=lid)
+        a = soup.new_tag("a", href=f"/category-{cat}/", title=CAT_LABELS[cat])
+        a.string = CAT_LABELS[cat]
+        nav.append(li)
+        li.append(a)
+    # 高亮当前分类/首页
+    for li in nav.find_all("li"):
+        cls = list(li.get("class", []) or [])
+        if "active" in cls:
+            cls.remove("active")
+        li["class"] = cls
+    if is_home:
+        home_li = nav.find("li", id="nvabar-item-index")
+        if home_li:
+            cls = list(home_li.get("class", []) or [])
+            if "active" not in cls:
+                cls.append("active")
+            home_li["class"] = cls
+    elif active_cat:
+        cat_li = nav.find("li", id=f"navbar-category-{active_cat}")
+        if cat_li:
+            cls = list(cat_li.get("class", []) or [])
+            if "active" not in cls:
+                cls.append("active")
+            cat_li["class"] = cls
+    # 删除次级快捷导航条（源站含大量未镜像分类）
+    for nav2 in soup.find_all("ul", class_="nav2-ul"):
+        nav2.decompose()
 
 
 def _home_breadcrumb(soup) -> None:
@@ -1342,8 +1639,8 @@ def rebuild_category_page(
         _build_pagination(soup, cat, page, total_pages)
     _fix_search_form(soup)
     _sanitize_local_links(soup, out_dir)
+    _prune_nav(soup, active_cat=cat if not is_home else None, is_home=is_home)
     if is_home:
-        _activate_home_nav(soup)
         _home_breadcrumb(soup)
     out_path.write_text(str(soup), encoding="utf-8")
 
