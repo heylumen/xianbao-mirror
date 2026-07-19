@@ -40,6 +40,26 @@ body.xianbao-list #content.content.container {
     padding: 0 16px;
     box-sizing: border-box;
 }
+
+/* 暗黑模式：body 背景跟随 html，避免列表页/文章页边缘留白造成不均衡 */
+html.night,
+html.night body { background-color: #232931 !important; }
+
+/* 头部搜索/暗色按钮保持与首页一致，避免文字兜底导致拥挤 */
+.xianbao-article-nav .dark-mode,
+.xianbao-article-nav .search-button {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 55px;
+    height: 60px;
+    line-height: 1;
+}
+.xianbao-article-nav .dark-mode i.iconfont,
+.xianbao-article-nav .search-button i.iconfont {
+    line-height: 1;
+}
+
 /* 移动端进一步收窄留白，保证帖子贴近屏幕边缘 */
 @media screen and (max-width: 768px) {
     body.xianbao-list #content.content.container {
