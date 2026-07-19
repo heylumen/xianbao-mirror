@@ -72,6 +72,19 @@ THREAD_RE = re.compile(r"^/thread-(\d+)-(\d+)-(\d+)\.html$")
 DEFAULT_THREAD_SLUG = "xinzuanba"  # 当前仅新赚客吧列表使用论坛链接；作兜底分类
 ALL_SOURCE_NETLOCS = ALL_NETLOCS | FORUM_NETLOCS
 
+# 无歧义“源站家族”域名：这些是源站后端（门户/论坛/各分类原始后端），不是电商或活动，
+# 任何位置的 <a href> 都应中和，避免点击离开镜像。注意排除 www.x6d.com —— 对 xiaodao
+# 分类它既是源站后端（原文地址/标题）又是优惠内容链接，不能按域名一刀切，交给下方
+# “原文地址/标题块”逻辑精准中和，以保留正文里的优惠链接。
+SOURCE_HOST_RE = re.compile(
+    r"^(?:new|news)\.(?:xianbao\.fun|ixbk\.(?:net|fun))$"
+    r"|^(?:app\.xdglt\.com|app\.xiaodigu\.cn|www\.zuanke8\.com"
+    r"|v1\.xianbao\.net|v2\.xianbao\.net)$"
+    r"|^(?:[a-z0-9-]+\.)*xianbao\.net$"
+    r"|^(?:[a-z0-9-]+\.)*ixbk\.(?:net|fun)$",
+    re.I,
+)
+
 
 def forum_thread_to_local(url: str, cat_slug: str = None):
     """v1.xianbao.net/thread-TID-页-序号.html -> /{cat_slug}/TID.html（门户本地路径）。
@@ -442,6 +455,36 @@ def rewrite_html(html: str, cat_slug: str = None) -> str:
                 lambda m: "url(" + fix_url(m.group(1), cat_slug) + ")",
                 style,
             )
+    # 中和指向源站后端的跳转链接，分三层（互不冲突）：
+    # 1) 无歧义“源站家族”域名（xianbao.*/ixbk.*/xdglt.*/xiaodigu.cn/zuanke8.com 等）
+    #    任何位置的 <a href> 都中和；www.x6d.com 故意排除——它对 xiaodao 既是源站后端
+    #    又是优惠内容链接，不能按域名一刀切。
+    # 2) “原文地址 / 阅读原文 / 来源”等标记块内的 <a>（精准，保留同域名的优惠链接）。
+    # 3) 文章标题块 d-biaoti 内的外链（标题本就不该外跳，保留本地相对链接）。
+    # 中和方式：保留可见文字，href 置 “#”，点击不再离开镜像站。
+    for _a in soup.find_all("a"):
+        _href = _a.get("href")
+        if not isinstance(_href, str) or not _href.strip():
+            continue
+        _h = _href.strip()
+        _net = urlparse(_h).netloc.lower() if _h.startswith("http") else ""
+        if _net and SOURCE_HOST_RE.match(_net):
+            _a["href"] = "#"
+            continue
+        if _h.startswith("http"):
+            _parent_txt = _a.parent.get_text(" ", strip=True) if _a.parent else ""
+            if any(_m in _parent_txt for _m in
+                   ("原文地址", "阅读原文", "查看原文", "来源：", "来源:")):
+                _a["href"] = "#"
+    for _block in soup.find_all(class_=re.compile(r"art-copyright")):
+        for _a in _block.find_all("a"):
+            if isinstance(_a.get("href"), str) and _a.get("href").strip().startswith("http"):
+                _a["href"] = "#"
+    for _title in soup.find_all("div", class_=re.compile(r"d-biaoti")):
+        for _a in _title.find_all("a"):
+            _href = _a.get("href")
+            if isinstance(_href, str) and _href.strip().startswith("http"):
+                _a["href"] = "#"
     for meta in soup.find_all("meta"):
         if meta.get("http-equiv", "").lower() == "refresh":
             c = meta.get("content", "")
