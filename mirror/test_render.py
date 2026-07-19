@@ -131,6 +131,43 @@ def test_strip_chrome_removes_offsite_chrome():
     assert "xianbao-chrome-stripped" in out  # 幂等标记
 
 
+def test_strip_chrome_injects_fancybox_noshift_fix():
+    """回归护栏：strip_chrome 必须注入「灯箱防晃」修复，且新爬文章页自带。
+    历史坑：Fancybox v5 开合灯箱时切换 <html> 的 overflow 并给 <body> 加
+    margin-right 补偿，导致评论区左右晃动。修复须 (a) 全局强制滚动条常驻 +
+    body margin-right 0（不能绑 .with-fancybox 类，关闭动画中该类会被短暂移除，
+    绑类规则会失效一瞬间而回弹）；(b) Fancybox.show 带 hideScrollbar:false 从源头
+    去掉 hide-scrollbar 补偿路径。本测试防未来改动静默删掉这两项。"""
+    html = (
+        '<html><head></head><body>'
+        '<div class="article-content"><p>正文</p>'
+        '<img data-fancybox="article-img" src="/zb_users/remote/x/1.jpg"></div>'
+        '<div class="post-comment"><div class="ul">'
+        '<img data-fancybox="pinglun-img" src="/zb_users/remote/x/2.jpg"></div>'
+        '</div></body></html>'
+    )
+    out = render.strip_chrome(html, cat_slug="huluxia")
+
+    # (1) 内联防晃 style 已注入，且为「全局」规则（不依赖 .with-fancybox）
+    assert 'id="xianbao-fancybox-noshift"' in out
+    style = out[out.index('id="xianbao-fancybox-noshift"'):]
+    style = style[: style.index("</style>")]
+    assert "overflow-y:scroll !important" in style
+    assert "margin-right:0 !important" in style
+    # 关键：绝不能回退成「绑定 .with-fancybox 类」的旧写法（那会在关闭动画中途失效）
+    assert "html.with-fancybox" not in style
+
+    # (2) 初始化脚本已注入，且 show 带 hideScrollbar:false（不是裸 {}）
+    assert 'id="xianbao-fancybox-init"' in out
+    assert "Fancybox.show(items,{hideScrollbar:false})" in out
+    assert "Fancybox.show(items,{})" not in out
+
+    # (3) 幂等：再跑一次不应重复注入（防止 recheck 时节点翻倍）
+    out2 = render.strip_chrome(out, cat_slug="huluxia")
+    assert out2.count('id="xianbao-fancybox-noshift"') == 1
+    assert out2.count('id="xianbao-fancybox-init"') == 1
+
+
 def test_fix_url_asset_local():
     assert render.fix_url("/zb_users/style.css") == "/zb_users/style.css"
 
