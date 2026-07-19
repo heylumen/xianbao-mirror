@@ -20,8 +20,10 @@ jobs:
   mirror-backup:
     runs-on: ubuntu-latest
     # 部署到 Vercel / Netlify 等根域名，链接需改写为 /... 而非 /<repo>/...
+    # 同时开启 Vercel Web Analytics / Speed Insights 脚本注入。
     env:
       PAGES_PREFIX: "/"
+      INJECT_VERCEL_ANALYTICS: "1"
     steps:
       - name: 检出仓库
         uses: actions/checkout@v4
@@ -56,8 +58,9 @@ jobs:
       - name: "单元测试（渲染核心函数回归门禁）"
         run: python -m pytest mirror/test_render.py -q
 
-      - name: 随机延时（分散抓取时间，增强隐蔽性）
-        # 0~45 分钟随机抖动，避免每日固定时刻的规律请求。
+      - name: 随机延时（仅定时触发分散抓取时间；手动触发立即执行）
+        if: github.event_name == 'schedule'
+        # 0~45 分钟随机抖动，把请求打散到深夜，降低被识别为规律爬虫的概率。
         # 注：抖动过长会徒增 Actions 额度消耗，故控制在 45 分钟内。
         run: sleep $((RANDOM % 45))m
 
