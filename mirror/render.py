@@ -661,7 +661,7 @@ fetch('/search.json').then(r=>r.json()).then(function(docs){
 
 def build_search_index(out_dir: Path):
     items = []
-    for p in out_dir.rglob("*.html"):
+    for idx, p in enumerate(out_dir.rglob("*.html")):
         rel = p.relative_to(out_dir).as_posix()
         if not ART_RE.match("/" + rel):
             continue
@@ -671,14 +671,19 @@ def build_search_index(out_dir: Path):
             continue
         soup = BeautifulSoup(html, "html.parser")
         title = (soup.title.get_text(strip=True) if soup.title else "") or rel
-        title = title.replace("线报酷镜像", "").strip().strip("-").strip() or rel
+        title = title.replace("线报酷镜像", "").replace("线报酷", "").strip().strip("-").strip() or rel
         for t in soup(["script", "style"]):
             t.decompose()
         main = (soup.select_one("#post-content, .post-content, article .content, "
                                 ".article-content, #article_content, .content")
                 or soup.body)
         text = main.get_text(" ", strip=True) if main else ""
-        items.append({"title": title, "url": "/" + rel, "body": text[:300]})
+        items.append({
+            "id": str(idx + 1),
+            "title": title,
+            "url": "/" + rel,
+            "body": text[:300],
+        })
     items.sort(key=lambda x: x["title"])
     (out_dir / "search.json").write_text(
         json.dumps(items, ensure_ascii=False), encoding="utf-8")
@@ -686,28 +691,122 @@ def build_search_index(out_dir: Path):
     return len(items)
 
 
+def _build_panel(cat_id: str, cat_label: str, items: list) -> str:
+    if not items:
+        content = '<div class="empty">暂无文章</div>'
+    else:
+        lis = []
+        for it in items:
+            title = it["title"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+            lis.append(
+                f'<div class="it"><a href="{it["url"]}">{title}</a>'
+                f'<div class="meta">{it["url"]}</div></div>')
+        content = '<div class="list">' + "\n".join(lis) + '</div>'
+    active = " active" if cat_id == "all" else ""
+    return (
+        f'<div id="{cat_id}" class="panel{active}">\n'
+        f'  <h2 style="font-size:18px;margin:0 0 12px">{cat_label}'
+        f'<span class="count">{len(items)} 篇</span></h2>\n'
+        f'  {content}\n'
+        f'</div>'
+    )
+
+
 def build_hub(out_dir: Path):
-    lis = "".join(
-        f'<li><a href="/category-{s}/">{s}</a></li>' for s in ALLOWED_CATEGORIES)
+    """生成首页：顶部标签切换分类，下方列出各分类文章（含评论链接）。"""
+    cat_names = {
+        "zuankeba": "赚客吧",
+        "xinzuanba": "新赚客吧",
+        "xiaodigu": "小弟谷",
+        "huluxia": "葫芦侠",
+        "xiaodao": "小道",
+    }
+    by_cat = {s: [] for s in ALLOWED_CATEGORIES}
+    for p in out_dir.rglob("*.html"):
+        rel = p.relative_to(out_dir).as_posix()
+        if not ART_RE.match("/" + rel):
+            continue
+        try:
+            html = p.read_text(encoding="utf-8", errors="replace")
+            soup = BeautifulSoup(html, "html.parser")
+            title = (soup.title.get_text(strip=True) if soup.title else rel)
+            title = title.replace("线报酷镜像", "").replace("线报酷", "").strip().strip("-").strip()
+        except Exception:
+            title = rel
+        if not title:
+            title = rel
+        m = re.search(r"/([^/]+)/(\d+)\.html$", "/" + rel)
+        if not m:
+            continue
+        cat, art_id = m.group(1), int(m.group(2))
+        if cat in by_cat:
+            by_cat[cat].append({"id": art_id, "url": "/" + rel, "title": title})
+
+    # 每分类按文章 ID 降序（最新在前）
+    for cat in by_cat:
+        by_cat[cat].sort(key=lambda x: x["id"], reverse=True)
+
+    all_items = []
+    for cat in ALLOWED_CATEGORIES:
+        all_items.extend(by_cat[cat])
+    all_items.sort(key=lambda x: x["id"], reverse=True)
+
+    tabs = ['<span class="tab active" data-cat="all">全部</span>']
+    panels = [_build_panel("all", "全部", all_items[:200])]
+    for cat in ALLOWED_CATEGORIES:
+        tabs.append(f'<span class="tab" data-cat="{cat}">{cat_names[cat]}</span>')
+        panels.append(_build_panel(cat, cat_names[cat], by_cat[cat][:200]))
+
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="utf-8">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像</title>
 <link rel="stylesheet" href="/lib/xianbao-override.css">
-<style>body{{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}}
-.wrap{{max-width:680px;margin:0 auto;padding:40px 16px}}
+<style>
+body{{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}}
+.wrap{{max-width:900px;margin:0 auto;padding:24px 16px}}
 h1{{font-size:24px;margin:0 0 8px}}
-p{{color:#666}}ul{{line-height:2;font-size:16px}}
-a{{color:#1f4fd6;text-decoration:none}}a:hover{{text-decoration:underline}}
-.bar{{margin-top:24px}}<a href="/search.html" style="display:inline-block;padding:10px 18px;background:#1f4fd6;color:#fff;border-radius:10px">🔍 站内搜索</a></style>
+.desc{{color:#666;margin:0 0 18px}}
+.tabs{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}}
+.tab{{padding:8px 16px;border-radius:20px;background:#fff;border:1px solid #d7dbe5;cursor:pointer;font-size:14px;transition:all .2s}}
+.tab:hover{{border-color:#1f4fd6;color:#1f4fd6}}
+.tab.active{{background:#1f4fd6;color:#fff;border-color:#1f4fd6}}
+.panel{{display:none}}
+.panel.active{{display:block}}
+.list{{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden}}
+.it{{padding:14px 16px;border-bottom:1px solid #eceef3}}
+.it:last-child{{border-bottom:none}}
+.it a{{color:#1f4fd6;text-decoration:none;font-size:16px;font-weight:600}}
+.it a:hover{{text-decoration:underline}}
+.it .meta{{color:#999;font-size:12px;margin-top:4px}}
+.empty{{padding:30px;text-align:center;color:#999}}
+.count{{color:#999;font-size:13px;margin-left:8px}}
+</style>
 </head>
-<body><div class="wrap">
-<h1>线报酷镜像</h1>
-<p>本镜像仅增量备份以下 5 个分类（每日更新，含评论）：</p>
-<ul>{lis}</ul>
-<div class="bar"><a href="/search.html">🔍 站内搜索</a></div>
-</div></body></html>"""
+<body>
+<div class="wrap">
+  <h1>线报酷镜像</h1>
+  <p class="desc">本镜像仅增量备份 5 个分类（每日更新，含评论）。</p>
+  <div class="tabs">
+{chr(10).join('    ' + t for t in tabs)}
+  </div>
+{chr(10).join(panels)}
+</div>
+<script>
+document.querySelectorAll('.tab').forEach(function(tab){{
+  tab.addEventListener('click', function(){{
+    var cat = this.dataset.cat;
+    document.querySelectorAll('.tab').forEach(function(t){{ t.classList.remove('active'); }});
+    document.querySelectorAll('.panel').forEach(function(p){{ p.classList.remove('active'); }});
+    this.classList.add('active');
+    document.getElementById(cat).classList.add('active');
+  }});
+}});
+</script>
+</body>
+</html>"""
     (out_dir / "index.html").write_text(html, encoding="utf-8")
 
 
