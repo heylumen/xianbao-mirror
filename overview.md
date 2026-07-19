@@ -1,5 +1,34 @@
 # 本轮修复概览
 
+## 2026-07-19 修复评论用户名显示与恢复顺序/只看楼主功能
+
+1. **保留并修复“顺序/只看楼主”控件**：
+   - `mirror/render.py`：`strip_chrome` 不再删除 `.pinglunshunxu` / `.showlouzhu`，改为改写 `onclick` 指向自包含函数 `xianbaoPinglunshunxu()` / `xianbaoShowlouzhu()`。
+   - 在 `<body>` 末尾注入 `id="xianbao-comment-tools"` 脚本：顺序按钮反转 `.comment-list` 下的 `.ul`；只看楼主按钮从 `.head-info .author a` 读取文章作者，切换只显示楼主评论，并在“只看楼主”与“查看全部”间切换按钮文本。
+   - 兼容旧版已处理文件：若 `.title` 中缺失控件，自动补回。
+2. **修复用户名显示问题**：
+   - 本地重处理验证：用户名链接 `<a href="/record/.../提笔墨香浅.html">提笔墨香浅</a>` 正常渲染为蓝色可点击文本，无 `.html">` 外露。
+   - 全站 1242 个文章页 HTML 已重新处理，确保线上版本一致。
+3. **修复 `strip_chrome` 幂等性**：
+   - 修复 `display:block` 与 `cursor:pointer` 重复追加的问题，现在多次运行 `strip_chrome` 结果稳定。
+
+### 涉及文件
+- `mirror/render.py`：保留/补回评论控件，注入自包含 JS，修复样式重复追加。
+- `mirror/test_backup_features.py`：更新断言，验证控件保留、onclick 改写、脚本注入。
+- `xianbao/*/*.html`：全站 1242 个文章页重新处理。
+
+### 验证
+- `pytest mirror/test_render.py mirror/test_backup_features.py -q`：**85 passed**
+- Playwright 验证：点击“只看楼主”后 32 条评论中 23 条隐藏、9 条楼主评论可见；点击“顺序”正常反转。
+- 浏览器截图验证：`xianbao/zuankeba/6511148.html` 评论列表标题旁显示“↹ 顺序 只看楼主”，用户名显示正常。
+
+### 提交
+- Commit: `c90c0ee4` 已 push 至 `xfxx2022/xianbao-mirror` main（`957c931..c90c0ee4`）。
+
+---
+
+## 更早的修复
+
 ## 完成内容
 1. **修复已部署页面仍跳转源站**：
    - `mirror/render.py`：`fix_url` 现在会处理协议相对链接 `//new.xianbao.fun/...`（属于源站则改本地路径，外部 CDN 保留）。
