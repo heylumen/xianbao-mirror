@@ -1333,6 +1333,9 @@ def rebuild_category_page(
     soup = BeautifulSoup(html, "html.parser")
     if title and soup.title:
         soup.title.string = f"{title}-线报酷镜像"
+    # 移除源站动态脚本（会往列表prepend置顶公告 / 实时推送），避免静态镜像出现源站链接
+    for s in soup.find_all("script", src=re.compile(r"meta\.php")):
+        s.decompose()
     if is_home or total_pages <= 1:
         _strip_pagination(soup)
     else:
