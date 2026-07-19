@@ -529,13 +529,12 @@ FANCYBOX_INIT_JS = (
 )
 
 # 内联防晃动样式：随 HTML 一起被缓存破坏，不依赖外部覆盖 CSS 是否新鲜。
-# 双保险：(a) 即使 Fancybox 仍给 <html> 加 with-fancybox，也强制滚动条常驻（文档宽度恒定）；
-# (b) hideScrollbar:false 已让 Fancybox 不再给 <body> 加 hide-scrollbar（无 margin-right 补偿）；
-# 这里再显式把 body 锁为 overflow:hidden 禁止背景滚动，且不改变宽度，因此开合全程零位移。
+# 根因：Fancybox v5 在打开/关闭时会切换 <html> 的 overflow 并给 <body> 加 margin-right
+# 补偿，导致文档宽度变化、评论/正文左右晃动。这里全局强制：滚动条永远常驻、
+# body 永远无 margin-right 补偿，且不改变 body 的 overflow（避免 BFC 切换带来的重排）。
 FANCYBOX_NOSHIFT_CSS = (
-    "html.with-fancybox{overflow-y:scroll !important;overflow-x:hidden !important;}"
-    "html.with-fancybox body.hide-scrollbar{margin-right:0 !important;}"
-    "html.with-fancybox body{overflow:hidden !important;}"
+    "html{overflow-y:scroll !important;overflow-x:hidden !important;}"
+    "body{margin-right:0 !important;}"
 )
 
 
@@ -1262,7 +1261,7 @@ SEARCH_HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像 · 站内搜索</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=3">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=4">
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7/dist/umd/index.min.js"></script>
 <style>
   body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}
@@ -1653,7 +1652,7 @@ def _build_legacy_hub(out_dir: Path):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=3">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=4">
 <style>
 body{{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}}
 .wrap{{max-width:900px;margin:0 auto;padding:24px 16px}}
