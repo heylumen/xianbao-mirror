@@ -1,54 +1,88 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>线报酷镜像 · 站内搜索</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css">
-<script src="https://cdn.jsdelivr.net/npm/minisearch@7/dist/umd/index.min.js"></script>
+
+<html lang="zh-CN" style="transform: none;"><head>
+<link href="/favicon.ico" rel="icon"/>
+<meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/><meta content="webkit" name="renderer"/><meta content="no-referrer" name="referrer"/><meta content="webkit" name="force-rendering"/><meta content="IE=edge,Chrome=1" http-equiv="X-UA-Compatible"/><meta content="pc,mobile" name="applicable-device"/><title>搜索-线报酷镜像</title><meta content="赚客吧" name="keywords"/><meta content="" name="description"/><link href="/favicon.ico" rel="shortcut icon"/><link href="/manifest.json" rel="manifest"/><link href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css" rel="stylesheet"/><link href="/zb_users/theme/xianbao_theme/style/style.css?v=202603111" rel="stylesheet"/><link href="/zb_users/theme/xianbao_theme/style/haodan.css?v=202501111111" rel="stylesheet"/><link href="/zb_users/theme/xianbao_theme/style/swiper-bundle.min.css" rel="stylesheet"/><link href="/zb_users/theme/xianbao_theme/style/fancybox.css?v=20230724" rel="stylesheet"/><!--[if lt IE 9]><div class="fuck-ie"><p class="tips">*您的IE浏览器版本过低，为获得更好的体验请使用Chrome、Firefox或其他现代浏览器!</p></div><![endif]--><script src="/zb_system/script/jquery-2.2.4.min.js"></script><script src="/zb_system/script/zblogphp.js"></script><script src="/zb_users/theme/xianbao_theme/script/dark-mode.js?v=2023-0365765761"></script><script src="/zb_system/script/c_html_js_add.php"></script><script src="/zb_users/plugin/UEditor/third-party/prism/prism.js" type="text/javascript"></script><link href="/zb_users/plugin/UEditor/third-party/prism/prism.css" rel="stylesheet" type="text/css"/>
+<link href="/zb_users/plugin/xc_report/style/style.css?r=20230523095540" media="all" rel="stylesheet" type="text/css"/><meta content="线报酷" name="apple-mobile-web-app-title"/><link href="/zb_users/theme/xianbao_theme/image/iosicon/icon.png" rel="apple-touch-icon"/><link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-57.png" rel="apple-touch-icon-precomposed" sizes="57x57"/><link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-72.png" rel="apple-touch-icon-precomposed" sizes="72x72"/><link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-114.png" rel="apple-touch-icon-precomposed" sizes="114x114"/><link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-144.png" rel="apple-touch-icon-precomposed" sizes="144x144"/><link href="/zb_users/plugin/mochu_us/layer/theme/default/layer.css" id="layuicss-layer" rel="stylesheet"/><style id="theia-sticky-sidebar-stylesheet-TSS">.theiaStickySidebar:after {content: ""; display: table; clear: both;}</style><link href="/lib/xianbao-override.css" rel="stylesheet"/>
+<!-- Vercel Analytics + Speed Insights (injected by mirror.sh) -->
+<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)}</script>
+<script defer="" src="/_vercel/insights/script.js"></script>
+<script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments)}</script>
+<script defer="" src="/_vercel/speed-insights/script.js"></script>
 <style>
-  body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}
-  .wrap{max-width:780px;margin:0 auto;padding:32px 16px}
-  h1{font-size:22px;margin:0 0 16px}
-  #q{width:100%;box-sizing:border-box;padding:14px 16px;font-size:16px;border:1px solid #d7dbe5;border-radius:12px;outline:none}
-  #q:focus{border-color:#4f7cff;box-shadow:0 0 0 3px rgba(79,124,255,.15)}
-  #r{margin-top:18px}
-  .it{padding:14px 0;border-bottom:1px solid #eceef3}
-  .it a{font-size:16px;color:#1f4fd6;text-decoration:none;font-weight:600}
-  .it a:hover{text-decoration:underline}
-  .it p{margin:6px 0 0;color:#666;font-size:13px;line-height:1.6}
-  .meta{color:#999;font-size:12px;margin-top:4px}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <h1>线报酷镜像 · 站内搜索</h1>
-  <input id="q" placeholder="输入关键词，如 红包 / 活动 / 教程…" autofocus>
-  <div id="r"></div>
-</div>
+.search-top{padding:12px 16px;background:#fff;border-bottom:1px solid #eceef3}
+.search-top input{width:100%;box-sizing:border-box;padding:12px 16px;font-size:15px;border:1px solid #d7dbe5;border-radius:12px;outline:none}
+.search-top input:focus{border-color:#1f4fd6}
+.xianbao-rank-box{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:16px}
+.rank-tabs{display:flex;border-bottom:1px solid #eceef3}
+.rank-tab{flex:1;text-align:center;padding:12px 4px;font-size:13px;color:#666;cursor:pointer;background:#f9fafc}
+.rank-tab.active{color:#1f4fd6;font-weight:600;background:#fff;border-bottom:2px solid #1f4fd6}
+.rank-panel{display:none;padding:10px 14px}
+.rank-panel.active{display:block}
+.rank-list{list-style:none;margin:0;padding:0}
+.rank-item{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.rank-item:last-child{border-bottom:none}
+.rank-num{width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;background:#f0f0f0;color:#666;font-size:12px;margin-right:8px;flex-shrink:0}
+.rank-item:nth-child(1) .rank-num{background:#ff4d4f;color:#fff}
+.rank-item:nth-child(2) .rank-num{background:#ff7a45;color:#fff}
+.rank-item:nth-child(3) .rank-num{background:#ffa940;color:#fff}
+.rank-cat{color:#999;margin-right:8px;flex-shrink:0}
+.rank-item a{flex:1;color:#222;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-item a:hover{color:#1f4fd6}
+.rank-com{color:#999;margin-left:8px;flex-shrink:0}
+.empty{padding:20px 0;text-align:center;color:#999}
+</style></head><body style="transform: none;"><header class="header sb"><div class="h-wrap container clearfix"><div class="logo-area fl"><a href="/" title="线报酷"><img alt="线报酷" class="img" src="/zb_users/theme/xianbao_theme/image/newlogo.png" title="线报酷"/></a></div><div class="m-nav-btn"><i class="iconfont icon-category"></i></div><nav class="responsive-nav"><div class="pc-nav m-nav fl" data-cateid="16" data-catename="zuankeba" data-type="category"><ul class="nav-ul"><li class="" id="nvabar-item-index"><a href="/">首页</a></li><li class="" id="navbar-category-zuankeba"><a href="/category-zuankeba/">赚客吧</a><span class="toggle-btn"><i class="iconfont icon-down"></i></span><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li class=""><a href="#">赚客吧热帖</a></li></ul></li><li class="" id="navbar-category-xinzuanba"><a href="/category-xinzuanba/">新赚吧</a><span class="toggle-btn"><i class="iconfont icon-down"></i></span><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li class=""><a href="#">新赚吧热帖</a></li></ul></li><!--<li id="navbar-category-kuan"><a href="/category-kuan/">酷安</a></li>--><li class="" id="navbar-category-xiaodigu"><a href="/category-xiaodigu/">小嘀咕</a></li><li class="" id="navbar-category-huluxia"><a href="/category-huluxia/" title="葫芦侠">葫芦侠</a></li><li class="" id="navbar-category-xiaodao"><a href="/category-xiaodao/" title="小刀">小刀</a></li></ul></div></nav><div class="login fr"><span><a href="#" rel="nofollow" title="用户中心"><i class="iconfont icon-user"></i></a></span></div><a class="dark-mode fr" href="javascript:switchNightMode()" target="_self"><i class="iconfont icon-moon"></i></a><span class="search-button fr" id="search-button"><i class="iconfont icon-search"></i></span><div class="container hidden br sb animated-fast fadeInUpMenu" id="search-area"><form action="/search.html" class="searchform clearfix" method="get" name="search"><input autofocus="autofocus" class="s-input br fl" name="q" placeholder="请输入关键词..." type="text"/><button class="s-button fr br transition brightness" id="searchsubmit" type="submit">搜 索</button></form></div></div></header><div class="content container clearfix" id="content" style="transform: none;"><section class="fl br mb sb" id="mainbox"><div class="mianbaoxie article-mbx"><a href="/" title="首页">首页</a> › 搜索</div><div class="listbox"><div class="search-top"><input autofocus="autofocus" id="q" placeholder="输入关键词，如 红包 / 活动 / 教程…" type="text"/></div><ul class="new-post"></ul></div></section><aside class="fr" id="sidebar" style="position: relative; overflow: visible; box-sizing: border-box; min-height: 1px;"><div class="theiaStickySidebar celan" style="padding-top: 0px; padding-bottom: 1px; position: static; transform: none;"><div class="xianbao-rank-box"><div class="rank-tabs"><span class="rank-tab active" data-tab="12">十二小时榜</span><span class="rank-tab" data-tab="24">二十四小时榜</span><span class="rank-tab" data-tab="48">四十八小时榜</span></div><div class="rank-panel active" data-panel="12"><ul class="rank-list"><li class="rank-item"><span class="rank-num">1</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6555100.html" target="_blank" title="【网易云】七月份会员分享帖">【网易云】七月份会员分享帖</a><span class="rank-com"><i class="iconfont icon-comment"></i>124</span></li><li class="rank-item"><span class="rank-num">2</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6381415.html" target="_blank" title="网易云 5月会员分享活动">网易云 5月会员分享活动</a><span class="rank-com"><i class="iconfont icon-comment"></i>111</span></li><li class="rank-item"><span class="rank-num">3</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6601317.html" target="_blank" title="微信游戏失控进化注册包">微信游戏失控进化注册包</a><span class="rank-com"><i class="iconfont icon-comment"></i>101</span></li><li class="rank-item"><span class="rank-num">4</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6638759.html" target="_blank" title="拳皇注册抽红包">拳皇注册抽红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>64</span></li><li class="rank-item"><span class="rank-num">5</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6564273.html" target="_blank" title="音舞派对注册领红包">音舞派对注册领红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>60</span></li><li class="rank-item"><span class="rank-num">6</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6439759.html" target="_blank" title="pdd 930813755">pdd 930813755</a><span class="rank-com"><i class="iconfont icon-comment"></i>50</span></li><li class="rank-item"><span class="rank-num">7</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6532356.html" target="_blank" title="pdd 955340202">pdd 955340202</a><span class="rank-com"><i class="iconfont icon-comment"></i>46</span></li><li class="rank-item"><span class="rank-num">8</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6503800.html" target="_blank" title="pdd 939736357">pdd 939736357</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li><li class="rank-item"><span class="rank-num">9</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6651736.html" target="_blank" title="元梦之星完成任务抽红包">元梦之星完成任务抽红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li><li class="rank-item"><span class="rank-num">10</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6624613.html" target="_blank" title="和平精英注册红包">和平精英注册红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li></ul></div><div class="rank-panel" data-panel="24"><ul class="rank-list"><li class="rank-item"><span class="rank-num">1</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6555100.html" target="_blank" title="【网易云】七月份会员分享帖">【网易云】七月份会员分享帖</a><span class="rank-com"><i class="iconfont icon-comment"></i>124</span></li><li class="rank-item"><span class="rank-num">2</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6381415.html" target="_blank" title="网易云 5月会员分享活动">网易云 5月会员分享活动</a><span class="rank-com"><i class="iconfont icon-comment"></i>111</span></li><li class="rank-item"><span class="rank-num">3</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6601317.html" target="_blank" title="微信游戏失控进化注册包">微信游戏失控进化注册包</a><span class="rank-com"><i class="iconfont icon-comment"></i>101</span></li><li class="rank-item"><span class="rank-num">4</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6638759.html" target="_blank" title="拳皇注册抽红包">拳皇注册抽红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>64</span></li><li class="rank-item"><span class="rank-num">5</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6564273.html" target="_blank" title="音舞派对注册领红包">音舞派对注册领红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>60</span></li><li class="rank-item"><span class="rank-num">6</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6439759.html" target="_blank" title="pdd 930813755">pdd 930813755</a><span class="rank-com"><i class="iconfont icon-comment"></i>50</span></li><li class="rank-item"><span class="rank-num">7</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6532356.html" target="_blank" title="pdd 955340202">pdd 955340202</a><span class="rank-com"><i class="iconfont icon-comment"></i>46</span></li><li class="rank-item"><span class="rank-num">8</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6503800.html" target="_blank" title="pdd 939736357">pdd 939736357</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li><li class="rank-item"><span class="rank-num">9</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6651736.html" target="_blank" title="元梦之星完成任务抽红包">元梦之星完成任务抽红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li><li class="rank-item"><span class="rank-num">10</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6624613.html" target="_blank" title="和平精英注册红包">和平精英注册红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li></ul></div><div class="rank-panel" data-panel="48"><ul class="rank-list"><li class="rank-item"><span class="rank-num">1</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6555100.html" target="_blank" title="【网易云】七月份会员分享帖">【网易云】七月份会员分享帖</a><span class="rank-com"><i class="iconfont icon-comment"></i>124</span></li><li class="rank-item"><span class="rank-num">2</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6381415.html" target="_blank" title="网易云 5月会员分享活动">网易云 5月会员分享活动</a><span class="rank-com"><i class="iconfont icon-comment"></i>111</span></li><li class="rank-item"><span class="rank-num">3</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6601317.html" target="_blank" title="微信游戏失控进化注册包">微信游戏失控进化注册包</a><span class="rank-com"><i class="iconfont icon-comment"></i>101</span></li><li class="rank-item"><span class="rank-num">4</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6638759.html" target="_blank" title="拳皇注册抽红包">拳皇注册抽红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>64</span></li><li class="rank-item"><span class="rank-num">5</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6564273.html" target="_blank" title="音舞派对注册领红包">音舞派对注册领红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>60</span></li><li class="rank-item"><span class="rank-num">6</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6439759.html" target="_blank" title="pdd 930813755">pdd 930813755</a><span class="rank-com"><i class="iconfont icon-comment"></i>50</span></li><li class="rank-item"><span class="rank-num">7</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6532356.html" target="_blank" title="pdd 955340202">pdd 955340202</a><span class="rank-com"><i class="iconfont icon-comment"></i>46</span></li><li class="rank-item"><span class="rank-num">8</span><span class="rank-cat">小嘀咕</span><a href="/xiaodigu/6503800.html" target="_blank" title="pdd 939736357">pdd 939736357</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li><li class="rank-item"><span class="rank-num">9</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6651736.html" target="_blank" title="元梦之星完成任务抽红包">元梦之星完成任务抽红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li><li class="rank-item"><span class="rank-num">10</span><span class="rank-cat">葫芦侠</span><a href="/huluxia/6624613.html" target="_blank" title="和平精英注册红包">和平精英注册红包</a><span class="rank-com"><i class="iconfont icon-comment"></i>39</span></li></ul></div></div></div></aside></div><footer class="footer"><div class="main container"><div class="f-about fl"><p class="title pb1">关于本站</p><div class="intro">线报酷仅收集分享各类项目和活动信息，不参与任何平台相关运营事宜，请自行判断各平台和项目的信誉度，如觉有风险，请勿参与。如用户在浏览过程发现违规文章，可使用举报功能进行通知本站处理，我们会及时处理举报文章，谢谢合作。</div><small><span>Copyright © 2018-2026 本站由<a href="https://www.zblogcn.com/" target="_blank">Z-BlogPHP</a>强力驱动</span><span class="icp"><a href="https://beian.miit.gov.cn/" rel="nofollow" target="_blank"><img alt="网站ICP备案" src="https://www.73so.com/img/icp.png" style="width: 16px;height: 16px;vertical-align: sub;margin-right: 5px;"/>粤ICP备18140255号-1</a></span></small></div><div class="f-contact fl"><p class="title pb1">联系我们</p><div><p>合作或咨询可通过如下方式：</p><p><i class="iconfont icon-qq-fill"></i>QQ：2771128168</p><p><i class="iconfont icon-wechat-fill"></i>微信：xianbao_fun</p><p><i class="iconfont icon-weibo-fill"></i>微博：线报酷官方</p></div></div><div class="f-qr fr"><p class="title pb1">关注我们</p><div><img alt="线报酷二维码" class="img br" src="/zb_users/theme/xianbao_theme/image/qr.jpg"/></div></div><div class="clear"></div></div><div class="toolbar" id="toolbar"><div class="hidden-sm-md-lg btn sb br" id="qr"><i class="iconfont icon-qr"></i><img alt="本页二维码" class="br sb" id="qr-img" src="https://qrickit.com/api/qr.php?qrsize=200&amp;d=/category-zuankeba/"/></div><div class="btn hidden sb br" id="totop"><i class="iconfont icon-top"></i></div></div></footer><script src="/zb_users/plugin/xc_report/script/script.js?r=20221203" type="text/javascript"></script><script src="/zb_users/plugin/mochu_us/layer/layer.js"></script><script src="/zb_users/plugin/mochu_us/style/mochu_us.js?r=20241116153303"></script><link href="/zb_users/plugin/mochu_us/style/mochu_us.css?r=20241116153303" rel="stylesheet"/><!--黑色透明遮罩--><div class="mask-hidden transition" id="mask-hidden"></div><script src="/zb_users/theme/xianbao_theme/script/common.js?v=20260211212111"></script><script src="/zb_users/theme/xianbao_theme/script/md5.js?v=2024-1107"></script><script src="/zb_users/theme/xianbao_theme/script/fancybox.js?v=?v=20230724"></script><script src="/zb_users/theme/xianbao_theme/script/swiper-bundle.min.js"></script><script src="/zb_users/theme/xianbao_theme/script/jquery.md5.js?v=2022-0312"></script><script src="/zb_users/theme/xianbao_theme/script/sidebar.js?v=202603121"></script><script src="/zb_users/theme/xianbao_theme/script/clipboard.min.js"></script><!--[if lt IE 9]><script src="/zb_users/theme/xianbao_theme/script/html5-css3.js"></script><![endif]-->
 <script>
-fetch('/search.json').then(r=>r.json()).then(function(docs){
-  if(!window.MiniSearch){document.getElementById('r').innerHTML='<p>搜索组件加载失败（请检查网络是否能访问 jsdelivr CDN）。</p>';return;}
-  var ms=new MiniSearch({fields:['title','body'],storeFields:['title','url','body']});
-  ms.addAll(docs);
-  var q=document.getElementById('q'),r=document.getElementById('r');
-  function go(){
-    var t=q.value.trim();
-    if(!t){r.innerHTML='';return;}
-    var res=ms.search(t,{prefix:true,fuzzy:0.2,boost:{title:2}});
-    if(!res.length){r.innerHTML='<p>没有找到相关结果。</p>';return;}
-    r.innerHTML=res.slice(0,50).map(function(x){
-      return '<div class="it"><a href="'+x.url+'">'+x.title+'</a>'
-        +'<p>'+((x.body||'').slice(0,140))+'</p></div>';
-    }).join('');
+(function(){
+  var q = document.getElementById('q');
+  var ul = document.querySelector('ul.new-post');
+  if (!q || !ul) return;
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
-  q.addEventListener('input',go);
-  var params=new URLSearchParams(window.location.search);
-  var initial=params.get('q');
-  if(initial){{ q.value=initial; go(); }}
-}).catch(function(e){
-  document.getElementById('r').innerHTML='<p>搜索索引加载失败：'+e+'</p>';
-});
-</script>
-</body>
-</html>
+  function render(res){
+    ul.innerHTML = '';
+    if (!res.length){
+      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">没有找到相关结果。</p></li>';
+      return;
+    }
+    res.slice(0,50).forEach(function(x){
+      var li = document.createElement('li');
+      li.className = 'article-list';
+      li.innerHTML = '<span class="figure cg16"></span>'
+        + '<p class="title">'
+        + '<span class="badge com"><i class="iconfont icon-comment"></i>' + (x.comments||0) + '</span>'
+        + '<a href="' + x.url + '" title="' + escapeHtml(x.title) + '" target="_blank" data-comments="' + (x.comments||0) + '" data-catename="' + escapeHtml(x.cat_label||'') + '">' + escapeHtml(x.title) + '</a>'
+        + '</p>';
+      ul.appendChild(li);
+    });
+  }
+  function go(){
+    var t = q.value.trim();
+    if (!t){ ul.innerHTML=''; return; }
+    fetch('/search.json').then(function(r){return r.json();}).then(function(docs){
+      if (!window.MiniSearch){ render([]); return; }
+      var ms = new MiniSearch({fields:['title','body'], storeFields:['title','url','body','cat_label','comments']});
+      ms.addAll(docs);
+      render(ms.search(t, {prefix:true, fuzzy:0.2, boost:{title:2}}));
+    }).catch(function(){
+      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">搜索索引加载失败。</p></li>';
+    });
+  }
+  q.addEventListener('input', go);
+  var params = new URLSearchParams(window.location.search);
+  var initial = params.get('q');
+  if (initial){ q.value = initial; go(); }
+  // 排名 tab 切换
+  document.querySelectorAll('.rank-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var hours = this.getAttribute('data-tab');
+      document.querySelectorAll('.rank-tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.rank-panel').forEach(function(p){ p.classList.remove('active'); });
+      this.classList.add('active');
+      var panel = document.querySelector('.rank-panel[data-panel="' + hours + '"]');
+      if (panel) panel.classList.add('active');
+    });
+  });
+})();
+</script></body></html>

@@ -557,9 +557,9 @@ def test_format_list_time_today_vs_other_day():
     from datetime import datetime
     today = datetime.now()
     today_str = f"{today.year}年{today.month:02d}月{today.day:02d}日 12:07"
-    assert render._format_list_time(today_str) == "12:07"
-    assert render._format_list_time("2026年06月22日 06:35") == "06-22"
-    assert render._format_list_time("") == ""
+    assert render._format_list_time(today_str) == ("12:07", True)
+    assert render._format_list_time("2026年06月22日 06:35") == ("06-22", False)
+    assert render._format_list_time("") == ("", False)
 
 
 def test_local_articles_by_cat_extracts_title_and_time(tmp_path):
@@ -567,8 +567,12 @@ def test_local_articles_by_cat_extracts_title_and_time(tmp_path):
     art.mkdir(parents=True)
     (art / "6500001.html").write_text(
         '<html><head><title>红包-线报酷</title></head>'
-        '<body><time><i class="iconfont icon-time"></i>2026年06月22日 06:35</time>'
-        '<div class="content">京东红包</div></body></html>',
+        '<body><div class="article-box">'
+        '<div class="head-info">'
+        '<span class="comment"><i class="iconfont icon-comment"></i> 9</span>'
+        '</div>'
+        '<time><i class="iconfont icon-time"></i>2026年06月22日 06:35</time>'
+        '<div class="content">京东红包</div></div></body></html>',
         encoding="utf-8")
     (art / "6500002.html").write_text(
         '<html><head><title>话费-线报酷</title></head>'
@@ -579,6 +583,8 @@ def test_local_articles_by_cat_extracts_title_and_time(tmp_path):
     assert by_cat["zuankeba"][0]["id"] == 6500002  # 降序
     assert by_cat["zuankeba"][0]["title"] == "话费"
     assert by_cat["zuankeba"][1]["time"] == "2026年06月22日 06:35"
+    assert by_cat["zuankeba"][1]["comments"] == 9
+    assert by_cat["zuankeba"][1]["cat_label"] == "赚客吧"
 
 
 def test_rebuild_category_page_keeps_existing_and_neutralizes_missing(tmp_path):
@@ -762,3 +768,106 @@ def test_drain_frontier_persists_pending_across_cap(monkeypatch):
     assert state["pending"] == {"/zuankeba/4.html", "/zuankeba/5.html",
                                  "/zuankeba/6.html", "/zuankeba/7.html"}
 
+
+def test_build_source_list_item_has_comment_count_and_target_blank():
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup("<html><body></body></html>", "html.parser")
+    item = {
+        "id": 6500001,
+        "url": "/zuankeba/6500001.html",
+        "title": "红包活动",
+        "time": "2026年06月22日 06:35",
+        "comments": 9,
+        "cat_label": "赚客吧",
+    }
+    li = render._build_source_list_item(soup, item)
+    html = str(li)
+    assert 'class="badge com"' in html
+    assert '<i class="iconfont icon-comment"></i>' in html
+    assert '>9<' in html or '>9</span>' in html
+    assert 'target="_blank"' in html
+    assert 'data-comments="9"' in html
+    assert 'data-catename="赚客吧"' in html
+
+
+def test_prune_nav_removes_unmirrored_categories_and_keeps_allowed(tmp_path):
+    cat_dir = tmp_path / "category-zuankeba"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "index.html").write_text(
+        '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
+        '<ul class="nav-ul">'
+        '<li id="nvabar-item-index"><a href="/">首页</a></li>'
+        '<li id="navbar-category-xianbaoku"><a href="#">线报酷</a></li>'
+        '<li id="navbar-category-zuankeba"><a href="/category-zuankeba/">赚客吧</a></li>'
+        '<li id="navbar-category-xinzuanba"><a href="/category-xinzuanba/">新赚吧</a></li>'
+        '<li id="navbar-category-douban"><a href="#">豆瓣线报</a></li>'
+        '<li id="navbar-category-qita"><a href="#">其他区</a></li>'
+        '</ul>'
+        '<ul class="nav2-ul"><li>xxx</li></ul>'
+        '</body></html>',
+        encoding="utf-8")
+    render.rebuild_category_page(cat_dir / "index.html", cat_dir / "index.html", tmp_path, [], cat="zuankeba", title="赚客吧")
+    html = (cat_dir / "index.html").read_text(encoding="utf-8")
+    # 保留首页和已镜像分类
+    assert 'id="nvabar-item-index"' in html
+    assert 'id="navbar-category-zuankeba"' in html
+    assert 'id="navbar-category-xinzuanba"' in html
+    # 删除未镜像分类
+    assert 'id="navbar-category-xianbaoku"' not in html
+    assert 'id="navbar-category-douban"' not in html
+    assert 'id="navbar-category-qita"' not in html
+    # 补充 huluxia / xiaodao
+    assert 'id="navbar-category-huluxia"' in html
+    assert 'id="navbar-category-xiaodao"' in html
+    # 次级导航删除
+    assert 'nav2-ul' not in html
+    # 当前分类高亮
+    assert 'class="active"' in html and 'id="navbar-category-zuankeba"' in html
+
+
+def test_build_search_page_uses_source_template(tmp_path):
+    cat_dir = tmp_path / "category-zuankeba"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "index.html").write_text(
+        '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
+        '<header class="header sb"><ul class="nav-ul"><li id="nvabar-item-index"><a href="/">首页</a></li>'
+        '<li id="navbar-category-zuankeba"><a href="/category-zuankeba/">赚客吧</a></li></ul></header>'
+        '<div class="content container clearfix"><section class="fl br mb sb" id="mainbox">'
+        '<div class="mianbaoxie article-mbx"><a href="/">首页</a> › <a href="/category-zuankeba/">赚客吧</a></div>'
+        '<div class="listbox"><ul class="new-post"></ul></div>'
+        '</section><aside class="fr" id="sidebar"><div class="theiaStickySidebar celan"></div></aside></div>'
+        '</body></html>',
+        encoding="utf-8")
+    items = [
+        {"id": "1", "title": "移动话费", "url": "/zuankeba/1.html", "body": "移动", "cat": "zuankeba", "cat_label": "赚客吧", "comments": 5, "time": "2026年06月22日 06:35"},
+        {"id": "2", "title": "联通流量", "url": "/xiaodigu/2.html", "body": "联通", "cat": "xiaodigu", "cat_label": "小嘀咕", "comments": 3, "time": "2026年06月22日 07:35"},
+    ]
+    render.build_search_page(tmp_path, items)
+    html = (tmp_path / "search.html").read_text(encoding="utf-8")
+    # 标题、面包屑、搜索框、列表、脚本、排名
+    assert "<title>搜索-线报酷镜像</title>" in html
+    assert 'class="mianbaoxie' in html and "搜索" in html
+    assert 'id="q"' in html
+    assert 'ul class="new-post"' in html
+    assert 'MiniSearch' in html
+    assert 'xianbao-rank-box' in html
+    assert '十二小时榜' in html
+    # 导航被清理
+    assert 'id="navbar-category-zuankeba"' in html
+
+
+def test_build_search_index_includes_cat_and_comments(tmp_path):
+    art = tmp_path / "zuankeba"
+    art.mkdir(parents=True)
+    (art / "6500001.html").write_text(
+        '<html><head><title>红包-线报酷</title></head>'
+        '<body><div class="head-info"><span class="comment"><i class="iconfont icon-comment"></i> 7</span></div>'
+        '<div class="content">京东红包</div></body></html>',
+        encoding="utf-8")
+    n = render.build_search_index(tmp_path)
+    assert n == 1
+    idx = json.loads((tmp_path / "search.json").read_text(encoding="utf-8"))
+    assert idx[0]["cat"] == "zuankeba"
+    assert idx[0]["cat_label"] == "赚客吧"
+    assert idx[0]["comments"] == 7
+    assert (tmp_path / "search.html").exists()
