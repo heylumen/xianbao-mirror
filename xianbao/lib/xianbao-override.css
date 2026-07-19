@@ -91,3 +91,13 @@ html.night body { background-color: #232931 !important; }
         text-align: center;
     }
 }
+
+/* 修复：点开/关闭 Fancybox 灯箱时评论与正文内容左右晃动（"关闭后往左晃一下"）。
+   根因：主题用 html{overflow-y:scroll} 常驻垂直滚动条（约 15px）；Fancybox v5 打开时
+   把 html 改为 overflow:visible（滚动条消失），并给 body 加 margin-right 补偿，
+   二者叠加使文档可用宽度变化，评论区等容器在开合瞬间左右位移。
+   修复：灯箱打开期间保持滚动条常驻（不被移除），并取消 body 的 margin-right 补偿，
+   使打开/关闭时文档宽度恒定，内容不再晃动。body 的 overflow:hidden（来自
+   .hide-scrollbar）保留，仍可在灯箱打开时禁止背景滚动。 */
+html.with-fancybox { overflow-y: scroll !important; overflow-x: hidden !important; }
+html.with-fancybox body.hide-scrollbar { margin-right: 0 !important; }
