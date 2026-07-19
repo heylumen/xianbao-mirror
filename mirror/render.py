@@ -63,6 +63,44 @@ DOMAIN_POOL = [
 ]
 ALL_NETLOCS = set(DOMAIN_POOL)
 
+# 论坛后端域名：源站 new.xianbao.fun 是门户（Z-BlogPHP），帖子原文在 v1.xianbao.net
+# （Discuz 的 /thread-TID-页-序号.html 格式）。列表页把帖子链接指向该论坛域名，
+# 若不处理，点击会跳回源站论坛，且 discover_article_links 因 netloc 不在白名单而
+# 漏抓 -> 新赚客吧等分类“一个帖子都没有”。下面把论坛链接映射回门户同分类本地路径。
+FORUM_NETLOCS = {"v1.xianbao.net"}
+THREAD_RE = re.compile(r"^/thread-(\d+)-(\d+)-(\d+)\.html$")
+DEFAULT_THREAD_SLUG = "xinzuanba"  # 当前仅新赚客吧列表使用论坛链接；作兜底分类
+ALL_SOURCE_NETLOCS = ALL_NETLOCS | FORUM_NETLOCS
+
+
+def forum_thread_to_local(url: str, cat_slug: str = None):
+    """v1.xianbao.net/thread-TID-页-序号.html -> /{cat_slug}/TID.html（门户本地路径）。
+    非论坛帖子链接返回 None。cat_slug 缺省时回退 DEFAULT_THREAD_SLUG。"""
+    try:
+        p = urlparse(url)
+    except Exception:
+        return None
+    if p.netloc not in FORUM_NETLOCS:
+        return None
+    m = THREAD_RE.match(p.path or "")
+    if not m:
+        return None
+    slug = cat_slug or DEFAULT_THREAD_SLUG
+    return PAGES_PREFIX + f"{slug}/{m.group(1)}.html"
+
+
+def slug_from_path(path: str):
+    """从源站路径/URL 推导分类 slug：/category-xinzuanba/10/ -> xinzuanba；
+    /xinzuanba/6655611.html -> xinzuanba；
+    https://new.xianbao.fun/category-xinzuanba/ -> xinzuanba（discover 的 base_url 是完整 URL）。"""
+    p = (path or "").strip()
+    if "://" in p:
+        p = urlparse(p).path
+    p = p.strip("/")
+    if p.startswith("category-"):
+        p = p[len("category-"):]
+    return (p.split("/")[0] or DEFAULT_THREAD_SLUG)
+
 TARGET = os.environ.get("TARGET_URL", "").rstrip("/") or random.choice(DOMAIN_POOL)
 if not TARGET.startswith(("http://", "https://")):
     TARGET = "https://" + TARGET
@@ -228,7 +266,7 @@ def is_allowed(url: str) -> bool:
     return bool(CAT_RE.match(path) or ART_RE.match(path))
 
 
-def fix_url(val: str) -> str:
+def fix_url(val: str, cat_slug: str = None) -> str:
     """改写单条链接：
     - 跨站 / 特殊协议：原样返回。
     - 协议相对链接 //domain/path：若 domain 属于源站则按内部链接处理，否则保留。
@@ -245,12 +283,18 @@ def fix_url(val: str) -> str:
         # 协议相对链接：先按 https 解析，判断是否为源站；若属于源站则按内部链接处理，
         # 否则保持协议相对（外部 CDN 等）。这样可避免点击后跳到源站。
         parsed = urlparse("https:" + v)
+        _fl = forum_thread_to_local("https:" + v, cat_slug)
+        if _fl is not None:
+            return _fl + ("#" + frag if frag else "")
         if parsed.netloc not in ALL_NETLOCS:
             return v + ("#" + frag if frag else "")
         path = parsed.path or "/"
         netloc = parsed.netloc
     elif v.startswith(("http://", "https://")):
         parsed = urlparse(v)
+        _fl = forum_thread_to_local(v, cat_slug)
+        if _fl is not None:
+            return _fl + ("#" + frag if frag else "")
         if parsed.netloc not in ALL_NETLOCS:
             return v + ("#" + frag if frag else "")
         path = parsed.path or "/"
@@ -341,9 +385,19 @@ def discover_article_links(html: str, base_url: str):
                                          "#", "//", "data:")):
             continue
         if href.startswith("http://") or href.startswith("https://"):
-            if urlparse(href).netloc not in ALL_NETLOCS:
+            _n = urlparse(href).netloc
+            if _n in FORUM_NETLOCS:
+                _tm = THREAD_RE.match(urlparse(href).path or "")
+                if _tm:
+                    # 论坛帖子链接 -> 门户同分类绝对 URL，交给下方 ART_RE 统一判定
+                    _slug = slug_from_path(base_url) or DEFAULT_THREAD_SLUG
+                    absu = TARGET + f"/{_slug}/{_tm.group(1)}.html"
+                else:
+                    continue
+            elif _n not in ALL_NETLOCS:
                 continue
-            absu = href
+            else:
+                absu = href
         elif href.startswith("/"):
             absu = urljoin(ORIGIN, href)
         else:
@@ -360,9 +414,10 @@ def discover_article_links(html: str, base_url: str):
     return out
 
 
-def rewrite_html(html: str) -> str:
+def rewrite_html(html: str, cat_slug: str = None) -> str:
     soup = BeautifulSoup(html, "html.parser")
-    attrs = ("href", "src", "data-src", "poster", "data-href", "data-url", "srcset", "action")
+    attrs = ("href", "src", "data-src", "poster", "data-href", "data-url",
+             "data-yuanurl", "srcset", "action")
     for tag in soup.find_all(True):
         for a in attrs:
             val = tag.get(a)
@@ -373,18 +428,18 @@ def rewrite_html(html: str) -> str:
                     for part in parts:
                         toks = part.split()
                         if toks:
-                            toks[0] = fix_url(toks[0])
+                            toks[0] = fix_url(toks[0], cat_slug)
                             new_parts.append(" ".join(toks))
                         else:
                             new_parts.append(part)
                     tag[a] = ", ".join(new_parts)
                 else:
-                    tag[a] = fix_url(val.strip())
+                    tag[a] = fix_url(val.strip(), cat_slug)
         style = tag.get("style")
         if style and "url(" in style:
             tag["style"] = re.sub(
                 r"url\(\s*['\"]?(.*?)['\"]?\s*\)",
-                lambda m: "url(" + fix_url(m.group(1)) + ")",
+                lambda m: "url(" + fix_url(m.group(1), cat_slug) + ")",
                 style,
             )
     for meta in soup.find_all("meta"):
@@ -393,7 +448,7 @@ def rewrite_html(html: str) -> str:
             if c:
                 meta["content"] = re.sub(
                     r"URL=([^\s]+)",
-                    lambda m: "URL=" + fix_url(m.group(1)),
+                    lambda m: "URL=" + fix_url(m.group(1), cat_slug),
                     c,
                 )
     _t = soup.find("title")
@@ -415,24 +470,24 @@ def rewrite_html(html: str) -> str:
     out = re.sub(
         r"(window\.)?location\.href\s*=\s*(['\"])([^'\"]+)\2",
         lambda m: (m.group(1) or "") + "location.href = " + m.group(2)
-                  + fix_url(m.group(3)) + m.group(2),
+                  + fix_url(m.group(3), cat_slug) + m.group(2),
         out,
     )
     out = re.sub(
         r"(window\.)?location\s*=\s*(['\"])([^'\"]+)\2",
         lambda m: (m.group(1) or "") + "location = " + m.group(2)
-                  + fix_url(m.group(3)) + m.group(2),
+                  + fix_url(m.group(3), cat_slug) + m.group(2),
         out,
     )
     out = re.sub(
         r"(window\.)?location\.(replace|assign)\s*\(\s*(['\"])([^'\"]+)\3\s*\)",
         lambda m: (m.group(1) or "") + "location." + m.group(2) + "("
-                  + m.group(3) + fix_url(m.group(4)) + m.group(3) + ")",
+                  + m.group(3) + fix_url(m.group(4), cat_slug) + m.group(3) + ")",
         out,
     )
     out = re.sub(
         r"window\.open\s*\(\s*(['\"])([^'\"]+)\1\s*",
-        lambda m: "window.open(" + m.group(1) + fix_url(m.group(2)) + m.group(1),
+        lambda m: "window.open(" + m.group(1) + fix_url(m.group(2), cat_slug) + m.group(1),
         out,
     )
     # 兜底：剔除任何残留的源站绝对/协议相对域名。典型场景是分享二维码组件
@@ -441,7 +496,7 @@ def rewrite_html(html: str) -> str:
     # 故在此做全局兜底，把源站域名整体抹掉、保留本地路径（d=/category-xxx/）。
     # 由于仅匹配 ALL_NETLOCS，外部链接（京东/阿里 CDN 等）不受影响。幂等可重入。
     out = re.sub(
-        r"(?:https?:)?//(?:" + "|".join(re.escape(n) for n in ALL_NETLOCS) + r")",
+        r"(?:https?:)?//(?:" + "|".join(re.escape(n) for n in ALL_SOURCE_NETLOCS) + r")",
         "",
         out,
     )
@@ -617,10 +672,28 @@ def drain_frontier(page, raw_docs, save_page, state, counter):
     这样即使单日达到 MAX_PAGES_PER_RUN 上限，也不会丢失任何已发现的文章——
     保证「整个网站全量备份」的目标（旧版用局部变量导致已发现文章被丢弃）。
     """
-    queue = deque(sorted(state["pending"]))
+    # 按分类分桶后 round-robin 排空，避免某一大类（如 xiaodigu）因字母序靠前且
+    # 队列庞大，把单轮 MAX_PAGES_PER_RUN 预算吃光，导致靠后的分类（zuankeba/
+    # xinzuanba）文章永远排不到而被“饿死”（既没 crawled 也没 dead，下次仍 0 篇）。
+    def _slug(p):
+        return (p.strip("/").split("/")[0] or "_")
+
+    buckets = {}
+    for p in state["pending"]:
+        buckets.setdefault(_slug(p), []).append(p)
+    for k in buckets:
+        buckets[k].sort()
+    ptr = {k: 0 for k in buckets}
+    active = deque(k for k in buckets if buckets[k])
     seen = set(state["crawled"].keys())
-    while queue and counter[0] < MAX_PAGES_PER_RUN:
-        path = queue.popleft()
+    while active and counter[0] < MAX_PAGES_PER_RUN:
+        k = active.popleft()
+        if ptr[k] >= len(buckets[k]):
+            continue
+        path = buckets[k][ptr[k]]
+        ptr[k] += 1
+        if ptr[k] < len(buckets[k]):
+            active.append(k)
         state["pending"].discard(path)
         if path in seen or is_dead(state, path):
             continue
@@ -635,7 +708,12 @@ def drain_frontier(page, raw_docs, save_page, state, counter):
         for a in discover_article_links(raw if raw else rendered, url):
             ap = urlparse(a).path
             if ap not in seen and ap not in state["crawled"] and not is_dead(state, ap):
-                queue.append(ap)
+                sk = _slug(ap)
+                if sk not in buckets:
+                    buckets[sk] = []
+                    ptr[sk] = 0
+                    active.append(sk)
+                buckets[sk].append(ap)
                 state["pending"].add(ap)
 
 
@@ -939,12 +1017,13 @@ def render_page(page, url: str, path: str, raw_docs: dict, state=None):
         return (False, None, None)
 
     local = url_to_local(url)
+    cat_slug = slug_from_path(path)
     raw = raw_docs.get(local, "")
     is_redirect = bool(extract_refresh_tag(raw))
     dom = None
 
     if is_redirect:
-        rendered = rewrite_html(raw)
+        rendered = rewrite_html(raw, cat_slug=cat_slug)
     else:
         # 文章页需等待 AJAX 评论注入（Z-BlogPHP）
         if path.rstrip("/").endswith(".html"):
@@ -961,7 +1040,7 @@ def render_page(page, url: str, path: str, raw_docs: dict, state=None):
         except Exception as e:
             print(f"::warning:: 读取 DOM 失败 {url}: {e}", file=sys.stderr)
             dom = raw
-        rendered = rewrite_html(dom)
+        rendered = rewrite_html(dom, cat_slug=cat_slug)
         if raw and not is_redirect:
             tag = extract_refresh_tag(raw)
             if tag:

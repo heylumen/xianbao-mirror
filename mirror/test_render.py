@@ -165,6 +165,30 @@ def test_fix_url_bare_origin_root():
     assert render.fix_url("https://new.xianbao.fun/") == "/"
 
 
+def test_fix_url_forum_thread_default_slug():
+    # v1.xianbao.net 论坛帖子链接 -> 本地同分类（兜底 xinzuanba）路径，不再跳源站
+    assert render.fix_url("https://v1.xianbao.net/thread-310278-1-1.html") == "/xinzuanba/310278.html"
+
+
+def test_fix_url_forum_thread_with_cat_slug():
+    assert render.fix_url("https://v1.xianbao.net/thread-310278-1-1.html",
+                          cat_slug="xinzuanba") == "/xinzuanba/310278.html"
+
+
+def test_fix_url_forum_non_thread_unchanged():
+    # 论坛域名上非 thread 链接（如其它页面）保持原样（属外部）
+    assert render.fix_url("https://v1.xianbao.net/forum.php") == "https://v1.xianbao.net/forum.php"
+
+
+def test_rewrite_html_forum_thread_link_local():
+    html = ('<a href="https://v1.xianbao.net/thread-310278-1-1.html" '
+            'data-yuanurl="https://v1.xianbao.net/thread-310278-1-1.html">帖</a>')
+    out = render.rewrite_html(html, cat_slug="xinzuanba")
+    assert 'href="/xinzuanba/310278.html"' in out
+    assert 'data-yuanurl="/xinzuanba/310278.html"' in out
+    assert "v1.xianbao.net" not in out
+
+
 def test_rewrite_html_strips_source_domain_inside_qr_widget():
     # 分享二维码组件：src 的 netloc 是二维码 API，内部 d= 参数才是源站绝对地址。
     # fix_url 只改写属性顶层 URL（外部域名保持不变），故需 rewrite_html 的全局兜底
@@ -209,6 +233,45 @@ def test_discover_article_excludes_other_category_posts():
     html = '<a href="/haodan/6654815.html">好单</a>'
     links = render.discover_article_links(html, "https://new.xianbao.fun/")
     assert links == []
+
+
+def test_discover_forum_thread_maps_to_portal():
+    # 列表页（base_url 为 xinzuanba 分类）中的论坛帖子链接，应映射为门户同分类文章 URL
+    html = '<a href="https://v1.xianbao.net/thread-310278-1-1.html">帖</a>'
+    links = render.discover_article_links(
+        html, "https://new.xianbao.fun/category-xinzuanba/")
+    assert "https://new.xianbao.fun/xinzuanba/310278.html" in links
+
+
+def test_drain_frontier_round_robin_fairness(monkeypatch):
+    # 模拟：xiaodigu 队列庞大，xinzuanba/zuankeba 很少。
+    # 旧逻辑按字母序排，xiaodigu 会吃光预算；新逻辑应 round-robin 让各分类都分到。
+    state = {
+        "pending": {f"/xiaodigu/{i}.html" for i in range(200)}
+                   | {f"/xinzuanba/{i}.html" for i in range(3)}
+                   | {f"/zuankeba/{i}.html" for i in range(3)},
+        "crawled": {},
+        "dead": {},
+    }
+    render.MAX_PAGES_PER_RUN = 10
+    render.CRAWL_DELAY_MS = 0
+    order = []
+
+    def fake_render(page, url, path, raw_docs, state):
+        order.append(path.split("/")[1])
+        return (True, "<html></html>", "<html></html>")
+
+    monkeypatch.setattr(render, "render_page", fake_render)
+
+    def fake_save(path, rendered, kind):
+        pass
+
+    counter = [0]
+    render.drain_frontier(None, {}, fake_save, state, counter)
+    # 新赚客吧 / 赚客吧 都应被抓取（未被 xiaodigu 饿死）
+    assert "xinzuanba" in order, order
+    assert "zuankeba" in order, order
+    assert not all(s == "xiaodigu" for s in order), order
 
 
 def test_TARGET_without_scheme_is_normalized(monkeypatch):
