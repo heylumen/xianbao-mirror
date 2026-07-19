@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "target": "https://news.ixbk.fun",
+  "target": "https://new.ixbk.fun",
   "allowed_categories": [
     "zuankeba",
     "xinzuanba",
@@ -31,6 +31,9 @@
     "xiaodao": 3
   },
   "pending": [
+    "/huluxia/6657436.html",
+    "/huluxia/6657678.html",
+    "/xiaodao/6657503.html",
     "/xiaodigu/6441653.html",
     "/xiaodigu/6441657.html",
     "/xiaodigu/6441719.html",
@@ -3569,6 +3572,31 @@
     "/xiaodigu/6656662.html",
     "/xiaodigu/6656696.html",
     "/xiaodigu/6656804.html",
+    "/xiaodigu/6656959.html",
+    "/xiaodigu/6657189.html",
+    "/xiaodigu/6657225.html",
+    "/xiaodigu/6657321.html",
+    "/xiaodigu/6657370.html",
+    "/xiaodigu/6657405.html",
+    "/xiaodigu/6657475.html",
+    "/xiaodigu/6657581.html",
+    "/xiaodigu/6657755.html",
+    "/xiaodigu/6658177.html",
+    "/xiaodigu/6658231.html",
+    "/xiaodigu/6658306.html",
+    "/xiaodigu/6658340.html",
+    "/xiaodigu/6658375.html",
+    "/xiaodigu/6658488.html",
+    "/xiaodigu/6658615.html",
+    "/xiaodigu/6658705.html",
+    "/xiaodigu/6658764.html",
+    "/xiaodigu/6658790.html",
+    "/xiaodigu/6658791.html",
+    "/xiaodigu/6658863.html",
+    "/xiaodigu/6658909.html",
+    "/xiaodigu/6659093.html",
+    "/xiaodigu/6659371.html",
+    "/xiaodigu/6659794.html",
     "/xinzuanba/308055.html",
     "/xinzuanba/308059.html",
     "/xinzuanba/308060.html",
@@ -6313,6 +6341,11 @@
     "/xinzuanba/6655759.html",
     "/xinzuanba/6656436.html",
     "/xinzuanba/6656462.html",
+    "/xinzuanba/6657134.html",
+    "/xinzuanba/6657275.html",
+    "/xinzuanba/6657830.html",
+    "/xinzuanba/6658690.html",
+    "/xinzuanba/6659576.html",
     "/zuankeba/6505844.html",
     "/zuankeba/6511576.html",
     "/zuankeba/6511607.html",
@@ -9260,33 +9293,69 @@
     "/zuankeba/6656458.html",
     "/zuankeba/6656485.html",
     "/zuankeba/6656536.html",
-    "/zuankeba/6656797.html"
+    "/zuankeba/6656797.html",
+    "/zuankeba/6656869.html",
+    "/zuankeba/6656957.html",
+    "/zuankeba/6657085.html",
+    "/zuankeba/6657144.html",
+    "/zuankeba/6657478.html",
+    "/zuankeba/6657481.html",
+    "/zuankeba/6657510.html",
+    "/zuankeba/6657582.html",
+    "/zuankeba/6657605.html",
+    "/zuankeba/6657891.html",
+    "/zuankeba/6658033.html",
+    "/zuankeba/6658074.html",
+    "/zuankeba/6658100.html",
+    "/zuankeba/6658218.html",
+    "/zuankeba/6658222.html",
+    "/zuankeba/6658247.html",
+    "/zuankeba/6658253.html",
+    "/zuankeba/6658280.html",
+    "/zuankeba/6658533.html",
+    "/zuankeba/6658613.html",
+    "/zuankeba/6658614.html",
+    "/zuankeba/6658650.html",
+    "/zuankeba/6658684.html",
+    "/zuankeba/6658784.html",
+    "/zuankeba/6658873.html",
+    "/zuankeba/6658958.html",
+    "/zuankeba/6658992.html",
+    "/zuankeba/6659038.html",
+    "/zuankeba/6659169.html",
+    "/zuankeba/6659264.html",
+    "/zuankeba/6659322.html",
+    "/zuankeba/6659531.html",
+    "/zuankeba/6659546.html",
+    "/zuankeba/6659628.html",
+    "/zuankeba/6659790.html",
+    "/zuankeba/6659803.html"
   ],
   "crawled": {
     "/category-zuankeba/": {
-      "hash": "e71e1e84401ac197d99698d5eb0d72470155e1cad3ee718fc99c54683cff5ed1",
+      "hash": "724af30e61c7fa8b918a61daeea47a515df34a42ad36366589a462bdc5932eb0",
       "local": "category-zuankeba/index.html",
-      "last_check": "2026-07-19T04:18:07+0000"
+      "last_check": "2026-07-19T15:55:20+0000"
     },
     "/category-xinzuanba/": {
-      "hash": "4c215830dd527e1d5ec488ef606325bd7470330dd9e84f78cd7131ecc246ce93",
+      "hash": "c8835bb5e119d7c5c4c25a811962dbedbba36ad217daef3a214712f85f0f681f",
       "local": "category-xinzuanba/index.html",
-      "last_check": "2026-07-19T04:18:09+0000"
+      "last_check": "2026-07-19T15:55:22+0000"
     },
     "/category-xiaodigu/": {
-      "hash": "06290986bd2c41ef78c76d22dbe72f30b4b1d2a93714ee92e86f7923e04542c1",
+      "hash": "523df1c22b30b14d5156b72b2bcf40979bf5d59a150029c9f4819f4de4ca2e5e",
       "local": "category-xiaodigu/index.html",
-      "last_check": "2026-07-19T04:18:10+0000"
+      "last_check": "2026-07-19T15:55:23+0000"
     },
     "/category-huluxia/": {
-      "hash": "126fa196b241bddd6ab7669affbdc5a1607f1103bb460a3d76e1ceb24962e929",
+      "hash": "03728e0cea50964b48c1ef6eb34475557f2ee76616414f07e7cc7f78c0e8d7d5",
       "local": "category-huluxia/index.html",
-      "last_check": "2026-07-19T04:18:11+0000"
+      "last_check": "2026-07-19T15:55:24+0000"
     },
     "/category-xiaodao/": {
-      "hash": "ebb310c2978cbb0af2a613718d4701810f0cc460c95508ef2ea18a6f17488d7c",
+      "hash": "5f21040348ac2407e3c7d7038f18b6205ce2e9013e7b5ac8d2045d6fa8528170",
       "local": "category-xiaodao/index.html",
-      "last_check": "2026-07-19T04:18:13+0000"
+      "last_check": "2026-07-19T15:55:26+0000"
     },
     "/category-zuankeba/2/": {
       "hash": "0193ddd7ac4f9aae4d252a9aaec61a051cc7993862907f59b705926a37e19cfd",
@@ -11239,29 +11308,29 @@
       "last_check": "2026-07-18T19:42:48+0000"
     },
     "/category-zuankeba/13/": {
-      "hash": "1db0333602443ec4b3a3a5c59b58da74e2f5af452ff54805d4bbba2bde8050a9",
+      "hash": "98d80ef951e81a8756de3234dbd765b1b55c0900764e57878de3c492c6125876",
       "local": "category-zuankeba/13/index.html",
-      "last_check": "2026-07-19T01:40:50+0000"
+      "last_check": "2026-07-19T15:55:28+0000"
     },
     "/category-zuankeba/14/": {
-      "hash": "8f8dd5555e62b5807953588cc8a437d6e82126a1c13e7ccca49d5fc267145fcc",
+      "hash": "3e66346c7395e2b86460654e676f85bd8eefbb7f36091106e0054afa8eeee4ae",
       "local": "category-zuankeba/14/index.html",
-      "last_check": "2026-07-19T01:40:54+0000"
+      "last_check": "2026-07-19T15:55:31+0000"
     },
     "/category-zuankeba/15/": {
-      "hash": "171097270413a8ddc85d527197c9a17ab7008a47fac41b841d3e9c1256c4f797",
+      "hash": "bfaa5c705db1204836900277d19befd2661c57ac8f092bcd08d5c45d52ec77a5",
       "local": "category-zuankeba/15/index.html",
-      "last_check": "2026-07-19T01:40:58+0000"
+      "last_check": "2026-07-19T15:55:35+0000"
     },
     "/category-zuankeba/16/": {
-      "hash": "c77fef5c53b172737050532fd9f4e03db5dc8c518edddb59d293c8dd508c0a8a",
+      "hash": "31a521a91595e306fc6189aec60c7301b8f531891a0813977f25df017143a554",
       "local": "category-zuankeba/16/index.html",
-      "last_check": "2026-07-19T01:41:01+0000"
+      "last_check": "2026-07-19T15:55:39+0000"
     },
     "/category-zuankeba/17/": {
-      "hash": "a83c7162785173696dd1960df563b856e972da45e229f8c005fbb70463845ac5",
+      "hash": "6c94934fc9c6295c423889b665144bc79116e96148109bbd451700bac5acbd16",
       "local": "category-zuankeba/17/index.html",
-      "last_check": "2026-07-19T01:41:04+0000"
+      "last_check": "2026-07-19T15:55:42+0000"
     },
     "/category-zuankeba/18/": {
       "hash": "0e2b57bf7da75de2876cea44d7308b7efb6c2210fba3a49d8ff89b1f1fbabd3c",
