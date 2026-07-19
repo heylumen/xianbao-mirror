@@ -846,14 +846,18 @@ def test_build_search_page_uses_source_template(tmp_path):
     ]
     render.build_search_page(tmp_path, items)
     html = (tmp_path / "search.html").read_text(encoding="utf-8")
-    # 标题、面包屑、搜索框、列表、脚本、排名
+    # 标题、面包屑、搜索框、列表、脚本
     assert "<title>搜索-线报酷镜像</title>" in html
     assert 'class="mianbaoxie' in html and "搜索" in html
     assert 'id="q"' in html
     assert 'ul class="new-post"' in html
     assert 'MiniSearch' in html
-    assert 'xianbao-rank-box' in html
-    assert '十二小时榜' in html
+    # 右侧热榜（12/24/48 小时榜）已移除
+    assert 'xianbao-rank-box' not in html
+    assert '十二小时榜' not in html
+    assert 'id="sidebar"' not in html
+    # 列表页居中作用域类已注入
+    assert 'xianbao-list' in html
     # 导航被清理
     assert 'id="navbar-category-zuankeba"' in html
 

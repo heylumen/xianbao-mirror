@@ -57,8 +57,8 @@ CAT_LABELS = {
     "zuankeba": "赚客吧",
     "xinzuanba": "新赚吧",
     "xiaodigu": "小嘀咕",
-    "huluxia": "葫芦侠",
-    "xiaodao": "小刀",
+    "huluxia": "葫芦侠三楼",
+    "xiaodao": "小刀娱乐网",
 }
 
 # 已验证内容完全一致的 6 个 HTTPS 域名（线报酷发布页列出）。每次运行随机选一个作
@@ -1358,75 +1358,6 @@ def _parse_time_to_iso(time_str: str) -> str:
         return ""
     return f"{m.group(1)}-{m.group(2)}-{m.group(3)} {m.group(4)}:{m.group(5)}:00"
 
-
-def _build_rank_sidebar(items: list, soup) -> str:
-    """根据本地文章生成右侧 12/24/48 小时榜 HTML。"""
-    from datetime import datetime, timedelta
-    now = datetime.now()
-    # 按评论数排序取前 10 作为热门（本地镜像不保留实时阅读量，故用评论数近似）
-    sorted_by_comments = sorted(
-        [it for it in items if it.get("comments", 0) > 0],
-        key=lambda x: x.get("comments", 0), reverse=True)[:10]
-    # 也按时间窗口筛选
-    def _within(hours: int):
-        try:
-            cutoff = now - timedelta(hours=hours)
-        except Exception:
-            return []
-        out = []
-        for it in items:
-            iso = _parse_time_to_iso(it.get("time", ""))
-            if not iso:
-                continue
-            try:
-                dt = datetime.fromisoformat(iso)
-                if dt >= cutoff:
-                    out.append(it)
-            except Exception:
-                continue
-        return sorted(out, key=lambda x: x.get("comments", 0), reverse=True)[:10]
-
-    def _render_li(it: dict, rank: int) -> str:
-        title = it["title"].replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
-        cat_label = it.get("cat_label", "")
-        comments = it.get("comments", 0)
-        return (
-            f'<li class="rank-item">'
-            f'<span class="rank-num">{rank}</span>'
-            f'<span class="rank-cat">{cat_label}</span>'
-            f'<a href="{it["url"]}" target="_blank" title="{title}">{title}</a>'
-            f'<span class="rank-com"><i class="iconfont icon-comment"></i>{comments}</span>'
-            f'</li>'
-        )
-
-    tabs = ["十二小时榜", "二十四小时榜", "四十八小时榜"]
-    windows = [12, 24, 48]
-    div = soup.new_tag("div", **{"class": "xianbao-rank-box"})
-    tab_hdr = soup.new_tag("div", **{"class": "rank-tabs"})
-    for i, (tab, hours) in enumerate(zip(tabs, windows)):
-        active = " active" if i == 0 else ""
-        span = soup.new_tag("span", **{"class": f"rank-tab{active}", "data-tab": str(hours)})
-        span.string = tab
-        tab_hdr.append(span)
-    div.append(tab_hdr)
-    for i, hours in enumerate(windows):
-        active = " active" if i == 0 else ""
-        panel = soup.new_tag("div", **{"class": f"rank-panel{active}", "data-panel": str(hours)})
-        ranked = _within(hours)
-        if not ranked:
-            ranked = sorted_by_comments
-        if ranked:
-            ul = soup.new_tag("ul", **{"class": "rank-list"})
-            for idx, it in enumerate(ranked, 1):
-                ul.append(BeautifulSoup(_render_li(it, idx), "html.parser"))
-            panel.append(ul)
-        else:
-            panel.append(soup.new_tag("p", **{"class": "empty"}))
-            panel.p.string = "暂无数据"
-        div.append(panel)
-    return div
-
-
 def ensure_minisearch(out_dir: Path) -> bool:
     """把内置的 MiniSearch UMD 库复制到 out_dir/lib/，使搜索页不依赖外部 CDN
     （jsdelivr 失效或源站删除都不影响站内搜索）。幂等：已存在且大小一致则跳过。"""
@@ -1491,13 +1422,11 @@ def build_search_page(out_dir: Path, items: list) -> None:
     # 移除 meta.php 动态脚本
     for s in soup.find_all("script", src=re.compile(r"meta\.php")):
         s.decompose()
-    # 右侧 sidebar 生成排名
+    # 移除右侧热榜侧栏（不再生成 12/24/48 小时榜），使搜索结果列表居中
     aside = soup.find("aside", id="sidebar")
     if aside:
-        celan = aside.find(class_="theiaStickySidebar")
-        if celan:
-            celan.clear()
-            celan.append(_build_rank_sidebar(items, soup))
+        aside.decompose()
+    _ensure_body_class(soup, "xianbao-list")
     # 注入 MiniSearch 脚本
     script = soup.new_tag("script")
     script.string = """
@@ -1541,17 +1470,6 @@ def build_search_page(out_dir: Path, items: list) -> None:
   var params = new URLSearchParams(window.location.search);
   var initial = params.get('q');
   if (initial){ q.value = initial; go(); }
-  // 排名 tab 切换
-  document.querySelectorAll('.rank-tab').forEach(function(tab){
-    tab.addEventListener('click', function(){
-      var hours = this.getAttribute('data-tab');
-      document.querySelectorAll('.rank-tab').forEach(function(t){ t.classList.remove('active'); });
-      document.querySelectorAll('.rank-panel').forEach(function(p){ p.classList.remove('active'); });
-      this.classList.add('active');
-      var panel = document.querySelector('.rank-panel[data-panel=\"' + hours + '\"]');
-      if (panel) panel.classList.add('active');
-    });
-  });
 })();
 """
     if soup.body:
@@ -1562,24 +1480,6 @@ def build_search_page(out_dir: Path, items: list) -> None:
 .search-top{padding:12px 16px;background:#fff;border-bottom:1px solid #eceef3}
 .search-top input{width:100%;box-sizing:border-box;padding:12px 16px;font-size:15px;border:1px solid #d7dbe5;border-radius:12px;outline:none}
 .search-top input:focus{border-color:#1f4fd6}
-.xianbao-rank-box{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;margin-bottom:16px}
-.rank-tabs{display:flex;border-bottom:1px solid #eceef3}
-.rank-tab{flex:1;text-align:center;padding:12px 4px;font-size:13px;color:#666;cursor:pointer;background:#f9fafc}
-.rank-tab.active{color:#1f4fd6;font-weight:600;background:#fff;border-bottom:2px solid #1f4fd6}
-.rank-panel{display:none;padding:10px 14px}
-.rank-panel.active{display:block}
-.rank-list{list-style:none;margin:0;padding:0}
-.rank-item{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
-.rank-item:last-child{border-bottom:none}
-.rank-num{width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;background:#f0f0f0;color:#666;font-size:12px;margin-right:8px;flex-shrink:0}
-.rank-item:nth-child(1) .rank-num{background:#ff4d4f;color:#fff}
-.rank-item:nth-child(2) .rank-num{background:#ff7a45;color:#fff}
-.rank-item:nth-child(3) .rank-num{background:#ffa940;color:#fff}
-.rank-cat{color:#999;margin-right:8px;flex-shrink:0}
-.rank-item a{flex:1;color:#222;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rank-item a:hover{color:#1f4fd6}
-.rank-com{color:#999;margin-left:8px;flex-shrink:0}
-.empty{padding:20px 0;text-align:center;color:#999}
 """
     if soup.head:
         soup.head.append(style)
@@ -1616,8 +1516,8 @@ def _build_legacy_hub(out_dir: Path):
         "zuankeba": "赚客吧",
         "xinzuanba": "新赚客吧",
         "xiaodigu": "小嘀咕",
-        "huluxia": "葫芦侠",
-        "xiaodao": "小刀",
+        "huluxia": "葫芦侠三楼",
+        "xiaodao": "小刀娱乐网",
     }
     by_cat = {s: [] for s in ALLOWED_CATEGORIES}
     for p in out_dir.rglob("*.html"):
@@ -1970,6 +1870,14 @@ def _prune_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
         lid = li.get("id", "")
         if lid not in allowed_ids:
             li.decompose()
+    # 同步已镜像分类的显示名（标签可能因需求变更而改名，如葫芦侠→葫芦侠三楼）
+    for cat in ALLOWED_CATEGORIES:
+        li = nav.find("li", id=f"navbar-category-{cat}")
+        if li:
+            a = li.find("a")
+            if a is not None:
+                a.string = CAT_LABELS[cat]
+                a["title"] = CAT_LABELS[cat]
     # 确保每个已镜像分类都有导航项
     for cat in ALLOWED_CATEGORIES:
         lid = f"navbar-category-{cat}"
@@ -2035,6 +1943,17 @@ def _home_breadcrumb(soup) -> None:
             mbx.append(first_a)
 
 
+def _ensure_body_class(soup, cls: str) -> None:
+    """给 <body> 追加一个类（幂等），用于作用域化覆盖 CSS（如列表页居中）。"""
+    body = soup.body
+    if body is None:
+        return
+    cur = list(body.get("class", []) or [])
+    if cls not in cur:
+        cur.append(cls)
+        body["class"] = cur
+
+
 def rebuild_category_page(
     template_path: Path,
     out_path: Path,
@@ -2066,6 +1985,11 @@ def rebuild_category_page(
     _remove_footer(soup)
     if is_home:
         _home_breadcrumb(soup)
+    # 移除右侧热榜侧栏（十二/二十四/四十八小时榜），使帖子列表居中自适应
+    _aside = soup.find("aside", id="sidebar")
+    if _aside:
+        _aside.decompose()
+    _ensure_body_class(soup, "xianbao-list")
     out_path.write_text(str(soup), encoding="utf-8")
 
 
@@ -2075,8 +1999,8 @@ def rebuild_category_pages(out_dir: Path) -> None:
         "zuankeba": "赚客吧",
         "xinzuanba": "新赚客吧",
         "xiaodigu": "小嘀咕",
-        "huluxia": "葫芦侠",
-        "xiaodao": "小刀",
+        "huluxia": "葫芦侠三楼",
+        "xiaodao": "小刀娱乐网",
     }
     by_cat = _local_articles_by_cat(out_dir)
     PAGESIZE = 100

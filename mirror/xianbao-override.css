@@ -30,3 +30,20 @@ img {
         box-sizing: border-box !important;
     }
 }
+
+/* 列表页（首页/分类/搜索）：移除右侧热榜侧栏，帖子列表居中并自适应分辨率 */
+body.xianbao-list #sidebar { display: none !important; }
+body.xianbao-list #mainbox { float: none !important; width: 100% !important; margin: 0 !important; }
+body.xianbao-list #content.content.container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+/* 移动端进一步收窄留白，保证帖子贴近屏幕边缘 */
+@media screen and (max-width: 768px) {
+    body.xianbao-list #content.content.container {
+        max-width: 100% !important;
+        padding: 0 10px !important;
+    }
+}
