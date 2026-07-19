@@ -237,8 +237,15 @@ def test_strip_chrome_removes_article_ui():
     # 空占位/版块标题已删除
     assert "交流列表" not in out
     assert "线报酷内部交流互动" not in out
-    # 返回列表链接保留
-    assert "back-to-list" in out
+    # 返回列表已移除，改为注入源站风格导航（分类标签 + 搜索 + 浅色模式）
+    assert "back-to-list" not in out
+    assert "返回列表" not in out
+    assert "xianbao-article-nav" in out
+    for label in ["赚客吧", "新赚吧", "小嘀咕", "葫芦侠", "小刀", "搜索", "浅色"]:
+        assert label in out
+    # 主评论列表有且仅有一个顺序/只看楼主按钮（无重复）
+    assert out.count("pinglunshunxu noselect") == 1
+    assert out.count("showlouzhu noselect") == 1
 
 
 # ---------------------------------------------------------------------------

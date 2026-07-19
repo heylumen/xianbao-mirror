@@ -412,10 +412,67 @@ def fix_url(val: str, cat_slug: str = None) -> str:
     return PAGES_PREFIX + local + ("#" + frag if frag else "")
 
 
+def _ensure_cursor_pointer(el) -> None:
+    """幂等地给元素加上手型指针，避免重复追加导致 style 里出现多个 cursor:pointer。"""
+    style = el.get("style", "") or ""
+    style = re.sub(r"\s*;?\s*cursor\s*:\s*pointer\s*;?", "", style, flags=re.I).strip(" ;")
+    el["style"] = (style + ";cursor:pointer;").lstrip(";") if style else "cursor:pointer;"
+
+
+def _ensure_display_block(el) -> None:
+    """幂等地强制元素可见（去掉 display:none 与重复的 display:block）。"""
+    style = el.get("style", "") or ""
+    style = re.sub(r"\s*;?\s*display\s*:\s*none\s*;?", "", style, flags=re.I)
+    style = re.sub(r"\s*;?\s*display\s*:\s*block\s*;?", "", style, flags=re.I).strip(" ;")
+    el["style"] = (style + ";display:block;").lstrip(";") if style else "display:block;"
+
+
+def _build_article_nav(active_cat: str):
+    """构造源站风格的文章页顶部导航（分类标签 + 搜索 + 浅色模式），让文章页
+    无需「返回列表」即可在分类间跳转，与首页/分类页一致。
+
+    暗色切换复用 inject_dark_mode_sync 注入的 switchNightMode()；搜索按钮内联
+    onclick 展开 search-area（源站 JS 已被剥离，这里自包含实现）；图标字体走
+    CDN，离线时不显示，故加「浅色 / 搜索」文字兜底保证可用。
+    """
+    frag = (
+        '<header class="header sb xianbao-article-nav">'
+        '<div class="h-wrap container clearfix">'
+        '<div class="logo-area fl"><a href="/" title="线报酷">'
+        '<img alt="线报酷" class="img" src="/zb_users/theme/xianbao_theme/image/newlogo.png" title="线报酷"/>'
+        '</a></div>'
+        '<div class="m-nav-btn"><i class="iconfont icon-category"></i></div>'
+        '<nav class="responsive-nav">'
+        '<div class="pc-nav m-nav fl" data-cateid="16" data-catename="' + active_cat + '" data-type="category">'
+        '<ul class="nav-ul">'
+        '<li id="nvabar-item-index"><a href="/">首页</a></li>'
+    )
+    for c in ALLOWED_CATEGORIES:
+        cls = "active" if c == active_cat else ""
+        frag += ('<li class="' + cls + '" id="navbar-category-' + c + '">'
+                 '<a href="/category-' + c + '/">' + CAT_LABELS[c] + '</a></li>')
+    frag += (
+        '</ul></div></nav>'
+        '<a class="dark-mode fr" href="javascript:switchNightMode()" target="_self" title="浅色模式">'
+        '<i class="iconfont icon-moon"></i><span class="xianbao-nav-text">浅色</span></a>'
+        '<span class="search-button fr" id="search-button" '
+        'onclick="var a=document.getElementById(\'search-area\');'
+        'if(a){a.style.display=a.style.display===\'block\'?\'none\':\'block\';}">'
+        '<i class="iconfont icon-search"></i><span class="xianbao-nav-text">搜索</span></span>'
+        '<div class="container br sb animated-fast fadeInUpMenu" id="search-area" style="display:none;">'
+        '<form action="/search.html" class="searchform clearfix" method="get" name="search">'
+        '<input autofocus="autofocus" class="s-input br fl" name="q" placeholder="请输入关键词..." type="text"/>'
+        '<button class="s-button fr br transition brightness" id="searchsubmit" type="submit">搜 索</button>'
+        '</form></div>'
+        '</div></header>'
+    )
+    return BeautifulSoup(frag, "html.parser").find("header")
+
+
 def strip_chrome(html: str, cat_slug: str = None) -> str:
-    """剥离文章页的站外模板（顶部导航 / 侧边热门榜 / 页脚外链 / 悬浮搜索 /
-    二维码工具条等），仅保留正文 + 评论，并插入「返回列表」链接，使镜像页
-    自包含、点击内部链接不再跳转到原站。
+    """剥离文章页的站外模板（侧边热门榜 / 页脚外链 / 悬浮搜索 / 二维码工具条等），
+    仅保留正文 + 评论，并在顶部注入源站风格导航（分类标签 + 搜索 + 浅色模式），
+    使镜像页自包含、点击内部链接不再跳转到原站。
 
     保留白名单分类的站内链接（已由 fix_url 改写为本地路径），只删除明显属于
     原站框架的容器；文章正文与 AJAX 评论均保留。
@@ -460,11 +517,14 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
         for cl in box.select(".comment-list"):
             if not cl.find_all(class_="li"):
                 cl.decompose()
-    # 7) 评论列表头部保留“顺序/只看楼主”控件，并改写为镜像自包含实现
-    #    （源站依赖的 JS 已被剥离，这里注入等效的内联函数）。
-    #    对旧版已处理文件（控件被误删），在标题中自动补回控件。
-    for cl in soup.find_all(class_="comment-list"):
-        title = cl.find(class_="title")
+    # 7) 评论控件（顺序/只看楼主）：仅作用于「主评论列表」（#comment 内），
+    #    改写 onclick 指向镜像自包含函数；非主列表（如“交流列表”版块）原本就
+    #    没有控件，移除上一版误加的重复控件，避免页面出现两组“顺序”。
+    primary = soup.select_one("#comment .comment-list")
+    if primary is None:
+        primary = soup.find(class_="comment-list")
+    if primary is not None:
+        title = primary.find(class_="title")
         if title is not None:
             has_pinglun = bool(title.find(class_="pinglunshunxu"))
             has_show = bool(title.find(class_="showlouzhu"))
@@ -478,32 +538,28 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 span["onclick"] = "xianbaoShowlouzhu();"
                 span.string = "只看楼主"
                 title.append(span)
+            for ctl in title.find_all(class_=["pinglunshunxu", "showlouzhu"]):
+                if "pinglunshunxu" in ctl.get("class", []):
+                    ctl["onclick"] = "xianbaoPinglunshunxu();"
+                if "showlouzhu" in ctl.get("class", []):
+                    ctl["onclick"] = "xianbaoShowlouzhu();"
+                _ensure_cursor_pointer(ctl)
+        _ensure_display_block(primary)
+    # 非主评论列表：清理误加的控件，确保评论可见
+    for cl in soup.find_all(class_="comment-list"):
+        if cl is primary:
+            continue
         for ctl in cl.find_all(class_=["pinglunshunxu", "showlouzhu"]):
-            cls = ctl.get("class", [])
-            if "pinglunshunxu" in cls:
-                ctl["onclick"] = "xianbaoPinglunshunxu();"
-            if "showlouzhu" in cls:
-                ctl["onclick"] = "xianbaoShowlouzhu();"
-            # 给原本无 href 的 span 加上手型指针，避免用户看不出可点击（幂等）
-            style = ctl.get("style", "")
-            if not re.search(r"\bcursor\s*:\s*pointer", style, re.I):
-                ctl["style"] = (style + ";cursor:pointer;").lstrip(";")
-        style = cl.get("style", "")
-        if style:
-            style = re.sub(r"\bdisplay\s*:\s*none\s*;?", "", style, flags=re.I).strip(" ;")
-            if style:
-                cl["style"] = style
-            else:
-                del cl["style"]
-        # 幂等：仅在尚未声明 display 时强制可见
-        existing_display = re.search(r"\bdisplay\s*:", cl.get("style", ""), re.I)
-        if not existing_display:
-            cl["style"] = (cl.get("style", "") + ";display:block;").lstrip(";") if cl.get("style") else "display:block;"
-    # 3) 插入「返回列表」链接 + 评论控件脚本（仅当能确定分类时）
+            ctl.decompose()
+        _ensure_display_block(cl)
+    # 3) 注入源站风格顶部导航（分类标签 + 搜索 + 浅色模式）+ 评论控件脚本，
+    #    替代「返回列表」链接（仅当能确定分类时）。
     if cat_slug:
         body = soup.body
         if body is not None:
-            # 幂等：去除旧链接/标记/脚本，避免重复运行后多出
+            # 幂等清理：移除旧导航 / 返回列表 / 控件脚本 / 标记，避免重复运行后多出
+            for _h in body.find_all("header", class_="xianbao-article-nav"):
+                _h.decompose()
             for _a in body.find_all("a", class_="back-to-list"):
                 _a.decompose()
             for _c in body.find_all(string=lambda s: isinstance(s, Comment)
@@ -511,12 +567,9 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 _c.extract()
             for _s in body.find_all("script", id="xianbao-comment-tools"):
                 _s.decompose()
-            a = soup.new_tag("a", href=f"/category-{cat_slug}/")
-            a["class"] = "back-to-list"
-            a["style"] = ("display:inline-block;margin:14px 0 0;color:#1f4fd6;"
-                          "text-decoration:none;font-size:14px;font-weight:600")
-            a.string = "← 返回列表"
-            body.insert(0, a)
+            # 注入导航（与首页/分类页一致）
+            nav = _build_article_nav(cat_slug)
+            body.insert(0, nav)
             body.insert(0, Comment("xianbao-chrome-stripped"))
             # 注入自包含的评论控件脚本（顺序/只看楼主）
             script = soup.new_tag("script", id="xianbao-comment-tools")

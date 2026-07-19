@@ -119,11 +119,13 @@ def test_strip_chrome_removes_offsite_chrome():
         '</body></html>'
     )
     out = render.strip_chrome(html, cat_slug="huluxia")
-    assert "<header" not in out
+    # 源站 header（含站外线报酷链接）被移除，但注入了新的导航 header
+    assert "category-xianbaoku" not in out  # 源站 header 链接已清除
+    assert "xianbao-article-nav" in out  # 新导航已注入
     assert "<footer" not in out
     assert "rank-list" not in out
     assert "xianbao-search-fab" not in out  # 锚点与死样式均移除
-    assert "返回列表" in out and 'href="/category-huluxia/"' in out
+    assert "返回列表" not in out and 'href="/category-huluxia/"' in out  # 导航含当前分类
     assert "post-comment" in out  # 评论保留
     assert "article-content" in out  # 正文保留
     assert "xianbao-chrome-stripped" in out  # 幂等标记
