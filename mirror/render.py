@@ -32,6 +32,7 @@ import time
 import json
 import ssl
 import glob
+import shutil
 import hashlib
 import random
 import subprocess
@@ -999,8 +1000,8 @@ def _build_panel(cat_id: str, cat_label: str, items: list) -> str:
     )
 
 
-def build_hub(out_dir: Path):
-    """生成首页：顶部标签切换分类，下方列出各分类文章（含评论链接）。"""
+def _build_legacy_hub(out_dir: Path):
+    """旧版自定义简约首页（fallback，当源站 category-zuankeba 模板不存在时）。"""
     cat_names = {
         "zuankeba": "赚客吧",
         "xinzuanba": "新赚客吧",
@@ -1029,7 +1030,6 @@ def build_hub(out_dir: Path):
         if cat in by_cat:
             by_cat[cat].append({"id": art_id, "url": "/" + rel, "title": title})
 
-    # 每分类按文章 ID 降序（最新在前）
     for cat in by_cat:
         by_cat[cat].sort(key=lambda x: x["id"], reverse=True)
 
@@ -1112,6 +1112,289 @@ document.querySelectorAll('.tab').forEach(function(tab){{
 </body>
 </html>"""
     (out_dir / "index.html").write_text(html, encoding="utf-8")
+
+
+def _extract_article_meta(path: Path) -> dict:
+    """从本地文章 HTML 提取标题、发布时间等元数据。"""
+    try:
+        html = path.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        return {}
+    soup = BeautifulSoup(html, "html.parser")
+    title = ""
+    if soup.title:
+        title = soup.title.get_text(strip=True)
+        title = title.replace("线报酷镜像", "").replace("线报酷", "").strip().strip("-").strip()
+    pub_time = ""
+    time_tag = soup.find("time")
+    if time_tag:
+        pub_time = time_tag.get_text(" ", strip=True)
+        pub_time = re.sub(r'\s+', ' ', pub_time).strip()
+    rel = "/" + path.relative_to(path.parent.parent).as_posix()
+    m = re.search(r"/([^/]+)/(\d+)\.html$", rel)
+    art_id = int(m.group(2)) if m else 0
+    return {
+        "id": art_id,
+        "url": rel,
+        "title": title or path.name,
+        "time": pub_time,
+    }
+
+
+def _local_articles_by_cat(out_dir: Path) -> dict:
+    """扫描本地文章，按分类返回元数据列表（按 ID 降序）。"""
+    by_cat = {s: [] for s in ALLOWED_CATEGORIES}
+    for p in out_dir.rglob("*.html"):
+        rel = p.relative_to(out_dir).as_posix()
+        if not ART_RE.match("/" + rel):
+            continue
+        cat = rel.split("/")[0]
+        if cat not in by_cat:
+            continue
+        meta = _extract_article_meta(p)
+        if meta:
+            by_cat[cat].append(meta)
+    for cat in by_cat:
+        by_cat[cat].sort(key=lambda x: x["id"], reverse=True)
+    return by_cat
+
+
+def _format_list_time(time_str: str) -> str:
+    """从 '2026年06月22日 06:35' 提取列表展示时间（今天 HH:MM，否则 MM-DD）。"""
+    m = re.search(r"(\d{4})年(\d{2})月(\d{2})日\s*(\d{2}):(\d{2})", time_str or "")
+    if not m:
+        return ""
+    year, mon, day, hour, minute = m.groups()
+    try:
+        from datetime import datetime
+        now = datetime.now()
+        if now.year == int(year) and now.month == int(mon) and now.day == int(day):
+            return f"{hour}:{minute}"
+        return f"{mon}-{day}"
+    except Exception:
+        return f"{mon}-{day}"
+
+
+def _build_source_list_item(soup, item: dict):
+    """构造源站风格文章列表项 <li class='article-list'>..."""
+    li = soup.new_tag("li", **{"class": "article-list"})
+    figure = soup.new_tag("span", **{"class": "figure cg16"})
+    li.append(figure)
+    p = soup.new_tag("p", **{"class": "title"})
+    t = _format_list_time(item.get("time", ""))
+    if t:
+        time_badge = soup.new_tag("time", **{"class": "badge", "datetime": item["time"], "title": item["time"]})
+        time_badge.string = t
+        p.append(time_badge)
+    a = soup.new_tag("a", href=item["url"], title=item["title"])
+    a.string = item["title"]
+    p.append(a)
+    li.append(p)
+    return li
+
+
+def _replace_new_post_list(html: str, items: list) -> str:
+    """替换源站分类页 <ul class='new-post'> 内容为本站文章。"""
+    soup = BeautifulSoup(html, "html.parser")
+    ul = soup.find("ul", class_="new-post")
+    if not ul:
+        return html
+    ul.clear()
+    for item in items:
+        ul.append(_build_source_list_item(soup, item))
+    return str(soup)
+
+
+def _build_pagination(soup, cat: str, page: int, total_pages: int):
+    """构造分页条 <div class='pagebar'> 替换原 pagebar。page 从 1 开始。"""
+    container = soup.new_tag("div", **{"class": "pagebar"})
+    nav = soup.new_tag("div", **{"class": "nav-links"})
+
+    if page > 1:
+        a = soup.new_tag("a", href=f"/category-{cat}/", **{"class": "br page-numbers", "title": "首页"})
+        a.string = "首页"
+        nav.append(a)
+        prev_href = f"/category-{cat}/" if page == 2 else f"/category-{cat}/{page-1}/"
+        a = soup.new_tag("a", href=prev_href, **{"class": "br page-numbers", "title": "上一页"})
+        a.string = "上一页"
+        nav.append(a)
+
+    for p in range(1, total_pages + 1):
+        if p == page:
+            span = soup.new_tag("span", **{"class": "br page-numbers current"})
+            span.string = str(p)
+            nav.append(span)
+        else:
+            href = f"/category-{cat}/" if p == 1 else f"/category-{cat}/{p}/"
+            a = soup.new_tag("a", href=href, **{"class": "br page-numbers", "title": f"第{p}页"})
+            a.string = str(p)
+            nav.append(a)
+
+    if page < total_pages:
+        a = soup.new_tag("a", href=f"/category-{cat}/{page+1}/", **{"class": "br page-numbers", "title": "下一页"})
+        a.string = "下一页"
+        nav.append(a)
+        a = soup.new_tag("a", href=f"/category-{cat}/{total_pages}/", **{"class": "br page-numbers", "title": "最后一页"})
+        a.string = "尾页"
+        nav.append(a)
+
+    container.append(nav)
+    old = soup.find(class_="pagebar")
+    if old:
+        old.replace_with(container)
+    else:
+        ul = soup.find("ul", class_="new-post")
+        if ul:
+            ul.insert_after(container)
+
+
+def _strip_pagination(soup) -> None:
+    """移除分页区，避免指向源站页码的坏链。"""
+    for cls in ("pagebar", "pagination", "pages", "f_pag", "pagenavi"):
+        for el in soup.find_all(class_=cls):
+            el.decompose()
+
+
+def _fix_search_form(soup) -> None:
+    """将源站搜索表单 action 改为本地 search.html，method 改为 GET。"""
+    for form in soup.find_all("form"):
+        action = (form.get("action") or "").lower()
+        if "search" in action or "cmd.php" in action:
+            form["action"] = "/search.html"
+            form["method"] = "get"
+            for inp in list(form.find_all("input", type="hidden")):
+                if inp.get("name") == "cate":
+                    inp.decompose()
+            q_inp = form.find("input", attrs={"name": "q"})
+            if q_inp and not q_inp.get("name"):
+                q_inp["name"] = "q"
+
+
+def _sanitize_local_links(soup, out_dir: Path) -> None:
+    """若分类页/首页出现指向不存在的本地页面链接，则中和为 #，避免 404。
+    但保留本站生成的分类分页链接（如 /category-zuankeba/2/），避免自误伤。"""
+    cat_page_re = re.compile(r"^/category-(?:" + "|".join(ALLOWED_CATEGORIES) + r")/\d+/?$")
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if not href.startswith("/") or href.startswith("#"):
+            continue
+        if cat_page_re.match(href):
+            continue
+        ext = os.path.splitext(href.split("?")[0])[1].lower()
+        if ext in ASSET_EXT:
+            continue
+        local_path = out_dir / href.lstrip("/")
+        if local_path.is_dir():
+            local_path = local_path / "index.html"
+        if not local_path.exists():
+            a["href"] = "#"
+            if a.get("target"):
+                del a["target"]
+
+
+def _activate_home_nav(soup) -> None:
+    """将导航高亮从分类切回「首页」；就地修改 soup。"""
+    for li in soup.find_all("li", class_="active"):
+        li["class"] = [c for c in li.get("class", []) if c != "active"]
+    home_li = soup.find("li", id="nvabar-item-index")
+    if home_li:
+        cls = list(home_li.get("class", []) or [])
+        if "active" not in cls:
+            cls.append("active")
+        home_li["class"] = cls
+
+
+def _home_breadcrumb(soup) -> None:
+    """首页面包屑仅保留「首页」。就地修改 soup。"""
+    mbx = soup.find(class_="mianbaoxie")
+    if mbx:
+        # 保留第一个首页链接，其余清空
+        first_a = mbx.find("a")
+        mbx.clear()
+        if first_a:
+            mbx.append(first_a)
+
+
+def rebuild_category_page(
+    template_path: Path,
+    out_path: Path,
+    out_dir: Path,
+    items: list,
+    *,
+    cat: str = None,
+    page: int = 1,
+    total_pages: int = 1,
+    title: str = None,
+    is_home: bool = False,
+) -> None:
+    """用源站分类页模板生成本地分类页（或首页），只保留存在的文章链接。"""
+    html = template_path.read_text(encoding="utf-8", errors="replace")
+    html = _replace_new_post_list(html, items)
+    soup = BeautifulSoup(html, "html.parser")
+    if title and soup.title:
+        soup.title.string = f"{title}-线报酷镜像"
+    if is_home or total_pages <= 1:
+        _strip_pagination(soup)
+    else:
+        _build_pagination(soup, cat, page, total_pages)
+    _fix_search_form(soup)
+    _sanitize_local_links(soup, out_dir)
+    if is_home:
+        _activate_home_nav(soup)
+        _home_breadcrumb(soup)
+    out_path.write_text(str(soup), encoding="utf-8")
+
+
+def rebuild_category_pages(out_dir: Path) -> None:
+    """重新生成分类页：使用源站模板，但只列出本地实际存在的文章。"""
+    cat_names = {
+        "zuankeba": "赚客吧",
+        "xinzuanba": "新赚客吧",
+        "xiaodigu": "小嘀咕",
+        "huluxia": "葫芦侠",
+        "xiaodao": "小刀",
+    }
+    by_cat = _local_articles_by_cat(out_dir)
+    PAGESIZE = 100
+    for cat in ALLOWED_CATEGORIES:
+        template = out_dir / f"category-{cat}" / "index.html"
+        if not template.exists():
+            continue
+        items = by_cat.get(cat, [])
+        total_pages = max(1, (len(items) + PAGESIZE - 1) // PAGESIZE)
+        for page in range(1, total_pages + 1):
+            start = (page - 1) * PAGESIZE
+            page_items = items[start:start + PAGESIZE]
+            if page == 1:
+                out_path = out_dir / f"category-{cat}" / "index.html"
+                page_title = cat_names[cat]
+            else:
+                out_path = out_dir / f"category-{cat}" / str(page) / "index.html"
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                page_title = f"{cat_names[cat]} - 第{page}页"
+            rebuild_category_page(
+                template, out_path, out_dir, page_items,
+                cat=cat, page=page, total_pages=total_pages, title=page_title
+            )
+        # 清理不再需要的旧分页目录
+        cat_dir = out_dir / f"category-{cat}"
+        if cat_dir.exists():
+            for sub in cat_dir.iterdir():
+                if sub.is_dir() and sub.name.isdigit():
+                    page_num = int(sub.name)
+                    if page_num > total_pages:
+                        shutil.rmtree(sub)
+
+
+def build_hub(out_dir: Path):
+    """生成首页：使用源站 category-zuankeba 模板，填充本地赚客吧文章。"""
+    cat = "zuankeba"
+    template = out_dir / f"category-{cat}" / "index.html"
+    if not template.exists():
+        return _build_legacy_hub(out_dir)
+    by_cat = _local_articles_by_cat(out_dir)
+    items = by_cat.get(cat, [])[:100]
+    rebuild_category_page(template, out_dir / "index.html", out_dir, items, title="首页", is_home=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1391,6 +1674,7 @@ def main():
     # 落地索引与首页 hub
     n_idx = build_search_index(OUT_DIR)
     build_hub(OUT_DIR)
+    rebuild_category_pages(OUT_DIR)
 
     # 后处理：补全缺失资源 + 剥离注入/分析脚本
     # （仅扫描本轮新产生的文件，避免随镜像增长而每轮全量重扫导致超时）

@@ -551,8 +551,151 @@ def test_checkpoint_commits_and_pushes_when_in_git(monkeypatch, tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# pending 待处理队列（跨运行续爬，保证「全量备份」不丢已发现文章）
+# 首页 / 分类页重构 —— 使用源站模板，仅列出本地已存在的文章
 # ---------------------------------------------------------------------------
+def test_format_list_time_today_vs_other_day():
+    from datetime import datetime
+    today = datetime.now()
+    today_str = f"{today.year}年{today.month:02d}月{today.day:02d}日 12:07"
+    assert render._format_list_time(today_str) == "12:07"
+    assert render._format_list_time("2026年06月22日 06:35") == "06-22"
+    assert render._format_list_time("") == ""
+
+
+def test_local_articles_by_cat_extracts_title_and_time(tmp_path):
+    art = tmp_path / "zuankeba"
+    art.mkdir(parents=True)
+    (art / "6500001.html").write_text(
+        '<html><head><title>红包-线报酷</title></head>'
+        '<body><time><i class="iconfont icon-time"></i>2026年06月22日 06:35</time>'
+        '<div class="content">京东红包</div></body></html>',
+        encoding="utf-8")
+    (art / "6500002.html").write_text(
+        '<html><head><title>话费-线报酷</title></head>'
+        '<body><time>2026年06月23日 08:00</time></body></html>',
+        encoding="utf-8")
+    by_cat = render._local_articles_by_cat(tmp_path)
+    assert len(by_cat["zuankeba"]) == 2
+    assert by_cat["zuankeba"][0]["id"] == 6500002  # 降序
+    assert by_cat["zuankeba"][0]["title"] == "话费"
+    assert by_cat["zuankeba"][1]["time"] == "2026年06月22日 06:35"
+
+
+def test_rebuild_category_page_keeps_existing_and_neutralizes_missing(tmp_path):
+    # 构造源站风格分类页模板
+    cat_dir = tmp_path / "category-zuankeba"
+    cat_dir.mkdir(parents=True)
+    template = cat_dir / "index.html"
+    template.write_text(
+        '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
+        '<ul class="new-post">'
+        '<li class="article-list"><p class="title"><a href="/zuankeba/6500001.html">a</a></p></li>'
+        '<li class="article-list"><p class="title"><a href="/zuankeba/6500002.html">b</a></p></li>'
+        '</ul>'
+        '<div class="sidebar"><a href="/zuankeba/6500003.html">sidebar</a></div>'
+        '</body></html>',
+        encoding="utf-8")
+    # 仅创建 6500001
+    art_dir = tmp_path / "zuankeba"
+    art_dir.mkdir(parents=True)
+    (art_dir / "6500001.html").write_text(
+        '<html><head><title>test-线报酷</title></head><body></body></html>',
+        encoding="utf-8")
+    items = [{
+        "id": 6500001,
+        "url": "/zuankeba/6500001.html",
+        "title": "真实文章",
+        "time": "2026年06月22日 06:35"
+    }]
+    render.rebuild_category_page(template, template, tmp_path, items, title="赚客吧")
+    html = template.read_text(encoding="utf-8")
+    # 主列表应使用新标题
+    assert "真实文章" in html
+    # 不存在的文章链接应被中和
+    assert 'href="/zuankeba/6500003.html"' not in html
+    assert 'href="#"' in html
+    # 标题已更新
+    assert "<title>赚客吧-线报酷镜像</title>" in html
+
+
+def test_build_hub_uses_source_template(tmp_path):
+    # 构造 zuankeba 分类页模板
+    cat_dir = tmp_path / "category-zuankeba"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "index.html").write_text(
+        '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
+        '<ul class="new-post"></ul>'
+        '</body></html>',
+        encoding="utf-8")
+    art_dir = tmp_path / "zuankeba"
+    art_dir.mkdir(parents=True)
+    (art_dir / "6500001.html").write_text(
+        '<html><head><title>首页文章-线报酷</title></head>'
+        '<body><time>2026年06月22日 06:35</time></body></html>',
+        encoding="utf-8")
+    render.build_hub(tmp_path)
+    idx = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert "首页文章" in idx
+    assert "<title>首页-线报酷镜像</title>" in idx
+    assert 'class="new-post"' in idx
+
+
+def test_rebuild_category_pages_generates_pagination(tmp_path):
+    # 构造 zuankeba 模板 + 210 篇本地文章（每页 100，共 3 页）
+    cat_dir = tmp_path / "category-zuankeba"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "index.html").write_text(
+        '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
+        '<ul class="new-post"></ul><div class="pagebar"></div></body></html>',
+        encoding="utf-8")
+    art_dir = tmp_path / "zuankeba"
+    art_dir.mkdir(parents=True)
+    for i in range(210, 0, -1):
+        (art_dir / f"6500{i:03d}.html").write_text(
+            '<html><head><title>test-线报酷</title></head><body></body></html>',
+            encoding="utf-8")
+    render.rebuild_category_pages(tmp_path)
+    assert (tmp_path / "category-zuankeba" / "index.html").exists()
+    assert (tmp_path / "category-zuankeba" / "2" / "index.html").exists()
+    assert (tmp_path / "category-zuankeba" / "3" / "index.html").exists()
+    assert not (tmp_path / "category-zuankeba" / "4").exists()
+    html2 = (tmp_path / "category-zuankeba" / "2" / "index.html").read_text(encoding="utf-8")
+    assert 'href="/category-zuankeba/"' in html2  # 首页
+    assert 'href="/category-zuankeba/3/"' in html2  # 下一页
+    assert 'class="pagebar"' in html2
+
+
+def test_rebuild_category_page_fixes_search_form(tmp_path):
+    cat_dir = tmp_path / "category-zuankeba"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "index.html").write_text(
+        '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
+        '<form action="/zb_system/cmd.php?act=search" method="post"><input name="q"/><input name="cate" type="hidden" value="16"/></form>'
+        '<ul class="new-post"></ul></body></html>',
+        encoding="utf-8")
+    render.rebuild_category_page(cat_dir / "index.html", cat_dir / "index.html", tmp_path, [])
+    html = (cat_dir / "index.html").read_text(encoding="utf-8")
+    assert 'action="/search.html"' in html
+    assert 'method="get"' in html
+    assert 'name="cate"' not in html
+
+
+def test_rebuild_category_page_sanitizes_nonexistent_local_links(tmp_path):
+    cat_dir = tmp_path / "category-zuankeba"
+    cat_dir.mkdir(parents=True)
+    (cat_dir / "index.html").write_text(
+        '<!DOCTYPE html><html><head><title>赚客吧-线报酷</title></head><body>'
+        '<ul class="new-post"></ul>'
+        '<a href="/category-xianbaoku/">不存在的分类</a>'
+        '<a href="/gonggao/6763.html">不存在的文章</a>'
+        '</body></html>',
+        encoding="utf-8")
+    render.rebuild_category_page(cat_dir / "index.html", cat_dir / "index.html", tmp_path, [])
+    html = (cat_dir / "index.html").read_text(encoding="utf-8")
+    assert 'href="/category-xianbaoku/"' not in html
+    assert 'href="/gonggao/6763.html"' not in html
+    assert 'href="#"' in html
+
 def test_default_state_has_pending_set():
     st = render.default_state()
     assert "pending" in st and isinstance(st["pending"], set)
