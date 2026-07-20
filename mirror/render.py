@@ -202,7 +202,7 @@ RECHECK_PER_RUN = int(os.environ.get("RECHECK_PER_RUN", "200"))
 MAX_PAGES_PER_RUN = int(os.environ.get("MAX_PAGES_PER_RUN", "200"))
 # 每渲染多少页做一次「检查点提交」（commit + push 状态与新页面），
 # 使中途取消/崩溃也不丢进度、次日不重复爬。0 = 关闭检查点（仅跑完才提交）。
-CHECKPOINT_EVERY = int(os.environ.get("CHECKPOINT_EVERY", "10"))
+CHECKPOINT_EVERY = int(os.environ.get("CHECKPOINT_EVERY", "0"))
 # 分类列表页连续「无新文章」达到此次数，判定该分类已抓完。
 CONSEC_MISS_LIMIT = int(os.environ.get("CONSEC_MISS_LIMIT", "3"))
 # 单分类列表页安全上限（防止死循环）。
