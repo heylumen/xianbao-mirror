@@ -2096,6 +2096,11 @@ def rebuild_category_page(
 ) -> None:
     """用源站分类页模板生成本地分类页（或首页），只保留存在的文章链接。"""
     html = template_path.read_text(encoding="utf-8", errors="replace")
+    # 列表页同样必须剥离源站 common.js：它会自绑定 #search-button / .m-nav-btn，
+    # 与下方 _inject_nav_tools 注入的自包含交互脚本冲突（双重 toggle），导致分类页
+    # 点击搜索框反而隐藏、移动端汉堡菜单错乱。文章页由 strip_chrome 处理，列表页
+    # 此前漏掉（首页因复用已剥离的 zuankeba 模板而侥幸正常）。
+    html = strip_common_js(html)
     html = _replace_new_post_list(html, items)
     soup = BeautifulSoup(html, "html.parser")
     if title and soup.title:
