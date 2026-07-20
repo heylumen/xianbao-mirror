@@ -31,11 +31,6 @@
     "xiaodao": 3
   },
   "pending": [
-    "/xiaodigu/6354494.html",
-    "/xiaodigu/6354640.html",
-    "/xiaodigu/6354763.html",
-    "/xiaodigu/6354766.html",
-    "/xiaodigu/6354771.html",
     "/xiaodigu/6354953.html",
     "/xiaodigu/6355006.html",
     "/xiaodigu/6355041.html",
@@ -5223,10 +5218,6 @@
     "/xiaodigu/6661823.html",
     "/xiaodigu/6662030.html",
     "/xiaodigu/6662086.html",
-    "/xinzuanba/308150.html",
-    "/xinzuanba/308151.html",
-    "/xinzuanba/308152.html",
-    "/xinzuanba/308153.html",
     "/xinzuanba/308154.html",
     "/xinzuanba/308155.html",
     "/xinzuanba/308156.html",
@@ -7913,11 +7904,6 @@
     "/xinzuanba/6661064.html",
     "/xinzuanba/6661181.html",
     "/xinzuanba/6661396.html",
-    "/zuankeba/6517275.html",
-    "/zuankeba/6517334.html",
-    "/zuankeba/6517368.html",
-    "/zuankeba/6517390.html",
-    "/zuankeba/6517405.html",
     "/zuankeba/6517416.html",
     "/zuankeba/6517436.html",
     "/zuankeba/6517457.html",
@@ -19446,6 +19432,56 @@
       "hash": "50418d548730b82e63a5f93f98bf9c7d16661f809d082fdea031be3d35ccf53a",
       "local": "huluxia/6660834.html",
       "last_check": "2026-07-20T06:04:33+0000"
+    },
+    "/xiaodigu/6354494.html": {
+      "hash": "e00ebd77027ed6c06b94b974bd3a3d02949bab4251bae6591e618c368c8583d2",
+      "local": "xiaodigu/6354494.html",
+      "last_check": "2026-07-20T06:04:42+0000"
+    },
+    "/zuankeba/6517275.html": {
+      "hash": "55f9a34b225222d67ec888e5e7573221143806b695a478065d492499334ac7c2",
+      "local": "zuankeba/6517275.html",
+      "last_check": "2026-07-20T06:04:48+0000"
+    },
+    "/xiaodigu/6354640.html": {
+      "hash": "a6d25fe28f715f635d8c82e29e5e8654bad7062939c2e583408f70d98f2df708",
+      "local": "xiaodigu/6354640.html",
+      "last_check": "2026-07-20T06:04:54+0000"
+    },
+    "/zuankeba/6517334.html": {
+      "hash": "0692f4f800278eb46436d2796ce3b6bec6410b963041a3e128dab59c72503ef3",
+      "local": "zuankeba/6517334.html",
+      "last_check": "2026-07-20T06:05:02+0000"
+    },
+    "/xiaodigu/6354763.html": {
+      "hash": "c2430c729248929ba994e9ec66d26c40afc47d65559322e118f11b54bea4b81d",
+      "local": "xiaodigu/6354763.html",
+      "last_check": "2026-07-20T06:05:08+0000"
+    },
+    "/zuankeba/6517368.html": {
+      "hash": "8fb01f8279a9f508d7c5a91be23c6930f680ef686ad8b7c4fcc1ff1251f83a00",
+      "local": "zuankeba/6517368.html",
+      "last_check": "2026-07-20T06:05:14+0000"
+    },
+    "/xiaodigu/6354766.html": {
+      "hash": "b084e165542adbbf1d0b31576381a97ee0722b8e408be552a82e9ee0839ad7eb",
+      "local": "xiaodigu/6354766.html",
+      "last_check": "2026-07-20T06:05:20+0000"
+    },
+    "/zuankeba/6517390.html": {
+      "hash": "d0fe76a10c6725743b740f9b4cd97435643d3db6597dbf31193ff505b93ccb17",
+      "local": "zuankeba/6517390.html",
+      "last_check": "2026-07-20T06:05:28+0000"
+    },
+    "/xiaodigu/6354771.html": {
+      "hash": "c9939a84eabcf30f4a1e1d591c30946615da125d6884072976a79192a2acad54",
+      "local": "xiaodigu/6354771.html",
+      "last_check": "2026-07-20T06:05:34+0000"
+    },
+    "/zuankeba/6517405.html": {
+      "hash": "e83275b8da341cdb962ebda81ff79d39c9f043992b4a40869e952a7018784d89",
+      "local": "zuankeba/6517405.html",
+      "last_check": "2026-07-20T06:05:40+0000"
     }
   },
   "dead": {
@@ -20024,6 +20060,30 @@
       "fails": 1,
       "ts": 1784527466,
       "permanent": true
+    },
+    "/xinzuanba/308150.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784527489,
+      "permanent": true
+    },
+    "/xinzuanba/308151.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784527503,
+      "permanent": true
+    },
+    "/xinzuanba/308152.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784527515,
+      "permanent": true
+    },
+    "/xinzuanba/308153.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1784527529,
+      "permanent": true
     }
   },
   "dead_assets": {
@@ -20056,7 +20116,7 @@
   "completed_at": null,
   "stats": {
     "pages": 124,
-    "articles": 1605,
+    "articles": 1615,
     "rechecks": 0,
     "updated": 0
   }
