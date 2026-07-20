@@ -1014,3 +1014,33 @@ def test_localize_images_downloads_and_rewrites(tmp_path, monkeypatch):
     assert stats["rewritten"] == 1
     assert captured["url"].startswith("https://pic.xiaodigu.cn/")
 
+
+def test_rebuild_category_page_strips_source_common_js(tmp_path):
+    """回归护栏：列表页（首页/分类页）必须剥离源站 common.js。
+
+    历史坑：源站 common.js 自绑定 #search-button / .m-nav-btn，与
+    _inject_nav_tools 注入的自包含交互脚本冲突（双重 toggle），导致分类页
+    点击搜索框反而隐藏、移动端汉堡菜单错乱。文章页由 strip_chrome 处理，
+    列表页此前漏掉（首页侥幸复用已剥离的 zuankeba 模板）。本测试防回归。
+    """
+    tpl_src = Path("xianbao/category-zuankeba/index.html").read_text(encoding="utf-8")
+    assert "common.js" not in tpl_src  # 当前产物已干净
+    # 人为注入 common.js 模拟 bug 复现条件
+    injected = tpl_src.replace(
+        "</head>",
+        '<script src="/zb_users/theme/xianbao_theme/script/common.js?v=20260211212111"></script></head>',
+        1,
+    )
+    assert "common.js" in injected
+    cat_dir = tmp_path / "category-xiaodao"
+    cat_dir.mkdir(parents=True)
+    tpl = cat_dir / "index.html"
+    tpl.write_text(injected, encoding="utf-8")
+    render.rebuild_category_page(
+        tpl, tpl, tmp_path, items=[], cat="xiaodao", page=1, total_pages=1, title="小刀娱乐网"
+    )
+    out = tpl.read_text(encoding="utf-8")
+    assert "common.js" not in out        # 关键：common.js 必须消失
+    assert "search-area" in out          # 搜索框结构保留
+    assert "xianbao-nav-tools" in out    # 自包含交互脚本仍在
+
