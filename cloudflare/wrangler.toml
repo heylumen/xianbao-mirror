@@ -1,0 +1,21 @@
+name = "xianbao-mirror-trigger"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# 随机窗口（秒）：默认 7200 = 2 小时；设 86400 即“全天任意小时随机”
+[vars]
+RANDOM_WINDOW_SEC = "7200"
+
+# Durable Object：承载随机延迟的 alarm（免费层可用）
+[[durable_objects.bindings]]
+name = "TRIGGER_DO"
+class_name = "TriggerDO"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TriggerDO"]
+
+# Cron Trigger（免费层支持有限个，本方案只需 1 个作为每日锚点）
+# UTC 17:00 = 北京时间 01:00；真实触发时刻 = 锚点 + 0~RANDOM_WINDOW_SEC 随机延迟
+[triggers]
+crons = ["0 17 * * *"]
