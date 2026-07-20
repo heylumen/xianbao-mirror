@@ -281,8 +281,42 @@ for p in pathlib.Path(out_dir).rglob("*"):
         html = html[:m.start()] + SNIPPET + html[m.start():]
         p.write_text(html, encoding="utf-8")
         count += 1
-print(f"Vercel 分析脚本已注入 {count} 个页面")
+    print(f"Vercel 分析脚本已注入 {count} 个页面")
 PY
 fi
+
+# ---------------------------------------------------------------------------
+# 修复 7（最终保障 · 防回归）：重新生成首页/分类列表页并补注入覆盖 CSS。
+# 确保分类首页等关键页面在任意中间步骤之后都处于正确最终态
+# （自包含、带定制样式、导航已裁剪），避免单次爬取偶发的中间态被提交部署。
+# 幂等可重入；配合 CHECKPOINT_EVERY=0（单次爬取仅一次提交）彻底杜绝
+# 「爬取中途部分页面被部署」导致的界面损坏。
+# ---------------------------------------------------------------------------
+echo "==> 最终保障：重新生成列表页并注入覆盖 CSS"
+OUT_DIR="$OUT_DIR" "$PY" - <<'PY'
+import os, sys, pathlib, re
+sys.path.insert(0, "mirror")
+import render
+out_dir = pathlib.Path(os.environ["OUT_DIR"])
+render.rebuild_category_pages(out_dir)
+render.build_hub(out_dir)
+css_link = '<link rel="stylesheet" href="/lib/xianbao-override.css?v=4">'
+marker = "xianbao-override.css"
+count = 0
+for p in out_dir.rglob("*"):
+    if p.suffix.lower() not in (".html", ".htm"):
+        continue
+    try:
+        html = p.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        continue
+    if marker in html:
+        continue
+    m = re.search(r"</head>", html, re.IGNORECASE) or re.search(r"</body>", html, re.IGNORECASE)
+    if m is not None:
+        p.write_text(html[:m.start()] + css_link + "\n" + html[m.start():], encoding="utf-8")
+        count += 1
+print(f"最终保障完成：重新生成列表页并补注入覆盖 CSS 链接 {count} 个")
+PY
 
 echo "==> 镜像完成，输出目录: $OUT_DIR"
