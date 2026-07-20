@@ -20,6 +20,9 @@ concurrency:
 jobs:
   mirror-backup:
     runs-on: ubuntu-latest
+    # 单 job 超时兜底：默认 6h，此处显式设 360min。
+    # 触发后若爬取异常卡死，到此自动终止，次日增量重跑自愈，避免一次跑空整月 Actions 额度。
+    timeout-minutes: 360
     # 部署到 Vercel / Netlify 等根域名，链接需改写为 /... 而非 /<repo>/...
     # 同时开启 Vercel Web Analytics / Speed Insights 脚本注入。
     env:
@@ -59,12 +62,13 @@ jobs:
       - name: "单元测试（渲染核心函数回归门禁）"
         run: python -m pytest mirror/test_render.py -q
 
-      - name: 随机延时（仅定时触发；每日落点在北京时间 01:00~03:00 随机）
+      - name: 随机延时（仅定时触发；每日落点在北京时间 01:00~01:05 随机）
         if: github.event_name == 'schedule'
-        # 触发时刻为 UTC 17:00（=北京 01:00），再随机 sleep 0~7200s（0~2h），
-        # 实际抓取落在北京 01:00~03:00 任意时刻，避免固定时间被识别为规律爬虫。
-        # 注：抖动上限 7200s 即窗口宽度，过长无意义且徒增 Actions 额度。
-        run: sleep $((RANDOM % 7200))
+        # 私有仓 GitHub Actions 免费仅 2000 分钟/月，故随机窗口压到 5 分钟以控额度：
+        # 触发时刻 UTC 17:00（=北京 01:00），再随机 sleep 0~300s（0~5min）→ 落点北京 01:00~01:05。
+        # 注：此窗口极窄≈固定 01:00，隐秘性弱；若既要隐秘又要省额度，应把随机触发移到
+        # GitHub 之外（本机 Task Scheduler / Cloudflare Worker 免费层在随机时刻调 workflow_dispatch）。
+        run: sleep $((RANDOM % 300))
 
       - name: 执行网站渲染镜像（Playwright，增量 + 5 分类白名单，输出到 xianbao/）
         run: bash mirror/mirror.sh
