@@ -39,7 +39,8 @@ import mimetypes
 import subprocess
 import urllib.request
 from pathlib import Path
-from urllib.parse import urlparse, unquote, urljoin, quote, parse_qs
+from urllib.parse import (urlparse, unquote, urljoin, quote, parse_qs,
+                          urlunparse)
 from collections import deque
 import codecs
 
@@ -2882,8 +2883,11 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
             if s in ("", ".", ".."):
                 continue
             segs.append(s)
-        if not segs:
-            segs = ["index"]
+        # 注意：不要在这里剥离 `.../xxx.jpg/image.html` 之类的「查看页」末段。
+        # 存量镜像已按完整路径落盘（`.../xxx.jpg/image.webp` 共 400+ 张），
+        # 剥离后 rel 会指向一个已存在的**目录**，写文件必然失败。
+        # 扩展名与 Content-Type 不符的问题改由 ensure_download 纠正并回传真实
+        # 路径（见下方 NON_IMAGE_EXTS 逻辑）。
         rel = "zb_users/remote/" + p.netloc + "/" + "/".join(segs)
         if rel.endswith("/"):
             rel += "index"
@@ -2896,55 +2900,112 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
         h = hashlib.md5(payload.encode("utf-8")).hexdigest()[:12]
         return f"zb_users/remote/qr/{h}.png"
 
-    def ensure_download(url: str, rel: str, referer_hint: str = None) -> bool:
+    # 论坛「查看页」式 URL（.../xxx.jpg/image.html）落盘后扩展名与真实内容不符，
+    # 浏览器按 .html 请求会 404 或被当成文档解析 → 裂图。命中这些扩展名且响应
+    # Content-Type 确为图片时，按真实类型改名，并把改名后的路径回传给调用方。
+    NON_IMAGE_EXTS = {".html", ".htm", ".php", ".asp", ".aspx", ".jsp", ".do", ""}
+
+    # 论坛 URL 常带「查看页」末段（/image、/image.html、/thumb…）。这些末段有时
+    # 会被 CDN 拒（实测 s4.cdn.xianbao.net/.../packet.png/image 恒 403，去掉
+    # /image 后 200）。作为**下载兜底**再试一次去尾版本；落盘路径 rel 不变，
+    # 以免与存量 400+ 张 `.../xxx.jpg/image.webp` 的目录结构冲突。
+    VIEW_SUFFIX_SEGS = {"image", "image.html", "thumb", "thumbnail"}
+    IMG_EXTS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".avif")
+
+    def _url_variants(u: str):
+        yield u
+        p = urlparse(u)
+        segs = (p.path or "").split("/")
+        if len(segs) >= 2 and segs[-1].lower() in VIEW_SUFFIX_SEGS:
+            trimmed = "/".join(segs[:-1])
+            if trimmed.lower().endswith(IMG_EXTS):
+                yield urlunparse(p._replace(path=trimmed))
+
+    def ensure_download(url: str, rel: str, referer_hint: str = None):
+        """下载远程图片。成功返回**实际落盘的站内相对路径**（可能因扩展名纠正
+        而与入参 rel 不同），失败返回 None。返回值可直接当布尔用。"""
         dst = out_dir / rel
-        if dst.exists() and dst.stat().st_size > 0 and not force:
-            return True
+        if dst.exists() and dst.is_file() and dst.stat().st_size > 0 and not force:
+            return rel
         dst.parent.mkdir(parents=True, exist_ok=True)
-        # 候选 Referer：先试当前文章页（最贴近源站上下文），再试各源站域名
-        candidates = ["https://new.xianbao.fun/", "https://new.ixbk.net/",
-                      "https://new.xianbao.net/"]
+        # 候选 Referer：先试当前文章页（最贴近源站上下文），再试图片自身源站
+        # （许多 CDN 仅接受本站 Referer 或无 Referer，错 Referer 会回 403），
+        # 最后用各镜像域名兜底。实测 pic.xiaodigu.cn 等无 Referer 即 200。
+        img_host = urlparse(url).netloc.lower()
+        candidates = []
         if referer_hint:
-            candidates.insert(0, referer_hint)
+            candidates.append(referer_hint)
+        if img_host:
+            candidates.append(f"https://{img_host}/")
+            if not img_host.startswith("www."):
+                candidates.append(f"https://www.{img_host}/")
+        candidates.append("")  # 无 Referer 兜底
+        candidates += ["https://new.xianbao.fun/", "https://new.ixbk.net/",
+                       "https://new.xianbao.net/"]
+        # 去重且保序
+        _seen, _ordered = set(), []
+        for _c in candidates:
+            if _c not in _seen:
+                _seen.add(_c)
+                _ordered.append(_c)
+        candidates = _ordered
         last_err = None
         downloaded = False
-        for ref in candidates:
-            for _retry in range(4):  # 0=首试；1-3=退避重试（应对源站 429/503 限流）
-                hdr = {
-                    "User-Agent": USER_AGENT,
-                    "Referer": ref,
-                    "Accept": "image/avif,image/webp,image/*,*/*;q=0.8",
-                }
-                try:
-                    req = urllib.request.Request(url, headers=hdr)
-                    with urllib.request.urlopen(req, timeout=30) as r:
-                        data = r.read()
-                    if not data:
-                        last_err = RuntimeError("空响应体")
+        for try_url in _url_variants(url):
+            # 单个 URL 的**全局**请求次数上限：候选 Referer 有 7 个，若每个候选都
+            # 放开多次退避重试，一张死图最坏要耗 80s+。用预算把最坏耗时压到 ~25s。
+            attempts, MAX_ATTEMPTS = 0, 8
+            for ref in candidates:
+                _retry = 0
+                while attempts < MAX_ATTEMPTS:
+                    attempts += 1
+                    hdr = {
+                        "User-Agent": USER_AGENT,
+                        "Accept": "image/avif,image/webp,image/*,*/*;q=0.8",
+                    }
+                    if ref:
+                        hdr["Referer"] = ref
+                    try:
+                        req = urllib.request.Request(try_url, headers=hdr)
+                        with urllib.request.urlopen(req, timeout=30) as r:
+                            data = r.read()
+                        if not data:
+                            last_err = RuntimeError("空响应体")
+                            break
+                        ctype = (r.headers.get("Content-Type") or
+                                 "").split(";")[0].strip()
+                        cur_ext = os.path.splitext(dst.name)[1].lower()
+                        if cur_ext in NON_IMAGE_EXTS and ctype.startswith("image/"):
+                            ext = mimetypes.guess_extension(ctype) or ".bin"
+                            dst = dst.with_name(
+                                os.path.splitext(dst.name)[0] + ext)
+                        dst.write_bytes(data)
+                        downloaded = True
                         break
-                    ctype = (r.headers.get("Content-Type") or "").split(";")[0].strip()
-                    if not os.path.splitext(dst.name)[1]:
-                        ext = mimetypes.guess_extension(ctype) or ".bin"
-                        dst = dst.with_suffix(ext)
-                    dst.write_bytes(data)
-                    downloaded = True
-                    break
-                except Exception as e:
-                    last_err = e
-                    code = getattr(e, "code", None)
-                    # 429/503 限流，或无状态码的瞬时网络错误（SSL EOF / 连接重置）
-                    # 均退避重试；403/404 等永久错误不重试。
-                    if _retry < 3 and (code in (429, 503) or code is None):
-                        time.sleep(2 * (_retry + 1))
-                        continue
+                    except Exception as e:
+                        last_err = e
+                        code = getattr(e, "code", None)
+                        # 403 一并退避重试：实测 pic.xiaodigu.cn 的 403 是**并发
+                        # 限流**而非 Referer 策略（8 并发抽样 40 张有 12 张 403，
+                        # 串行间隔 1s 重试 12/12 全部 200）。历史 400+ 张外链图
+                        # 没本地化成、被记进 .dead_remote_imgs.json，根因就是
+                        # 这个 403 当时不重试。429/503 同理；无状态码则是瞬时
+                        # 网络错误（SSL EOF / 连接重置）。
+                        if _retry < 2 and (code in (403, 429, 503) or code is None):
+                            _retry += 1
+                            time.sleep(2 * _retry)
+                            continue
+                        break
+                if downloaded:
                     break
             if downloaded:
                 break
         if downloaded:
-            return True
+            # dst 可能已被扩展名纠正，回传真实落盘路径（POSIX 风格站内相对路径）
+            return dst.relative_to(out_dir).as_posix()
         if last_err:
             print(f"::warning:: 远程图片下载失败 {url}: {last_err}", file=sys.stderr)
-        return False
+        return None
 
     def handle_img_attr(img, attr, url, referer_hint, stats, failed_urls):
         """处理单个 <img> 属性里的外站 URL。返回是否改写了该属性。"""
@@ -2952,17 +3013,19 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
         # 二维码服务：本地重生
         if QR_HOST_RE.search(urlparse(url).netloc):
             rel = qr_local_rel(url)
-            if rel and (out_dir / rel).exists() and not force:
+            if rel and (out_dir / rel).is_file() and not force:
                 img[attr] = "/" + rel
                 changed_flag = True
                 stats["rewritten"] += 1
                 stats["reused"] += 1
+                ok_urls.add(url)
                 return True
             if rel and _regen_qr(url, out_dir / rel):
                 img[attr] = "/" + rel
                 changed_flag = True
                 stats["rewritten"] += 1
                 stats["qr_regen"] = stats.get("qr_regen", 0) + 1
+                ok_urls.add(url)
                 return True
             # 重生失败：保留外链（不比原来更差）
             failed_urls.append(url)
@@ -2971,17 +3034,21 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
         rel = rel_path(real_url)
         if rel is None:
             return False
-        if (out_dir / rel).exists() and (out_dir / rel).stat().st_size > 0 and not force:
+        if (out_dir / rel).is_file() and (out_dir / rel).stat().st_size > 0 and not force:
             img[attr] = "/" + rel
             changed_flag = True
             stats["rewritten"] += 1
             stats["reused"] += 1
+            ok_urls.add(url)
             return True
-        if ensure_download(fetch_url, rel, referer_hint):
-            img[attr] = "/" + rel
+        eff_rel = ensure_download(fetch_url, rel, referer_hint)
+        if eff_rel:
+            # 用实际落盘路径改写（扩展名可能已被 Content-Type 纠正）
+            img[attr] = "/" + eff_rel
             changed_flag = True
             stats["rewritten"] += 1
             stats["downloaded"] += 1
+            ok_urls.add(url)
             return True
         failed_urls.append(url)
         return False
@@ -2989,6 +3056,9 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
     stats = {"scanned": 0, "images_total": 0, "downloaded": 0,
              "reused": 0, "rewritten": 0, "failed": 0, "qr_regen": 0}
     failed_urls = []
+    # 本轮成功本地化的 URL：写死链清单时用来剔除「曾经失败、现已复活」的条目，
+    # 否则清单只增不减，很快就全是过期噪声（实测一次修复后 401 条里 400 条已失效）。
+    ok_urls = set()
 
     for cat in ALLOWED_CATEGORIES:
         for sub in (cat, f"category-{cat}"):
@@ -3041,7 +3111,8 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                                 new_parts.append(part)
                                 continue
                             stats["images_total"] += 1
-                            if (out_dir / rel).exists() and \
+                            _eff = None
+                            if (out_dir / rel).is_file() and \
                                     (out_dir / rel).stat().st_size > 0 and not force:
                                 toks[0] = "/" + rel
                                 new_parts.append(" ".join(toks))
@@ -3049,13 +3120,16 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                                 changed_flag = True
                                 stats["rewritten"] += 1
                                 stats["reused"] += 1
-                            elif ensure_download(fetch_url, rel, referer_hint):
-                                toks[0] = "/" + rel
+                                ok_urls.add(u)
+                            elif (_eff := ensure_download(fetch_url, rel,
+                                                          referer_hint)):
+                                toks[0] = "/" + _eff
                                 new_parts.append(" ".join(toks))
                                 modified = True
                                 changed_flag = True
                                 stats["rewritten"] += 1
                                 stats["downloaded"] += 1
+                                ok_urls.add(u)
                             else:
                                 new_parts.append(part)
                                 failed_urls.append(u)
@@ -3096,10 +3170,23 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
             except Exception as e:
                 print(f"::warning:: 重写 {hf} 失败: {e}", file=sys.stderr)
 
-    if failed_urls:
-        (out_dir / ".dead_remote_imgs.json").write_text(
-            json.dumps(sorted(set(failed_urls)), ensure_ascii=False, indent=2),
-            encoding="utf-8")
+    # 死链清单：累积历史失败（单次运行只覆盖会丢历史），但要剔除本轮已成功
+    # 本地化的 URL，否则清单只增不减、很快沦为全是过期条目的噪声。
+    dead_path = out_dir / ".dead_remote_imgs.json"
+    if failed_urls or ok_urls:
+        existing = set()
+        if dead_path.is_file():
+            try:
+                existing = set(json.loads(dead_path.read_text(encoding="utf-8")))
+            except Exception:
+                existing = set()
+        merged = (existing | set(failed_urls)) - ok_urls
+        if merged:
+            dead_path.write_text(
+                json.dumps(sorted(merged), ensure_ascii=False, indent=2),
+                encoding="utf-8")
+        elif dead_path.is_file():
+            dead_path.unlink()  # 全部复活，清单清空即删除
     print(f"==> 图片本地化：扫描 {stats['scanned']} 篇文章，"
           f"外站图 {stats['images_total']} 处，下载 {stats['downloaded']}，"
           f"二维码重生 {stats.get('qr_regen', 0)}，复用 {stats['reused']}，"
