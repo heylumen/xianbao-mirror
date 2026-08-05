@@ -208,6 +208,13 @@ CONSEC_MISS_LIMIT = int(os.environ.get("CONSEC_MISS_LIMIT", "3"))
 # 单分类列表页安全上限（防止死循环）。
 MAX_CAT_PAGES = int(os.environ.get("MAX_CAT_PAGES", "5000"))
 
+# 镜像「分类索引页 / 首页」每页展示的帖子数。
+# 刻意与源站列表页每页约 100 帖保持一致（实测源站 category-zuankeba 每页 101 帖、
+# 共 152 页），这样镜像的「N 页」与源站「N 页」可直接对比，一眼看出抓取进度差距。
+# 改小时会让镜像页数虚高、反而看不清差距；保持 100 才是源站口径。
+# 如需覆盖可用环境变量 INDEX_PAGE_SIZE（默认 100）。
+INDEX_PAGE_SIZE = int(os.environ.get("INDEX_PAGE_SIZE", "100"))
+
 # 失效地址（永久 404/410）记录：达到阈值后下次不再爬取，减少原站负担与暴露面。
 DEAD_FAIL_LIMIT = int(os.environ.get("DEAD_FAIL_LIMIT", "2"))
 # 失效记录的存活周期（天）：到期后再试一次（应对源站临时恢复）。0 = 永不过期。
@@ -2137,7 +2144,7 @@ def rebuild_category_pages(out_dir: Path) -> None:
         "xiaodao": "小刀娱乐网",
     }
     by_cat = _local_articles_by_cat(out_dir)
-    PAGESIZE = 100
+    PAGESIZE = INDEX_PAGE_SIZE
     for cat in ALLOWED_CATEGORIES:
         template = out_dir / f"category-{cat}" / "index.html"
         if not template.exists():
@@ -2180,7 +2187,7 @@ def build_hub(out_dir: Path):
     for c in ALLOWED_CATEGORIES:
         all_items.extend(by_cat.get(c, []))
     all_items.sort(key=lambda x: x["id"], reverse=True)
-    PAGESIZE = 100
+    PAGESIZE = INDEX_PAGE_SIZE
     total_pages = max(1, (len(all_items) + PAGESIZE - 1) // PAGESIZE)
     for page in range(1, total_pages + 1):
         start = (page - 1) * PAGESIZE
