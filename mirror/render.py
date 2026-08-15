@@ -2800,7 +2800,7 @@ def _qr_payload(url: str):
         return q["d"][0]
     if "data" in q:                   # api.qrserver.com?data=<data>
         return q["data"][0]
-    if "qr.alipay.com" in p.netloc or "qr.alyipay.com" in p.netloc:
+    if "qr.alipay.com" in p.netloc:
         return url                    # 支付宝短码：内容即该 URL 本身
     return None
 
@@ -2883,6 +2883,16 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
     out_dir = Path(out_dir)
     remote_re = re.compile(r"^https?://", re.I)
     illegal = re.compile(r'[\\:*?"<>|]')
+
+    # 读取历史死链清单：已确认下载失败的外站图，本轮直接跳过（保留原链接），
+    # 不再每 run 重下 + 8×30s 重试，避免逼近单 job 6h 超时。
+    dead_path = out_dir / ".dead_remote_imgs.json"
+    dead_set = set()
+    if dead_path.is_file():
+        try:
+            dead_set = set(json.loads(dead_path.read_text(encoding="utf-8")))
+        except Exception:
+            dead_set = set()
 
     def rel_path(url: str):
         """外站图片 URL -> 站内相对路径（无前缀）。非 http(s) 或本机返回 None。"""
@@ -2976,8 +2986,10 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
         last_err = None
         downloaded = False
         for try_url in _url_variants(url):
-            # 单个 URL 的**全局**请求次数上限：候选 Referer 有 7 个，若每个候选都
-            # 放开多次退避重试，一张死图最坏要耗 80s+。用预算把最坏耗时压到 ~25s。
+            # 单图**全局**请求预算：MAX_ATTEMPTS=8 次 urlopen，每次 timeout=30s，
+            # 最坏 8×30s≈240s（仅当服务端挂起时才触顶；绝大多数失败是 DNS/连接
+            # 拒绝，瞬时返回）。已知死图由 dead_set 跳过、不进入此处，故该最坏耗时
+            # 只作用于当轮「新」死图，不会逐轮累积逼近 6h 超时。
             attempts, MAX_ATTEMPTS = 0, 8
             for ref in candidates:
                 _retry = 0
@@ -3052,6 +3064,11 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                 ok_urls.add(url)
                 return True
             # 重生失败：保留外链（不比原来更差）
+            failed_urls.append(url)
+            return False
+        # 死链跳过：历史已确认失败的外站图直接保留原链接、不再重试下载。
+        # force 模式（手动 localize --force）下仍重试，便于源站恢复后复活。
+        if not force and url in dead_set:
             failed_urls.append(url)
             return False
         real_url, fetch_url = _proxy_pair(url)
@@ -3129,6 +3146,11 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                             if QR_HOST_RE.search(urlparse(u).netloc):
                                 new_parts.append(part)
                                 continue
+                            # 死链跳过：历史已确认失败的外站图直接保留原链接、不再重试下载
+                            if not force and u in dead_set:
+                                new_parts.append(part)
+                                failed_urls.append(u)
+                                continue
                             real_url, fetch_url = _proxy_pair(u)
                             rel = rel_path(real_url)
                             if rel is None:
@@ -3194,17 +3216,10 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
             except Exception as e:
                 print(f"::warning:: 重写 {hf} 失败: {e}", file=sys.stderr)
 
-    # 死链清单：累积历史失败（单次运行只覆盖会丢历史），但要剔除本轮已成功
+    # 死链清单：累积历史失败（dead_set 已在函数入口读取），但要剔除本轮已成功
     # 本地化的 URL，否则清单只增不减、很快沦为全是过期条目的噪声。
-    dead_path = out_dir / ".dead_remote_imgs.json"
     if failed_urls or ok_urls:
-        existing = set()
-        if dead_path.is_file():
-            try:
-                existing = set(json.loads(dead_path.read_text(encoding="utf-8")))
-            except Exception:
-                existing = set()
-        merged = (existing | set(failed_urls)) - ok_urls
+        merged = (dead_set | set(failed_urls)) - ok_urls
         if merged:
             dead_path.write_text(
                 json.dumps(sorted(merged), ensure_ascii=False, indent=2),
@@ -3214,7 +3229,7 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
     print(f"==> 图片本地化：扫描 {stats['scanned']} 篇文章，"
           f"外站图 {stats['images_total']} 处，下载 {stats['downloaded']}，"
           f"二维码重生 {stats.get('qr_regen', 0)}，复用 {stats['reused']}，"
-          f"改写 {stats['rewritten']}，失败 {stats['failed']}")
+          f"改写 {stats['rewritten']}，失败 {len(failed_urls)}")
     return stats
 
 

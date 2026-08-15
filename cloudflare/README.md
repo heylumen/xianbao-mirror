@@ -1,3 +1,9 @@
+> ⚠️ **当前未启用（DISABLED）**：本目录是「用 Cloudflare Worker 随机触发 GitHub Actions」的**可选备选方案**，
+> 当前仓库（公开仓，GitHub Actions 免费且不限时长）使用 `backup.yml` 自带的 GitHub 原生 `schedule`
+> 定时（每天 3 轮：北京时间 01:00 / 09:00 / 17:00 + 0~5 分钟随机），**并未部署本 Worker**。
+> 其中的 `GH_TOKEN` 仅以 Cloudflare 环境变量（`secret`）形式引用，未硬编码明文；如需启用请按下方步骤部署。
+> 留此目录仅作私有仓省额度 / 真随机隐蔽场景的参考，请勿在公开仓误部署以免泄露触发面。
+
 # 用 Cloudflare Worker 免费层做「随机触发 GitHub Actions」
 
 目标：私有仓爬取既**真随机隐蔽**（落点小时级均匀）又**省 Actions 额度**（GitHub runner 不 sleep）。

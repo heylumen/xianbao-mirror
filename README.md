@@ -1,7 +1,7 @@
 # xianbao.fun 镜像站（线报酷归档）
 
 把 [new.xianbao.fun](https://new.xianbao.fun)（线报酷，Z-BlogPHP）做成一个**静态镜像**，
-由 GitHub Actions 定时自动采集、提交到私有仓库，并可一键部署到 **Vercel** 与 **Netlify**；
+由 GitHub Actions 定时自动采集、提交到公开仓库，并可一键部署到 **Vercel** 与 **Netlify**；
 同时提供**周 / 月 / 年级别 Release 归档**作为时间点备份，并内置**站内搜索**。
 
 > 本方案改编自已有的 `qke.net` 项目，架构一致：Playwright 无头渲染 → 链接改写为部署前缀 →
@@ -21,8 +21,10 @@
 - **源域名随机轮换**：从 6 个已验证内容一致的 HTTPS 域名（`new.xianbao.fun` / `news.xianbao.fun` /
   `new.ixbk.net` / `news.ixbk.net` / `new.ixbk.fun` / `news.ixbk.fun`）中随机选一个作抓取源，
   分散单域名请求频次。因各域名内容/URL 完全一致，轮换不会碎片镜像。
-- **夜间随机时间**：`backup.yml` 在北京时间约 02:00 基准上叠加 **0~45 分钟随机抖动**，
-  把请求打散到深夜，降低被识别为规律爬虫的概率（抖动控制在 45 分钟内以免过度消耗 Actions 额度）。
+- **多班定时 + 轻量随机**：`backup.yml` 每天 **3 轮**（北京时间 **01:00 / 09:00 / 17:00**）触发，
+  每轮在整点后叠加 **0~5 分钟随机抖动**（`sleep $((RANDOM % 300))`），把请求节律打散。
+  公开仓库 GitHub Actions 免费且不限时长，唯一硬约束是单 job **6 小时超时**；3 轮/天 ≈ 1695 篇/天，
+  足以在 8/31 前爬完全站（含约 5 天冗余）。
 - **站内搜索**：渲染时生成 `search.json` 索引与 `search.html` 搜索页（MiniSearch 前端检索），
   每个页面右下角有「🔍 搜索」悬浮按钮。满足「搜索站内内容」的核心诉求（每日重建，随备份更新）。
 - **多级别归档**：周 / 月 / 年 三级 Release 归档点；镜像内容本身完整留存于每日 git 提交历史。
@@ -37,12 +39,13 @@
 
 1. **用途定位：个人归档**。本工具用于把公开网页抓取为本地/私有仓库的静态副本，便于个人留存与离线浏览。
    原站内容（文字、图片、评论）的版权归原站运营方所有，镜像站**不应**用于冒充原站、二次分发牟利或任何侵权用途。
-2. **“完整镜像”的务实边界**。原站分页到约 **1298 页**、全站文章约 **6.5 万篇**，但本镜像**仅覆盖指定的 5 个分类**。
+2. **"完整镜像"的务实边界**。原站整体体量较大（分页近 1300 页、文章数十万篇级），但本镜像**仅覆盖指定的 5 个分类**，实际抓取目标远小于全站；
    受 GitHub 仓库体积（软上限 1GB / 单文件 100MB）与 Actions 单次运行时长（上限 6 小时）限制，
    采用「**每天增量一小批，逐日累积直到抓完 5 分类，之后转维护模式只查更新**」的策略，
    既能最终覆盖全部目标内容，又避免一次性巨量请求。
-3. **外链资源保持热链**。文章图片等多存于外部 CDN（如 `v.yuebuy.cn`），脚本**只下载同站资源**，
-   外链图片仍指向原 CDN。这样能控制仓库体积，但意味着镜像的图片依赖于原 CDN 在线。
+3. **外站图片本地化（防删帖）**。文章页中的外站 `<img>`（含二维码服务图）会下载到站内
+   `zb_users/remote/<host>/<path>` 并改写链接，源站删帖/删图后镜像仍可正常查看；
+   下载失败的图片保留原链接并记入 `.dead_remote_imgs.json`，后续轮次直接跳过、不再反复重试。
 4. **“不被发现”是尽力而为，非绝对**。已做：限速、常规 UA、浏览器指纹伪装、**源域名轮换**、
    **增量小批量 + 夜间随机时间**。这降低了被识别为异常流量的概率；但原站服务器始终能看到请求来源（IP、时间规律），
    且一旦把镜像**公开部署**到 Vercel/Netlify，它的地址可被搜索引擎/引用发现。**没有真正意义的“隐形”**。
@@ -64,7 +67,7 @@ xianbao-mirror/
 │   ├── 404.html             # 自定义 404 页
 │   └── test_render.py       # 核心纯函数单元测试（白名单/链接改写/签名/索引）
 ├── .github/workflows/
-│   ├── backup.yml           # 每日增量渲染（约 02:00 北京时间 + 0~45m 随机抖动）并提交 xianbao/
+│   ├── backup.yml           # 每日 3 轮增量渲染（北京时间 01:00/09:00/17:00 + 0~5m 随机）并提交 xianbao/
 │   ├── weekly-backup.yml    # 每周一归档 Release（backup-YYYY-Www，保留 30 周，不重渲染）
 │   ├── monthly-backup.yml   # 每月1日归档 Release（backup-YYYY-MM，保留 24 个月，不重渲染）
 │   ├── yearly-backup.yml    # 每年1日归档 Release（backup-YYYY，保留 5 年，不重渲染）
@@ -86,10 +89,10 @@ xianbao-mirror/
 | `TARGET_URL` | 随机从 6 域名中选 | 指定单一抓取源（设了就**关闭轮换**）；不设则每次随机轮换 |
 | `OUT_DIR` | `xianbao` | 输出目录 |
 | `PAGES_PREFIX` | `/` | 部署路径前缀；GitHub Pages 项目页改为 `/<repo>` |
-| `PAGES_PER_RUN_PER_CAT` | `6` | `crawl` 模式每轮每分类抓取的列表页数（控制每日增量节奏） |
+| `PAGES_PER_RUN_PER_CAT` | `6`（当前 CI 覆盖为 `8`） | `crawl` 模式每轮每分类抓取的列表页数（控制每日增量节奏） |
 | `RECHECK_PER_RUN` | `200` | `maintenance` 模式每轮抽样复查的已抓文章数（检测新评论/内容） |
-| `MAX_PAGES_PER_RUN` | `200` | 单轮渲染页面**总数硬上限（列表页 + 文章页合计）**，防封 IP / 控 Actions 额度。实测 5 分类约 2.6 万篇，按 200/天约需 130 天（约 4 个半月）；稳后可调大到 300~400 提速 |
-| `CHECKPOINT_EVERY` | `10` | 每渲染多少页做一次「检查点提交」（commit + push 状态与新页面）。中途取消/崩溃也不丢进度，次日从断点继续、不重复爬。`0` = 关闭（仅跑完才提交） |
+| `MAX_PAGES_PER_RUN` | `200`（当前 CI 覆盖为 `600`） | 单轮渲染页面**总数硬上限（列表页 + 文章页合计）**，受单 job 6h 超时约束。当前 3 轮/天 × 600 页 ≈ 1695 篇/天，约 8/26 前可爬完 5 分类（留 5 天冗余至 8/31） |
+| `CHECKPOINT_EVERY` | `0`（当前 CI 覆盖为 `120`） | 每渲染多少页做一次「检查点提交」（commit + push 状态与新页面）。中途取消/崩溃也不丢进度，次日从断点继续、不重复爬。`0` = 关闭（仅跑完才提交） |
 | `CONSEC_MISS_LIMIT` | `3` | 分类列表页连续无新文章达此次数，判定该分类已抓完 |
 | `MAX_CAT_PAGES` | `5000` | 单分类列表页安全上限（防死循环） |
 | `NAV_TIMEOUT_MS` | `30000` | 单页导航超时 |
@@ -107,7 +110,7 @@ xianbao-mirror/
 
 - 进度由 `xianbao/.crawl-state.json` 记录（已抓路径集合、各分类游标、每篇内容签名、失效地址集），**每次运行结束会随 `xianbao/` 一起提交到仓库**。
 - **正常跑完**：次日从断点继续，已抓的页面直接跳过（`drain_frontier` 遇 `state["crawled"]` 内路径即跳过），不会重复爬。已发现但未渲染的文章保留在 `state["pending"]`（待处理队列），下次运行继续排空，确保「整个网站全量备份」不丢页。
-- **中途取消 / 崩溃**：因为启用了检查点提交（`CHECKPOINT_EVERY`），每渲染 10 页就会把进度推到 GitHub，所以**已提交的进度会保留**，次日接着爬、同样不重复。只要不手动取消整个仓库、不删 `.crawl-state.json` 即可。
+- **中途取消 / 崩溃**：因为启用了检查点提交（`CHECKPOINT_EVERY`），每渲染 120 页就会把进度推到 GitHub（由 CHECKPOINT_EVERY 控制，当前 CI = 120），所以**已提交的进度会保留**，次日接着爬、同样不重复。只要不手动取消整个仓库、不删 `.crawl-state.json` 即可。
 
 ---
 
@@ -142,7 +145,7 @@ python -m pytest mirror/test_render.py -q # 跑单元测试
 
 ## 定时备份与归档
 
-- **每日增量**：`backup.yml` 北京时间约 02:00（叠加 0~45 分钟随机抖动）增量渲染并提交 `xianbao/` 到 `main`，
+- **每日增量**：`backup.yml` 每天 3 轮（北京时间 01:00 / 09:00 / 17:00，整点后 0~5 分钟随机抖动）增量渲染并提交 `xianbao/` 到 `main`，
   Vercel/Netlify 自动拉取发布。
 - **周级归档**：`weekly-backup.yml` 每周一创建 `backup-YYYY-Www` Release，保留最近 30 周。
 - **月级归档**：`monthly-backup.yml` 每月1日创建 `backup-YYYY-MM` Release，保留最近 24 个月。
@@ -156,11 +159,11 @@ python -m pytest mirror/test_render.py -q # 跑单元测试
 
 ## 首次建仓与推送
 
-本仓库初始化为私有。建仓与首次推送请用本机已登录 `gh` 的环境执行（详见 `setup-repo.sh` / `setup-repo.bat`）：
+本仓库为**公开仓库**。建仓与首次推送请用本机已登录 `gh` 的环境执行（详见 `setup-repo.sh` / `setup-repo.bat`）：
 
 ```bash
 # 在 xianbao-mirror/ 目录下
-gh repo create xianbao-mirror --private --source=. --remote=origin --push
+gh repo create xianbao-mirror --public --source=. --remote=origin --push
 ```
 
 推送后到 GitHub 仓库的 **Settings → Actions → General** 确认 Actions 已启用；

@@ -182,12 +182,19 @@ for p in out_dir.rglob("*"):
         el.decompose()
     body = soup.body
     if body is not None:
-        a = soup.new_tag("a", href=f"/category-{cat}/")
-        a["class"] = "back-to-list"
-        a["style"] = ("display:inline-block;margin:14px 0 0;color:#1f4fd6;"
-                      "text-decoration:none;font-size:14px;font-weight:600")
-        a.string = "← 返回列表"
-        body.insert(0, a)
+        # 收敛双导航：若 render.py 已注入新版顶部导航（xianbao-article-nav），
+        # 则不再补旧版「返回列表」链接，避免同一页面出现两套导航（正常情况下
+        # 该页面已带 MARKER，早在上方被 continue 跳过，此处为防御性兜底）。
+        if body.find("header", class_="xianbao-article-nav") is None:
+            # 幂等：移除可能残留的旧「返回列表」链接，避免重复注入
+            for _a in body.find_all("a", class_="back-to-list"):
+                _a.decompose()
+            a = soup.new_tag("a", href=f"/category-{cat}/")
+            a["class"] = "back-to-list"
+            a["style"] = ("display:inline-block;margin:14px 0 0;color:#1f4fd6;"
+                          "text-decoration:none;font-size:14px;font-weight:600")
+            a.string = "← 返回列表"
+            body.insert(0, a)
         body.insert(0, Comment(MARKER))
     p.write_text(str(soup), encoding="utf-8")
     count += 1
