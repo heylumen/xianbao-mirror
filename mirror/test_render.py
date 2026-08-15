@@ -1044,3 +1044,27 @@ def test_rebuild_category_page_strips_source_common_js(tmp_path):
     assert "search-area" in out          # 搜索框结构保留
     assert "xianbao-nav-tools" in out    # 自包含交互脚本仍在
 
+
+def test_resolve_dir_file_conflict_renames_blocking_file(tmp_path):
+    """回归：源站 `/forum`(文件) 与 `/forum/202605/...`(目录) 映射到同一站内路径时，
+    ensure_download 的 mkdir 不再抛 FileExistsError。挡路的【文件】应被改名避让保留，
+    且目标目录最终可成功创建。"""
+    # 制造冲突：祖先 `forum` 已是一个文件（而非目录）
+    blocking = tmp_path / "zb_users" / "remote" / "img.xianbao.net" / "data" / "attachment" / "forum"
+    blocking.parent.mkdir(parents=True)
+    blocking.write_text("i am a stray file, not a dir")
+    # 目标：在 forum 之下再建子目录并落文件
+    target_parent = blocking.parent / "forum" / "202605" / "14"
+
+    # 修复前会抛 FileExistsError；修复后冲突文件被改名、目录可建
+    render._resolve_dir_file_conflict(target_parent)
+    target_parent.mkdir(parents=True, exist_ok=True)
+
+    # 原冲突【文件】不再以 forum 之名存在（已被改名避让，且 forum 现为目录）
+    assert blocking.is_file() is False, "原冲突文件应被改名（forum 不再是散落文件）"
+    assert (blocking.parent / "forum" / "202605" / "14").is_dir(), "目标子目录应成功创建"
+    # 原文件未被删除，而是改名保留且内容一致
+    renamed = list(blocking.parent.glob("forum.conflict-*"))
+    assert len(renamed) == 1, f"应有一个改名避让文件，实际: {renamed}"
+    assert renamed[0].read_text() == "i am a stray file, not a dir"
+

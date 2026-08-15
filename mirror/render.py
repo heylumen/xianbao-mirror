@@ -2850,6 +2850,22 @@ def _proxy_pair(url: str):
     return (real, fetch)
 
 
+def _resolve_dir_file_conflict(parent: Path):
+    """parent 的某级祖先已是一个【文件】，与待创建的目录同名冲突（源站常同时
+    存在 `/forum` 文件与 `/forum/202605/...` 目录，二者映射到站内同一路径）。
+    自浅到深定位第一个这样的文件，改名(.conflict-<hash>)避让，保留原文件不
+    丢失，随后即可正常建目录。"""
+    for i in range(1, len(parent.parts) + 1):
+        p = Path(*parent.parts[:i])
+        if p.is_file():
+            moved = p.with_name(p.name + ".conflict-" + hashlib.md5(str(p).encode()).hexdigest()[:8])
+            try:
+                p.rename(moved)
+            except OSError:
+                pass
+            break
+
+
 def localize_images(out_dir: Path, *, force: bool = False) -> dict:
     """下载文章页中的外站 <img>（src / data-src / data-original / srcset）到本地
     ``out_dir/zb_users/remote/<host>/<path>``，并把链接改写成站内相对路径。
@@ -2927,7 +2943,15 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
         dst = out_dir / rel
         if dst.exists() and dst.is_file() and dst.stat().st_size > 0 and not force:
             return rel
-        dst.parent.mkdir(parents=True, exist_ok=True)
+        # 防御：源站同时存在 `/forum`(文件) 与 `/forum/202605/...`(目录) 且映射到
+        # 同一站内路径时，若先落的是文件，后续建子目录的 mkdir 会抛 FileExistsError
+        # 使整轮渲染崩溃（非确定性：取决于图片处理顺序，故时好时坏）。遇冲突把挡路
+        # 的【文件】改名避让（保留、不删），再建目录，确保不崩、不丢数据。
+        try:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+        except FileExistsError:
+            _resolve_dir_file_conflict(dst.parent)
+            dst.parent.mkdir(parents=True, exist_ok=True)
         # 候选 Referer：先试当前文章页（最贴近源站上下文），再试图片自身源站
         # （许多 CDN 仅接受本站 Referer 或无 Referer，错 Referer 会回 403），
         # 最后用各镜像域名兜底。实测 pic.xiaodigu.cn 等无 Referer 即 200。
