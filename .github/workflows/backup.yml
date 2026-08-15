@@ -2,12 +2,18 @@ name: 网站镜像 · 每日渲染
 
 on:
   schedule:
-    # 每日一次，随机落在北京时间 01:00~01:05（私有仓控额度：窗口压窄、sleep 上限 300s）。
-    # 隐蔽性弱（约等于固定 01:00）；如需真随机且仍省额度，见 architecture.md 的「外部随机触发」方案。
-    # GitHub Actions cron 为 UTC，北京=UTC+8，故 01:00 北京 = UTC 17:00。
-    # 此处固定在窗口起点触发，真正的随机化在「随机延时」步骤完成：sleep 0~300s（0~5min）。
+    # 公开仓库（GitHub Actions 对 public 仓无限免费、不计时长，唯一硬约束=单 job 6h 超时）。
+    # 目标：本月（约 16 天）爬完全站 → 需 ~6× 当前吞吐，故改为「每 6 小时一轮」×4 轮/天。
+    # GitHub Actions cron 为 UTC，北京=UTC+8：
+    #   北京 01:00 = UTC 17:00 | 北京 07:00 = UTC 23:00
+    #   北京 13:00 = UTC 05:00 | 北京 19:00 = UTC 11:00
+    # 每轮实际约 3~4h（MAX_PAGES_PER_RUN=600），6h 间隔不会重叠；即便偶发超时，
+    # CHECKPOINT_EVERY=120 已开检查点，仅丢最后 ≤120 页，次日续爬不重复。
     - cron: "0 17 * * *"
-  workflow_dispatch: {}   # 允许在 Actions 页面手动触发，便于首次验证
+    - cron: "0 23 * * *"
+    - cron: "0 5 * * *"
+    - cron: "0 11 * * *"
+  workflow_dispatch: {}   # 允许在 Actions 页面手动触发，便于验证与补跑
 
 # Vercel / Netlify 通过 Git 集成读取提交的 xianbao/ 目录直接发布，
 # 无需在 GitHub Actions 中部署，故只需 contents: write 提交镜像产物。
@@ -29,6 +35,13 @@ jobs:
     env:
       PAGES_PREFIX: "/"
       INJECT_VERCEL_ANALYTICS: "1"
+      # —— 本月冲刺调参（公开仓无限时长，瓶颈=单 job 6h 超时）——
+      # 单轮吞吐从 ~189 篇提到 ~565 篇（≈565/run × 4 run/天 ≈ 2260/天 → 约 8~10 天爬完 18325 pending）
+      MAX_PAGES_PER_RUN: "600"
+      # 每分类每轮多翻几页列表，保证 zuankeba(未翻完) 持续发现新帖、跟得上 drain 速度
+      PAGES_PER_RUN_PER_CAT: "8"
+      # 检查点：每渲染 120 页提交一次，单轮 6h 超时最多丢最后 ≤120 页，绝不整轮归零
+      CHECKPOINT_EVERY: "120"
     steps:
       - name: 检出仓库
         uses: actions/checkout@v4
@@ -63,12 +76,10 @@ jobs:
       - name: "单元测试（渲染核心函数回归门禁）"
         run: python -m pytest mirror/test_render.py -q
 
-      - name: 随机延时（仅定时触发；每日落点在北京时间 01:00~01:05 随机）
+      - name: 随机延时（仅定时触发；每轮落点在整点后 0~5min 随机，分散请求节律）
         if: github.event_name == 'schedule'
-        # 私有仓 GitHub Actions 免费仅 2000 分钟/月，故随机窗口压到 5 分钟以控额度：
-        # 触发时刻 UTC 17:00（=北京 01:00），再随机 sleep 0~300s（0~5min）→ 落点北京 01:00~01:05。
-        # 注：此窗口极窄≈固定 01:00，隐秘性弱；若既要隐秘又要省额度，应把随机触发移到
-        # GitHub 之外（本机 Task Scheduler / Cloudflare Worker 免费层在随机时刻调 workflow_dispatch）。
+        # 公开仓无限时长，不再为控额度压窄窗口；此处仅做 0~5min 随机抖动，
+        # 避免 4 轮/天在整点瞬间齐发、与源站交互节律更自然。
         run: sleep $((RANDOM % 300))
 
       - name: 执行网站渲染镜像（Playwright，增量 + 5 分类白名单，输出到 xianbao/）
