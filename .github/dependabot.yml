@@ -1,11 +1,12 @@
-# 要开始使用 Dependabot 版本更新，您需要指定哪个
-# 包生态系统以更新以及包清单文件的位置。
-# 请参阅文档以了解所有配置选项：
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
-版本：2: 2
-更新：:
-  - package-ecosystem: "" # 查看文档以了解可能的值package-ecosystem: "" # See documentation for possible values
-    目录: "/" # 包清单的位置: "/" # Location of package manifests
-    日程：:
-      间隔: "weekly": "weekly"
+# Dependabot 版本更新配置
+# 文档：https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/mirror"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"

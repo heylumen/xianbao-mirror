@@ -74,7 +74,7 @@ jobs:
           playwright install --with-deps chromium
 
       - name: "单元测试（渲染核心函数回归门禁）"
-        run: python -m pytest mirror/test_render.py -q
+        run: python -m pytest mirror/ -q
 
       - name: 随机延时（仅定时触发；每轮落点在整点后 0~5min 随机，分散请求节律）
         if: github.event_name == 'schedule'
