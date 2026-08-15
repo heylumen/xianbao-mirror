@@ -567,7 +567,7 @@ def test_checkpoint_outside_git_is_safe_and_saves_state(monkeypatch, tmp_path):
     assert (tmp_path / ".crawl-state.json").exists()
 
 
-def test_checkpoint_commits_and_pushes_when_in_git(monkeypatch, tmp_path):
+def test_checkpoint_commits_but_does_not_push(monkeypatch, tmp_path):
     monkeypatch.setattr(render, "OUT_DIR", tmp_path)
     calls = []
 
@@ -576,7 +576,7 @@ def test_checkpoint_commits_and_pushes_when_in_git(monkeypatch, tmp_path):
         if args[:3] == ("rev-parse", "--is-inside-work-tree"):
             return subprocess.CompletedProcess(args, 0, "true\n", "")
         if args[:2] == ("diff", "--cached"):
-            # 模拟「有变更待提交」，使 checkpoint 继续 commit + push
+            # 模拟「有变更待提交」，使 checkpoint 继续 commit（但不 push）
             return subprocess.CompletedProcess(args, 1, "", "")
         return subprocess.CompletedProcess(args, 0, "", "")
 
@@ -585,7 +585,8 @@ def test_checkpoint_commits_and_pushes_when_in_git(monkeypatch, tmp_path):
           "category_cursor": {}, "category_exhausted": {}}
     render.checkpoint(st, "unit-test")
     joined = " ".join(" ".join(c) for c in calls)
-    assert "commit" in joined and "push" in joined  # 确实提交并推送
+    assert "commit" in joined  # checkpoint 应本地 commit
+    assert "push" not in joined  # 但不应 push，避免每个 checkpoint 触发 Vercel 部署
     assert (tmp_path / ".crawl-state.json").exists()
 
 

@@ -1229,10 +1229,12 @@ def _git(*args):
 
 
 def checkpoint(state, note=""):
-    """把已爬进度（状态文件 + 新页面）提交并推送到 GitHub。
+    """把已爬进度（状态文件 + 新页面）提交到本地 git，但不推送。
 
-    作用：即便本次运行被手动取消或崩溃，已提交的进度会保留，次日从断点继续、
-    不重复爬取。非 git 工作区（如本地无仓库）时仅落地状态文件、跳过提交。
+    作用：即便本次运行被手动取消或崩溃，已提交的进度会保留在本地 git 中；
+    workflow 结束时会统一 push 到 GitHub，次日从断点继续、不重复爬取。
+    不直接 push 是为了避免每个 checkpoint 都触发一次 Vercel 部署。
+    非 git 工作区（如本地无仓库）时仅落地状态文件、跳过提交。
     """
     global _pages_since_ckpt
     _pages_since_ckpt = 0
@@ -1251,13 +1253,6 @@ def checkpoint(state, note=""):
     c = _git("commit", "-m", msg)
     if c.returncode != 0:
         print(f"::warning:: checkpoint 提交失败: {c.stderr[:200]}", file=sys.stderr)
-        return
-    # 与远端同步后再推送，避免非快进拒绝（不同步也尝试，失败留待下次 checkpoint）
-    _git("pull", "--rebase", "origin", "main")
-    p = _git("push", "origin", "main")
-    if p.returncode != 0:
-        print(f"::warning:: checkpoint 推送失败（下次重试）: {p.stderr[:200]}",
-              file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------

@@ -85,15 +85,19 @@ jobs:
       - name: 执行网站渲染镜像（Playwright，增量 + 5 分类白名单，输出到 xianbao/）
         run: bash mirror/mirror.sh
 
-      - name: 提交镜像产物（xianbao/ 供 Vercel/Netlify 发布）
+      - name: 最终统一推送（含 checkpoint 与 mirror.sh 修复）
+        if: always()
         run: |
+          # render.py 的 checkpoint 已在本地 commit 但不 push，
+          # 这里统一提交 mirror.sh 的后续修复并一次性 push，
+          # 避免每个 checkpoint 都触发一次 Vercel 部署。
           git rm --cached xianbao/.mirror-meta.json 2>/dev/null || true
           git add xianbao/
-          if git diff --cached --quiet; then
-            echo "无变更，跳过提交"
-          else
+          if ! git diff --cached --quiet; then
             DATE=$(TZ=Asia/Shanghai date +%F)
             git commit -m "mirror: $DATE"
-            git pull --rebase origin main
-            git push
           fi
+          # 推送所有本地 commits（含 checkpoint）。即使前面步骤被取消/超时，
+          # 只要有本地 commit 就尽量同步，减少进度丢失。
+          git pull --rebase origin main
+          git push
