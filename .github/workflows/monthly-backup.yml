@@ -1,9 +1,11 @@
 name: 月度备份 · Release 归档
 
-# 每月1日打包「当前仓库快照」为 GitHub Release（tag 形如 backup-YYYY-MM）。
+# 每月1日将「整站（含 xianbao/ 镜像）」整体打包为 GitHub Release（tag 形如 backup-YYYY-MM）。
 # 仅做归档，不重新渲染（镜像内容由每日 backup.yml 增量维护）。
-# 恢复粒度 = 月级；历史保留 = 全部（永久）。GitHub Release assets 永不过期、
-# 不计入 Packages 500MB 配额，故保留全部月度历史快照，不主动删旧（与 qke.net 一致）。
+# 恢复粒度 = 月级；历史保留 = 全部（永久），与 qke.net 策略一致（GitHub Release assets
+#   永不过期、不计入 Packages 500MB 配额、不随仓库不活动而删）。
+# 分卷策略：GitHub Release 单文件上限 < 2 GiB；压缩后归档超过 1.5 GiB 自动拆分为
+#   多卷（每卷 ≤ 1.5 GiB），多卷经 `cat <tag>.tar.gz.part* > combined.tar.gz` 再解压还原。
 
 on:
   schedule:
@@ -28,24 +30,33 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: 打包归档（自适应体积，避免单份归档过大）
+      - name: 整站打包（含 xianbao/，超 1.5GiB 自动分卷）
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="backup-$(TZ=Asia/Shanghai date +%Y-%m)"
           TS="$(TZ=Asia/Shanghai date +%F)"
-          ARCHIVE="${RUNNER_TEMP:-/tmp}/monthly-backup-${TAG}.tar.gz"
+          ARCHIVE="${RUNNER_TEMP:-/tmp}/full-backup-${TAG}.tar.gz"
           tar --exclude='.git' --exclude='__pycache__' --exclude='backups' \
               --exclude='*.pyc' --exclude='*.tar.gz' -czf "$ARCHIVE" .
-          SIZE=$(stat -c%s "$ARCHIVE" 2>/dev/null || echo 0)
-          LIMIT=$((450*1024*1024))
-          if [ "$SIZE" -gt "$LIMIT" ]; then
-            echo "归档体积 $((SIZE/1024/1024))MB 超过 ${LIMIT} 字节限制，改为仅打包代码与配置"
-            echo "（xianbao/ 镜像内容已完整留存于每日 git 提交历史，可由对应日期提交恢复）"
-            tar --exclude='.git' --exclude='__pycache__' --exclude='backups' \
-                --exclude='xianbao' --exclude='*.pyc' --exclude='*.tar.gz' \
-                -czf "$ARCHIVE" .
-            echo "本归档仅含 mirror/ 脚本与配置；镜像内容请由对应日期的 git 提交恢复。" > xianbao-EXCLUDED.txt
+
+          PARTS=()
+          SZ=$(stat -c%s "$ARCHIVE")
+          SPLIT_LIMIT=$((1500*1024*1024))   # 1.5 GiB
+          if [ "$SZ" -gt "$SPLIT_LIMIT" ]; then
+            echo "归档体积 $((SZ/1024/1024))MB 超过 1.5GiB，拆分为多卷（每卷 1.5GiB，< 2GiB 上限）"
+            OUTPREF="${ARCHIVE}.part"
+            split -b 1500M -d -a 2 "$ARCHIVE" "$OUTPREF"
+            rm -f "$ARCHIVE"
+            shopt -s nullglob
+            for p in "${OUTPREF}"*; do PARTS+=("$p"); done
+            shopt -u nullglob
+          else
+            PARTS=("$ARCHIVE")
+          fi
+          if [ "${#PARTS[@]}" -eq 0 ]; then
+            echo "::error:: 归档分卷生成失败"
+            exit 1
           fi
 
           delete_existing() {
@@ -71,14 +82,18 @@ jobs:
             git push origin ":refs/tags/$TAG" >/dev/null 2>&1 || true
           fi
 
+          REASM=""
+          if [ "${#PARTS[@]}" -gt 1 ]; then
+            REASM=$'\n本归档为多卷分卷：下载全部 part* 后执行 `cat full-backup-*.tar.gz.part* > combined.tar.gz` 再 `tar -xzf combined.tar.gz` 还原。'
+          fi
+
           create_release() {
-            gh release create "$TAG" "$ARCHIVE" \
+            gh release create "$TAG" "${PARTS[@]}" \
               --title "月度备份 ${TAG}（生成于 ${TS}）" \
-              --notes "自动归档快照（tag=${TAG}）。
+              --notes "自动归档：整站完整快照（含 xianbao/ 镜像产物）。
           生成时间（北京时间）：${TS}
-          内容：mirror 抓取脚本、配置文件；xianbao/ 镜像内容随每日提交留存于 git 历史。
-          若归档体积超限，仅打包代码与配置，镜像内容可由对应日期的 git 提交恢复。
-          历史保留策略：保留全部月度历史快照（GitHub Release 永久保存，不主动清理旧备份）。"
+          内容：mirror 抓取脚本、配置、xianbao/ 整站镜像（图片已本地化）。
+          历史保留策略：保留全部月度历史快照（GitHub Release 永久保存，不主动清理旧备份）。${REASM}"
           }
           n=0
           until create_release; do

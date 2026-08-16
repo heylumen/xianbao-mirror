@@ -1,13 +1,12 @@
 name: 周级备份 · Release 归档
 
-# 每周一打包「当前仓库快照」为 GitHub Release（tag 形如 backup-YYYY-Www）。
-# 注意：本工作流【不再重新渲染】——镜像内容由每日 backup.yml 增量维护，
-# 这里只做周期性归档，避免重复全量爬取。
-# 恢复粒度 = 周级；历史保留 = 全部（永久）。GitHub Release 的二进制 assets 永不过期、
-# 不会因仓库不活动而自动清理，且 assets 不计入 GitHub Packages 500MB 配额；
-# 故保留全部周级历史快照，不主动删旧（与 qke.net 调整策略一致）。
-# 注：单份归档含 xianbao/ 时体积过大，故超过 450MB 限额时仅打包代码与配置，
-# 镜像内容由对应日期的 git 提交恢复；该精简策略与「永久保留」不冲突（历史仍可经 git 回溯）。
+# 每周一将「整站（含 xianbao/ 镜像）」整体打包为 GitHub Release（tag 形如 backup-YYYY-Www）。
+# 注意：本工作流【不再重新渲染】——镜像内容由每日 backup.yml 增量维护，这里只做周期性归档。
+# 恢复粒度 = 周级；历史保留 = 全部（永久），与 qke.net 策略一致（GitHub Release assets
+#   永不过期、不计入 Packages 500MB 配额、不随仓库不活动而删）。
+# 分卷策略：GitHub Release 单文件上限 < 2 GiB；本工作流对【压缩后】归档测量，
+#   超过 1.5 GiB 自动拆分为多卷（每卷 ≤ 1.5 GiB，稳妥低于 2 GiB 上限），
+#   多卷经 `cat <tag>.tar.gz.part* > combined.tar.gz` 再 `tar -xzf` 还原。
 
 on:
   schedule:
@@ -32,23 +31,35 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: 打包归档（自适应体积，避免单份归档过大）
+      - name: 整站打包（含 xianbao/，超 1.5GiB 自动分卷）
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="backup-$(TZ=Asia/Shanghai date +%G-W%V)"
           TS="$(TZ=Asia/Shanghai date +%F)"
-          ARCHIVE="${RUNNER_TEMP:-/tmp}/weekly-backup-${TAG}.tar.gz"
+          ARCHIVE="${RUNNER_TEMP:-/tmp}/full-backup-${TAG}.tar.gz"
+          # 全站整体打包（含 xianbao/ 镜像产物），排除 git 历史与缓存
           tar --exclude='.git' --exclude='__pycache__' --exclude='backups' \
               --exclude='*.pyc' --exclude='*.tar.gz' -czf "$ARCHIVE" .
-          SIZE=$(stat -c%s "$ARCHIVE" 2>/dev/null || echo 0)
-          LIMIT=$((450*1024*1024))
-          if [ "$SIZE" -gt "$LIMIT" ]; then
-            echo "归档体积 $((SIZE/1024/1024))MB 超过 ${LIMIT} 字节限制，改为仅打包代码与配置"
-            tar --exclude='.git' --exclude='__pycache__' --exclude='backups' \
-                --exclude='xianbao' --exclude='*.pyc' --exclude='*.tar.gz' \
-                -czf "$ARCHIVE" .
-            echo "本归档仅含 mirror/ 脚本与配置；镜像内容请由对应日期的 git 提交恢复。" > xianbao-EXCLUDED.txt
+
+          # —— 分卷策略：压缩后归档超过 1.5 GiB 则拆分，每卷 ≤ 1.5 GiB（< 2 GiB 上限）——
+          PARTS=()
+          SZ=$(stat -c%s "$ARCHIVE")
+          SPLIT_LIMIT=$((1500*1024*1024))   # 1.5 GiB
+          if [ "$SZ" -gt "$SPLIT_LIMIT" ]; then
+            echo "归档体积 $((SZ/1024/1024))MB 超过 1.5GiB，拆分为多卷（每卷 1.5GiB，< 2GiB 上限）"
+            OUTPREF="${ARCHIVE}.part"
+            split -b 1500M -d -a 2 "$ARCHIVE" "$OUTPREF"
+            rm -f "$ARCHIVE"
+            shopt -s nullglob
+            for p in "${OUTPREF}"*; do PARTS+=("$p"); done
+            shopt -u nullglob
+          else
+            PARTS=("$ARCHIVE")
+          fi
+          if [ "${#PARTS[@]}" -eq 0 ]; then
+            echo "::error:: 归档分卷生成失败"
+            exit 1
           fi
 
           # —— 幂等护栏：同一 ISO 周内重跑（手动 / 定时并发 / 重试）时，先彻底删除旧
@@ -84,14 +95,19 @@ jobs:
             git push origin ":refs/tags/$TAG" >/dev/null 2>&1 || true
           fi
 
+          # 多卷时给出还原说明
+          REASM=""
+          if [ "${#PARTS[@]}" -gt 1 ]; then
+            REASM=$'\n本归档为多卷分卷：下载全部 part* 后执行 `cat full-backup-*.tar.gz.part* > combined.tar.gz` 再 `tar -xzf combined.tar.gz` 还原。'
+          fi
+
           create_release() {
-            gh release create "$TAG" "$ARCHIVE" \
+            gh release create "$TAG" "${PARTS[@]}" \
               --title "周级备份 ${TAG}（生成于 ${TS}）" \
-              --notes "自动归档快照（tag=${TAG}）。
+              --notes "自动归档：整站完整快照（含 xianbao/ 镜像产物）。
           生成时间（北京时间）：${TS}
-          内容：mirror 抓取脚本、配置文件；xianbao/ 镜像内容随每日提交留存于 git 历史。
-          若归档体积超限，仅打包代码与配置，镜像内容可由对应日期的 git 提交恢复。
-          历史保留策略：保留全部周级历史快照（GitHub Release 永久保存，不主动清理旧备份）。"
+          内容：mirror 抓取脚本、配置、xianbao/ 整站镜像（图片已本地化）。
+          历史保留策略：保留全部周级历史快照（GitHub Release 永久保存，不主动清理旧备份）。${REASM}"
           }
           n=0
           until create_release; do
