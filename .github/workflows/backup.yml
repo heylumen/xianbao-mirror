@@ -34,14 +34,6 @@ jobs:
     env:
       PAGES_PREFIX: "/"
       INJECT_VERCEL_ANALYTICS: "1"
-      # —— 8/31 前爬完调参（公开仓无限时长，瓶颈=单 job 6h 超时）——
-      # 单轮吞吐 ~565 篇（MAX_PAGES_PER_RUN=600）；3 轮/天 ≈ 1695 篇/天，
-      # 18325 pending ÷ 1695 ≈ 11 天 → 约 8/26 前完成，留 5 天冗余至 8/31。
-      MAX_PAGES_PER_RUN: "600"
-      # 每分类每轮多翻几页列表，保证 zuankeba(未翻完) 持续发现新帖、跟得上 drain 速度
-      PAGES_PER_RUN_PER_CAT: "8"
-      # 检查点：每渲染 120 页提交一次，单轮 6h 超时最多丢最后 ≤120 页，绝不整轮归零
-      CHECKPOINT_EVERY: "120"
     steps:
       - name: 检出仓库
         uses: actions/checkout@v4
@@ -83,6 +75,18 @@ jobs:
         run: sleep $((RANDOM % 300))
 
       - name: 执行网站渲染镜像（Playwright，增量 + 5 分类白名单，输出到 xianbao/）
+        env:
+          # —— 8/31 前爬完调参（公开仓无限时长，瓶颈=单 job 6h 超时）——
+          # 单轮吞吐 ~565 篇（MAX_PAGES_PER_RUN=600）；3 轮/天 ≈ 1695 篇/天，
+          # 18325 pending ÷ 1695 ≈ 11 天 → 约 8/26 前完成，留 5 天冗余至 8/31。
+          # 注：这些调参仅作用于本渲染步骤，刻意不放在 job 级 env，
+          # 以免泄漏到上方「单元测试」步骤、覆盖 render.py 的代码默认值
+          # （如 MAX_PAGES_PER_RUN 默认 200），导致回归测试误判失败。
+          MAX_PAGES_PER_RUN: "600"
+          # 每分类每轮多翻几页列表，保证 zuankeba(未翻完) 持续发现新帖、跟得上 drain 速度
+          PAGES_PER_RUN_PER_CAT: "8"
+          # 检查点：每渲染 120 页提交一次，单轮 6h 超时最多丢最后 ≤120 页，绝不整轮归零
+          CHECKPOINT_EVERY: "120"
         run: bash mirror/mirror.sh
 
       - name: 最终统一推送（含 checkpoint 与 mirror.sh 修复）
