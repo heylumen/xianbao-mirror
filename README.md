@@ -1,6 +1,6 @@
 # xianbao.fun 镜像站（线报酷归档）
 
-把 [new.xianbao.fun](https://new.xianbao.fun) 做成一个**静态镜像**：GitHub Actions 定时采集并提交到公开仓库，可一键部署到 **Vercel / Netlify**，并提供 **Release 时间点归档**与**站内搜索**。
+把 [new.xianbao.fun](https://new.xianbao.fun) 做成一个**静态镜像**：GitHub Actions 定时采集并提交到公开仓库，并提供 **Release 时间点归档**与**站内搜索**。
 
 ## 特性
 
@@ -17,7 +17,7 @@
 xianbao-mirror/
 ├── mirror/
 │   ├── render.py            # 渲染核心（增量爬虫/白名单/域名轮换/评论等待/链接改写/搜索索引）
-│   ├── mirror.sh            # 部署前修复（404/favicon/CSS/搜索按钮/可选 Vercel 分析）
+│   ├── mirror.sh            # 部署前修复（404/favicon/CSS/搜索按钮）
 │   ├── requirements.txt     # 依赖版本锁定
 │   ├── xianbao-override.css # 响应式兜底样式
 │   ├── 404.html
@@ -29,7 +29,6 @@ xianbao-mirror/
 │   ├── yearly-backup.yml    # 每年1日整站打包归档 Release（永久保留）
 │   └── keepalive.yml        # 每周提交时间戳，防止定时任务被暂停
 ├── xianbao/                 # 渲染产物（Actions 生成并提交，勿手动编辑）
-├── vercel.json / netlify.toml
 └── README.md
 ```
 
@@ -42,16 +41,9 @@ bash mirror/mirror.sh                     # 增量渲染到 xianbao/
 python -m pytest mirror/ -q               # 单元测试
 ```
 
-## 部署
-
-`xianbao/` 为纯静态产物，无需构建：
-
-- **Vercel**：导入仓库 → Framework 选 `Other` → Output Directory 填 `xianbao`（或直接用 `vercel.json`）。
-- **Netlify**：导入仓库 → Build command 留空 → Publish directory 填 `xianbao`（或 `netlify.toml`）。
-
 ## 定时备份与归档
 
-- **每日增量**：`backup.yml` 每天 3 轮渲染并提交 `xianbao/`，Vercel/Netlify 自动发布。
+- **每日增量**：`backup.yml` 每天 3 轮渲染并提交 `xianbao/` 到 `main`。
 - **Release 归档（永久保留）**：周 / 月 / 年三级 workflow 将**整站（`xianbao/` 含镜像）打包为 tar.gz** 上传 Release。
   - 单文件上限 < 2 GiB；压缩后超过 **1.5 GiB** 自动 `split` 分多卷，作为同一 Release 的多个 asset 上传。
   - 还原：`cat <tag>.tar.gz.part* > combined.tar.gz && tar -xzf combined.tar.gz`。
