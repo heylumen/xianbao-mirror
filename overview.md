@@ -32,4 +32,4 @@ html.with-fancybox body.hide-scrollbar { margin-right: 0 !important; }
 
 ## 提交
 - Commit: `69a453b6` — `fix: 阻止 Fancybox 灯箱开合时评论区左右晃动`
-- 已推送 `xfxx2022/xianbao-mirror` main，Vercel/Cloudflare 会随 push 自动重建。部署后请 Ctrl+F5 硬刷新验证。
+- 已推送 `xfxx2022/xianbao-mirror` main，访客请 Ctrl+F5 硬刷新验证。
