@@ -3,7 +3,11 @@ name: 周级备份 · Release 归档
 # 每周一打包「当前仓库快照」为 GitHub Release（tag 形如 backup-YYYY-Www）。
 # 注意：本工作流【不再重新渲染】——镜像内容由每日 backup.yml 增量维护，
 # 这里只做周期性归档，避免重复全量爬取。
-# 恢复粒度 = 周级；历史保留 = 最近约 30 周（超出自动清理最老 Release）。
+# 恢复粒度 = 周级；历史保留 = 全部（永久）。GitHub Release 的二进制 assets 永不过期、
+# 不会因仓库不活动而自动清理，且 assets 不计入 GitHub Packages 500MB 配额；
+# 故保留全部周级历史快照，不主动删旧（与 qke.net 调整策略一致）。
+# 注：单份归档含 xianbao/ 时体积过大，故超过 450MB 限额时仅打包代码与配置，
+# 镜像内容由对应日期的 git 提交恢复；该精简策略与「永久保留」不冲突（历史仍可经 git 回溯）。
 
 on:
   schedule:
@@ -28,7 +32,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: 打包归档（自适应体积，避免超出 Packages 额度）
+      - name: 打包归档（自适应体积，避免单份归档过大）
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -46,15 +50,48 @@ jobs:
                 -czf "$ARCHIVE" .
             echo "本归档仅含 mirror/ 脚本与配置；镜像内容请由对应日期的 git 提交恢复。" > xianbao-EXCLUDED.txt
           fi
-          gh release delete "$TAG" --yes --delete-tag >/dev/null 2>&1 || true
-          git push origin ":refs/tags/$TAG" >/dev/null 2>&1 || true
+
+          # —— 幂等护栏：同一 ISO 周内重跑（手动 / 定时并发 / 重试）时，先彻底删除旧
+          #     Release 与 tag，再重建，保证每周仅一份最新备份，且不会因“标签已存在”
+          #     而导致工作流失败（exit 1）。
+          # 根因：GitHub Releases API 删除后存在最终一致窗口；旧实现仅靠
+          #     `gh release delete ... || true` 吞错，未校验删除是否真正生效，紧接的
+          #     `gh release create` 偶发 “a release with the same tag name already exists”。
+          delete_existing() {
+            local t="$1"
+            # 1) 删除 Release（含其 tag）
+            gh release delete "$t" --yes --delete-tag >/dev/null 2>&1 || true
+            # 2) 双重保险：直接删除远端 git tag（覆盖“仅存在 tag、无 Release”的边界）
+            git push origin ":refs/tags/$t" >/dev/null 2>&1 || true
+            # 3) 轮询校验 Release 确已消失（最多 6 次，间隔 5s，约 30s），吸收一致窗口
+            local i=0
+            while gh release view "$t" >/dev/null 2>&1 && [ "$i" -lt 6 ]; do
+              echo "等待 Release $t 删除生效 ($((i+1))/6)..."
+              sleep 5
+              i=$((i+1))
+            done
+            # 4) 若 Release 已删但 tag 仍残留（极端一致窗口），再删一次
+            if git ls-remote --tags origin "refs/tags/$t" | grep -q "$t"; then
+              git push origin ":refs/tags/$t" >/dev/null 2>&1 || true
+            fi
+          }
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "检测到本周已存在 Release $TAG，先删除再重建（最新一次运行获胜）..."
+            delete_existing "$TAG"
+          elif git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+            echo "检测到本周已存在 tag $TAG（无 Release），删除后重建..."
+            git push origin ":refs/tags/$TAG" >/dev/null 2>&1 || true
+          fi
+
           create_release() {
             gh release create "$TAG" "$ARCHIVE" \
               --title "周级备份 ${TAG}（生成于 ${TS}）" \
               --notes "自动归档快照（tag=${TAG}）。
           生成时间（北京时间）：${TS}
           内容：mirror 抓取脚本、配置文件；xianbao/ 镜像内容随每日提交留存于 git 历史。
-          若归档体积超限，仅打包代码与配置，镜像内容可由对应日期的 git 提交恢复。"
+          若归档体积超限，仅打包代码与配置，镜像内容可由对应日期的 git 提交恢复。
+          历史保留策略：保留全部周级历史快照（GitHub Release 永久保存，不主动清理旧备份）。"
           }
           n=0
           until create_release; do
@@ -63,16 +100,3 @@ jobs:
             sleep 10
           done
           echo "周级备份已发布: $TAG"
-
-      - name: 滚动清理超额老备份（仅本工作流标签，保留最近 30 周）
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          KEEP=30
-          gh release list --limit 100 --json tagName \
-            | jq -r '.[] | select(.tagName | test("^backup-[0-9]{4}-W")) | .tagName' \
-            | sort | head -n -"$KEEP" | while read -r old; do
-              echo "清理超额老备份: $old"
-              gh release delete "$old" --yes --delete-tag 2>/dev/null || true
-            done
-          echo "滚动清理完成（保留最近 ${KEEP} 周）"

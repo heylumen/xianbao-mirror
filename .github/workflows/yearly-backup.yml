@@ -2,7 +2,8 @@ name: 年度备份 · Release 归档
 
 # 每年1月1日打包「当前仓库快照」为 GitHub Release（tag 形如 backup-YYYY）。
 # 仅做归档，不重新渲染（镜像内容由每日 backup.yml 增量维护）。
-# 恢复粒度 = 年级；历史保留 = 最近 5 年（超出自动清理最老 Release）。
+# 恢复粒度 = 年级；历史保留 = 全部（永久）。GitHub Release assets 永不过期、
+# 不计入 Packages 500MB 配额，故保留全部年级历史快照，不主动删旧（与 qke.net 一致）。
 
 on:
   schedule:
@@ -27,7 +28,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: 打包归档（自适应体积，避免超出 Packages 额度）
+      - name: 打包归档（自适应体积，避免单份归档过大）
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -46,15 +47,38 @@ jobs:
                 -czf "$ARCHIVE" .
             echo "本归档仅含 mirror/ 脚本与配置；镜像内容请由对应日期的 git 提交恢复。" > xianbao-EXCLUDED.txt
           fi
-          gh release delete "$TAG" --yes --delete-tag >/dev/null 2>&1 || true
-          git push origin ":refs/tags/$TAG" >/dev/null 2>&1 || true
+
+          delete_existing() {
+            local t="$1"
+            gh release delete "$t" --yes --delete-tag >/dev/null 2>&1 || true
+            git push origin ":refs/tags/$t" >/dev/null 2>&1 || true
+            local i=0
+            while gh release view "$t" >/dev/null 2>&1 && [ "$i" -lt 6 ]; do
+              echo "等待 Release $t 删除生效 ($((i+1))/6)..."
+              sleep 5
+              i=$((i+1))
+            done
+            if git ls-remote --tags origin "refs/tags/$t" | grep -q "$t"; then
+              git push origin ":refs/tags/$t" >/dev/null 2>&1 || true
+            fi
+          }
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "检测到本年已存在 Release $TAG，先删除再重建（最新一次运行获胜）..."
+            delete_existing "$TAG"
+          elif git ls-remote --tags origin "refs/tags/$TAG" | grep -q "$TAG"; then
+            echo "检测到本年已存在 tag $TAG（无 Release），删除后重建..."
+            git push origin ":refs/tags/$TAG" >/dev/null 2>&1 || true
+          fi
+
           create_release() {
             gh release create "$TAG" "$ARCHIVE" \
               --title "年度备份 ${TAG}（生成于 ${TS}）" \
               --notes "自动归档快照（tag=${TAG}）。
           生成时间（北京时间）：${TS}
           内容：mirror 抓取脚本、配置文件；xianbao/ 镜像内容随每日提交留存于 git 历史。
-          若归档体积超限，仅打包代码与配置，镜像内容可由对应日期的 git 提交恢复。"
+          若归档体积超限，仅打包代码与配置，镜像内容可由对应日期的 git 提交恢复。
+          历史保留策略：保留全部年级历史快照（GitHub Release 永久保存，不主动清理旧备份）。"
           }
           n=0
           until create_release; do
@@ -63,16 +87,3 @@ jobs:
             sleep 10
           done
           echo "年度备份已发布: $TAG"
-
-      - name: 滚动清理超额老备份（仅本工作流标签，保留最近 5 年）
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          KEEP=5
-          gh release list --limit 100 --json tagName \
-            | jq -r '.[] | select(.tagName | test("^backup-[0-9]{4}$")) | .tagName' \
-            | sort | head -n -"$KEEP" | while read -r old; do
-              echo "清理超额老备份: $old"
-              gh release delete "$old" --yes --delete-tag 2>/dev/null || true
-            done
-          echo "滚动清理完成（保留最近 ${KEEP} 年）"
