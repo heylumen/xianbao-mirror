@@ -2,6 +2,13 @@ name: "CodeQL Advanced"
 
 # 高级设置：仅扫描我方维护的源码（mirror/ 等），
 # 排除 xianbao/ 镜像产物目录（每日由 backup.yml 爬取提交的源站第三方脚本，非我方代码）。
+#
+# 约定（防漏扫）：
+#   - 我方业务/安全逻辑一律放在 mirror/ 或仓库根；xianbao/ 只放镜像产物。
+#   - 切勿把需安全审计的我方 .js/.py 写入 xianbao/，否则会被本 paths-ignore 漏扫。
+#   - render.py 注入页面的内联脚本嵌在 Python 字符串中，CodeQL 的 JS 分析器跨语言
+#     追踪不到，属既有盲区；注入脚本须保持纯静态、数据来自我方生成而非用户可控输入。
+#
 # 关闭了 GitHub 的 CodeQL default setup 后由本工作流接管扫描。
 
 on:
