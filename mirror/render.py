@@ -2784,7 +2784,22 @@ def strip_analytics_scripts(since=None):
 
 # 二维码服务：这些外站图片本质是「扫码跳活动」，其内容（编码串）就藏在 URL 参数里，
 # 完全可在本地用 qrcode 库重生，从而彻底去掉对 qrickit.com 等第三方服务的依赖。
-QR_HOST_RE = re.compile(r"(qrickit\.com|qrserver\.com|qr\.alipay\.com|qrcode\.)", re.I)
+# 注意：必须用「精确 host 后缀匹配（含边界点）」，不能用子串包含判断，
+# 否则 qr.alipay.com.evil.com 这类伪装域名会被误判为可信支付宝域名
+# （CodeQL py/incomplete-url-substring-sanitization，High）。
+_QR_HOST_SUFFIXES = (".qrickit.com", ".qrserver.com", ".qr.alipay.com")
+
+
+def _is_qr_host(netloc: str) -> bool:
+    """判断 host 是否属于已知二维码服务（精确后缀匹配，防子串伪装）。"""
+    host = netloc.lower().split(":")[0]  # 去端口
+    for suf in _QR_HOST_SUFFIXES:
+        if host == suf[1:] or host.endswith(suf):
+            return True
+    # 保留原 qrcode.* 的宽泛意图，但按 label 边界精确匹配（evilqrcode.com 不算）
+    if "qrcode" in host.split("."):
+        return True
+    return False
 
 
 def _qr_payload(url: str):
@@ -2795,7 +2810,7 @@ def _qr_payload(url: str):
         return q["d"][0]
     if "data" in q:                   # api.qrserver.com?data=<data>
         return q["data"][0]
-    if "qr.alipay.com" in p.netloc:
+    if _is_qr_host(p.netloc):
         return url                    # 支付宝短码：内容即该 URL 本身
     return None
 
@@ -3042,7 +3057,7 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
         """处理单个 <img> 属性里的外站 URL。返回是否改写了该属性。"""
         nonlocal changed_flag
         # 二维码服务：本地重生
-        if QR_HOST_RE.search(urlparse(url).netloc):
+        if _is_qr_host(urlparse(url).netloc):
             rel = qr_local_rel(url)
             if rel and (out_dir / rel).is_file() and not force:
                 img[attr] = "/" + rel
@@ -3138,7 +3153,7 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                             if not remote_re.match(u):
                                 new_parts.append(part)
                                 continue
-                            if QR_HOST_RE.search(urlparse(u).netloc):
+                            if _is_qr_host(urlparse(u).netloc):
                                 new_parts.append(part)
                                 continue
                             # 死链跳过：历史已确认失败的外站图直接保留原链接、不再重试下载
