@@ -30,14 +30,7 @@
     "huluxia": 3,
     "xiaodao": 3
   },
-  "pending": [
-    "/zuankeba/6948435.html",
-    "/zuankeba/6948510.html",
-    "/zuankeba/6948519.html",
-    "/zuankeba/6948520.html",
-    "/zuankeba/6948526.html",
-    "/zuankeba/6948584.html"
-  ],
+  "pending": [],
   "crawled": {
     "/category-zuankeba/": {
       "hash": "88727ccd2b3ab888de3f9c82e6101f0bf02f835e04cb105ac92681be23095f58",
@@ -143168,6 +143161,36 @@
       "hash": "a537ffbda0473f0e25a4d58a933fc32e19738720a8aa9c78f913d993277416e6",
       "local": "zuankeba/6947927.html",
       "last_check": "2026-09-04T05:25:57+0000"
+    },
+    "/zuankeba/6948435.html": {
+      "hash": "c09056c9d062d9a0e1783144eb4526d378a8115167c4583a04e023c46ba43a98",
+      "local": "zuankeba/6948435.html",
+      "last_check": "2026-09-04T05:26:03+0000"
+    },
+    "/zuankeba/6948510.html": {
+      "hash": "8bd80955218c67e78e95eae0a67067281b1a4431b6e2682d3a35c44a084cb909",
+      "local": "zuankeba/6948510.html",
+      "last_check": "2026-09-04T05:26:11+0000"
+    },
+    "/zuankeba/6948519.html": {
+      "hash": "a642c5adaff2349834bd591fa00af5029235df28957c979210fc10d0cce5180c",
+      "local": "zuankeba/6948519.html",
+      "last_check": "2026-09-04T05:26:19+0000"
+    },
+    "/zuankeba/6948520.html": {
+      "hash": "6d304f06973bccae999e9578aa68450b2453f2273125ebdbba072def4ebeeb34",
+      "local": "zuankeba/6948520.html",
+      "last_check": "2026-09-04T05:26:28+0000"
+    },
+    "/zuankeba/6948526.html": {
+      "hash": "e297340ff1a29b2d2a64b584274dbb67b492049d7ee49673e13112f3aad54e34",
+      "local": "zuankeba/6948526.html",
+      "last_check": "2026-09-04T05:26:34+0000"
+    },
+    "/zuankeba/6948584.html": {
+      "hash": "1b843cf5c5112a3f8bd1b523c35bdb9ba6fe563818cd65a8917c404cb39c1eb7",
+      "local": "zuankeba/6948584.html",
+      "last_check": "2026-09-04T05:26:40+0000"
     }
   },
   "dead": {
@@ -185408,7 +185431,7 @@
   "completed_at": null,
   "stats": {
     "pages": 251,
-    "articles": 28375,
+    "articles": 28381,
     "rechecks": 0,
     "updated": 0
   }
