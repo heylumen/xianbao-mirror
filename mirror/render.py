@@ -165,12 +165,14 @@ def strip_push_scripts(html: str) -> str:
 def localize_iconfont(html: str) -> str:
     """把源站 iconfont 外链（at.alicdn.com 的 CSS 与字体）替换为本地副本
     ``/lib/iconfont.css``，并删除对应的 dns-prefetch。外部 CDN 偶发超时会让
-    全站图标显示为方框/空白（woff2 加载 ERR_TIMED_OUT 实测复现）。"""
-    html = html.replace(
-        '<link href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css" rel="stylesheet"/>',
-        '<link href="/lib/iconfont.css?v=1" rel="stylesheet"/>')
-    html = html.replace(
-        '<link href="https://at.alicdn.com/" rel="dns-prefetch"/>', '')
+    全站图标显示为方框/空白（woff2 加载 ERR_TIMED_OUT 实测复现）。
+    用正则而非精确字符串匹配：兼容源站模板将来微调属性顺序/加参数，
+    确保每日增量爬取重渲染的新页面始终走本地副本。"""
+    html = re.sub(
+        r'<link[^>]*href="https?://at\.alicdn\.com/t/c/font_1640420[^"]*"[^>]*/?>',
+        '<link href="/lib/iconfont.css?v=1" rel="stylesheet"/>', html)
+    html = re.sub(
+        r'<link[^>]*href="https?://at\.alicdn\.com/"[^>]*/?>', '', html)
     return html
 
 

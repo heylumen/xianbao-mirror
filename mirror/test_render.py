@@ -999,6 +999,26 @@ def test_strip_push_scripts_and_localize_iconfont():
     assert "<p>正文</p>" in out                   # 其余内容不受影响
 
 
+def test_localize_iconfont_tolerates_attribute_variants():
+    """兼容性回归：源站模板将来微调属性顺序/加参数时，iconfont 本地化仍须生效
+    （每日增量爬取重渲染的新页面不能重新带回 alicdn 外链）。"""
+    variants = [
+        # 属性顺序颠倒
+        '<link rel="stylesheet" href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css"/>',
+        # 加了额外参数/属性
+        '<link href="https://at.alicdn.com/t/c/font_1640420_abc123.css?v=999" rel="stylesheet" crossorigin/>',
+        # 非自闭合写法
+        '<link href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css" rel="stylesheet">',
+    ]
+    for tag in variants:
+        out = render.localize_iconfont(f'<html><head>{tag}</head></html>')
+        assert "alicdn" not in out, f"变体未本地化: {tag}"
+        assert '/lib/iconfont.css?v=1' in out, f"变体未指向本地副本: {tag}"
+    # dns-prefetch 属性顺序变体
+    out = render.localize_iconfont('<link rel="dns-prefetch" href="https://at.alicdn.com/">')
+    assert "alicdn" not in out
+
+
 def test_strip_chrome_no_push_scripts_no_alicdn():
     """集成回归：strip_chrome 输出的文章页不得再引用 meta.php / alicdn，
     且 c_html_js_add.php（zbp 定义）保留。"""
