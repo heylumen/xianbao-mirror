@@ -149,13 +149,16 @@ def strip_common_js(html: str) -> str:
         '', html, flags=re.S | re.I)
 
 
-def strip_dynamic_php_scripts(html: str) -> str:
-    """外科手术式删除指向源站动态端点（``*.php``）的脚本引用。镜像为纯静态站，
-    这些 PHP 端点不存在，部署平台会把 404 页当作 JS 返回并被浏览器执行，
-    每篇文章必现「initGM is not defined」ReferenceError（2026-09-05 全站体检发现）。
-    仅删除空脚本标签，不影响文档其余字节。"""
+def strip_push_scripts(html: str) -> str:
+    """外科手术式删除源站实时推送脚本（``meta.php``）。该脚本是源站动态端点，
+    内容为：调用未定义的 ``initGM``、启动 ``/plus/worker.js`` 实时推送、重新注入
+    已剥离的源站侧栏（SidebarModule「十二小时榜」）与置顶公告——在静态镜像上
+    全部失效或破坏自包含（2026-09-05 全站体检发现每篇必现 initGM ReferenceError）。
+    ⚠️ 注意：``c_html_js_add.php`` 虽也是 .php 后缀，但它是爬虫落盘的**合法静态
+    资产**（定义 zbpConfig/zbp，dark-mode.js 等主题脚本依赖），必须保留——
+    「删除所有 .php 脚本」会引入 zbp is not defined（体检复测踩坑）。"""
     return re.sub(
-        r'<script[^>]*src="[^"]*\.php[^"]*"[^>]*>\s*</script>',
+        r'<script[^>]*src="[^"]*meta\.php[^"]*"[^>]*>\s*</script>',
         '', html, flags=re.S | re.I)
 
 
@@ -718,9 +721,9 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     # 错误地破坏 .author 链接结构；还会在移动端评论列表里重复注入「顺序」控件。
     for _s in soup.find_all("script", src=re.compile(r"common\.js", re.I)):
         _s.decompose()
-    # 2c-2) 删除源站动态端点（*.php）脚本引用：静态镜像无 PHP，部署平台把 404 页
-    # 当 JS 返回并执行，每篇文章必现「initGM is not defined」ReferenceError。
-    for _s in list(soup.find_all("script", src=re.compile(r"\.php", re.I))):
+    # 2c-2) 删除源站实时推送脚本（meta.php）：initGM 未定义 + Worker 推送 +
+    # 源站侧栏注入在静态镜像上全部失效（c_html_js_add.php 必须保留，见函数注释）。
+    for _s in list(soup.find_all("script", src=re.compile(r"meta\.php", re.I))):
         _s.decompose()
     # 4) 文章页操作按钮：收藏、复制文案、重新抓取、举报
     for _cls in ("mochu_us_shoucang", "mochu-us-coll", "mochu-us-zhua",
@@ -2502,9 +2505,9 @@ def rebuild_category_page(
     # 点击搜索框反而隐藏、移动端汉堡菜单错乱。文章页由 strip_chrome 处理，列表页
     # 此前漏掉（首页因复用已剥离的 zuankeba 模板而侥幸正常）。
     html = strip_common_js(html)
-    # 源站动态端点（*.php）脚本在静态镜像上不存在，会把 404 页当 JS 执行 → 删除；
-    # iconfont 外链（at.alicdn.com）本地化，避免 CDN 偶发超时导致图标缺字。
-    html = strip_dynamic_php_scripts(html)
+    # 源站实时推送脚本（meta.php）删除；iconfont 外链（at.alicdn.com）本地化，
+    # 避免 CDN 偶发超时导致图标缺字。c_html_js_add.php 保留（zbp 定义所在）。
+    html = strip_push_scripts(html)
     html = localize_iconfont(html)
     html = _replace_new_post_list(html, items)
     soup = BeautifulSoup(html, "html.parser")

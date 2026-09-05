@@ -977,10 +977,12 @@ def test_prune_nav_removes_login_icon_and_about_and_hot_dropdown(tmp_path):
     assert 'footer' not in html
 
 
-def test_strip_dynamic_php_scripts_and_localize_iconfont():
-    """回归（2026-09-05 全站体检）：文章页加载源站 *.php 动态端点，静态镜像上
-    部署平台把 404 页当 JS 返回 → 每篇必现「initGM is not defined」；
-    iconfont 走 at.alicdn.com 外链，CDN 偶发超时导致全站图标缺字。"""
+def test_strip_push_scripts_and_localize_iconfont():
+    """回归（2026-09-05 全站体检）：文章页加载源站 meta.php 实时推送脚本，
+    其调用未定义的 initGM → 每篇必现 ReferenceError；iconfont 走 at.alicdn.com
+    外链，CDN 偶发超时导致全站图标缺字。
+    ⚠️ c_html_js_add.php 是爬虫落盘的合法静态资产（定义 zbpConfig/zbp），
+    必须保留——「删除所有 .php」会让 dark-mode.js 抛 zbp is not defined。"""
     html = ('<html><head>'
             '<link href="https://at.alicdn.com/" rel="dns-prefetch"/>'
             '<link href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css" rel="stylesheet"/>'
@@ -988,16 +990,18 @@ def test_strip_dynamic_php_scripts_and_localize_iconfont():
             '<script src="/zb_system/script/c_html_js_add.php"></script>'
             '<script src="/zb_users/theme/xianbao_theme/script/meta.php?type=article&amp;artid=1"></script>'
             '<p>正文</p></body></html>')
-    out = render.strip_dynamic_php_scripts(html)
+    out = render.strip_push_scripts(html)
     out = render.localize_iconfont(out)
-    assert ".php" not in out                      # 动态端点脚本全部移除
+    assert "meta.php" not in out                 # 推送脚本移除
+    assert 'src="/zb_system/script/c_html_js_add.php"' in out  # zbp 定义资产保留
     assert "alicdn" not in out                    # 外域引用清零
     assert "/lib/iconfont.css?v=1" in out         # 本地副本就位
     assert "<p>正文</p>" in out                   # 其余内容不受影响
 
 
-def test_strip_chrome_no_php_scripts_no_alicdn():
-    """集成回归：strip_chrome 输出的文章页不得再引用 *.php / alicdn。"""
+def test_strip_chrome_no_push_scripts_no_alicdn():
+    """集成回归：strip_chrome 输出的文章页不得再引用 meta.php / alicdn，
+    且 c_html_js_add.php（zbp 定义）保留。"""
     html = ('<html><head><title>测试-线报酷</title>'
             '<link href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css" rel="stylesheet"/>'
             '</head><body><div class="content"><p>正文内容</p></div>'
@@ -1005,9 +1009,10 @@ def test_strip_chrome_no_php_scripts_no_alicdn():
             '<script src="/zb_users/theme/xianbao_theme/script/meta.php?artid=1"></script>'
             '</body></html>')
     out = render.strip_chrome(html, cat_slug="zuankeba")
-    assert ".php" not in out
+    assert "meta.php" not in out
     assert "alicdn" not in out
     assert "/lib/iconfont.css" in out
+    assert "c_html_js_add.php" in out
     assert "正文内容" in out
 
 
