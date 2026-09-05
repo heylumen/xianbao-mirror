@@ -1,6 +1,19 @@
-/* xianbao-override.css — 镜像站响应式兜底（由 mirror.sh 注入，保守安全） */
+/* xianbao-override.css — 镜像站响应式兜底（源文件，由 mirror.sh 复制到 xianbao/lib/）
+ *
+ * 断点约定：
+ *   - ≥1441px    大屏桌面：内容居中，最大 1200px
+ *   - 1025–1440  桌面：最大 1080px
+ *   - 769–1024   平板横屏：容器 100%，左右留白 16px
+ *   - ≤768px     手机 / 平板竖屏：容器 100%，左右留白 10px
+ *   - ≤375px     小屏手机：左右留白 8px，字号与图标同步收紧
+ *
+ * 注意（来自项目踩坑记录）：
+ *   - 修改本文件必须递增引用处的 `?v=N`，否则用户缓存旧样式、看不到修复。
+ *   - 末尾的 html/body 规则用于修复 Fancybox 灯箱开合时的左右晃动，
+ *     必须保持在最后且不绑定任何 class（关闭动画中 class 会被短暂移除）。
+ */
 
-/* 窄屏防横向溢出：长串优惠码/链接不撑破布局 */
+/* ==================== 基础：防溢出 ==================== */
 html, body {
     overflow-x: hidden;
     word-break: break-word;
@@ -12,26 +25,42 @@ img {
     height: auto;
 }
 
-/* 窄屏（手机/平板）：让正文区域占满宽度，隐藏不必要的横向滚动 */
-@media screen and (max-width: 768px) {
-    body {
-        overflow-x: hidden;
-    }
-    .container,
-    .wrap,
-    .main,
-    .content,
-    .page,
-    .layout {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding-left: 10px !important;
-        padding-right: 10px !important;
-        box-sizing: border-box !important;
-    }
+/* 超宽块级内容（表格 / 代码块 / 长引用）改为**内部横向滚动**。
+   此前仅靠 html,body 的 overflow-x:hidden，会把超宽内容直接裁掉，
+   用户看不到表格右侧与长代码行；这里让容器自己滚动，既不撑破布局也不丢内容。 */
+table,
+pre,
+.code,
+.quote,
+blockquote {
+    display: block;
+    max-width: 100% !important;
+    overflow-x: auto;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* 列表页（首页/分类/搜索）：移除右侧热榜侧栏，帖子列表居中并自适应分辨率 */
+/* 文章内图片居中展示，与文字比例协调 */
+.post-content img,
+.article-content img,
+.art-content img,
+#post-content img,
+.content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 8px auto;
+}
+
+/* 图片加载失败降级：保留占位底色，避免裂图图标撑破排版（配合页面降级脚本） */
+img {
+    background-color: #f2f3f5;
+}
+html.night img {
+    background-color: #2b303a;
+}
+
+/* ==================== 列表页居中 ==================== */
 body.xianbao-list #sidebar { display: none !important; }
 body.xianbao-list #mainbox { float: none !important; width: 100% !important; margin: 0 !important; }
 body.xianbao-list #content.content.container {
@@ -41,11 +70,12 @@ body.xianbao-list #content.content.container {
     box-sizing: border-box;
 }
 
-/* 暗黑模式：body 背景跟随 html，避免列表页/文章页边缘留白造成不均衡 */
+/* ==================== 暗黑模式 ==================== */
+/* body 背景跟随 html，避免列表页/文章页边缘留白造成不均衡 */
 html.night,
 html.night body { background-color: #232931 !important; }
 
-/* 头部搜索/暗色按钮保持与首页一致，避免文字兜底导致拥挤 */
+/* ==================== 头部搜索 / 暗色按钮 ==================== */
 .xianbao-article-nav .dark-mode,
 .xianbao-article-nav .search-button {
     display: flex !important;
@@ -60,20 +90,75 @@ html.night body { background-color: #232931 !important; }
     line-height: 1;
 }
 
-/* 移动端进一步收窄留白，保证帖子贴近屏幕边缘 */
+/* ==================== 断点：大屏桌面（≥1441px）==================== */
+@media screen and (min-width: 1441px) {
+    body.xianbao-list #content.content.container {
+        max-width: 1200px;
+    }
+}
+
+/* ==================== 断点：桌面（1025–1440px）==================== */
+@media screen and (min-width: 1025px) and (max-width: 1440px) {
+    body.xianbao-list #content.content.container {
+        max-width: 1080px;
+    }
+}
+
+/* ==================== 断点：平板横屏（769–1024px）==================== */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .container,
+    .wrap,
+    .main,
+    .content,
+    .page,
+    .layout {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        box-sizing: border-box !important;
+    }
+    body.xianbao-list #content.content.container {
+        padding: 0 16px !important;
+    }
+}
+
+/* ==================== 断点：手机 / 平板竖屏（≤768px）==================== */
 @media screen and (max-width: 768px) {
+    body { overflow-x: hidden; }
+
+    .container,
+    .wrap,
+    .main,
+    .content,
+    .page,
+    .layout {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        box-sizing: border-box !important;
+    }
     body.xianbao-list #content.content.container {
         max-width: 100% !important;
         padding: 0 10px !important;
     }
-}
 
-/* 移动端汉堡菜单按钮修复：源站 .m-nav-btn 为 height:0 + 内部图标
-   position:absolute 脱离文档流，依赖父级 absolute 定位上下文；镜像里
-   .m-nav-btn 的 position 退化为 static 且移动端 media query 只补了 display:block，
-   导致零高度、图标飘到左上角、按钮不可点。这里强制右侧定位 + 固定高度 +
-   图标回归正常流，使其可见且可点。桌面端仍由源站规则 display:none 隐藏。 */
-@media screen and (max-width: 768px) {
+    /* 列表项：徽章与标题允许换行，避免窄屏重叠 */
+    .article-list,
+    ul.new-post li {
+        flex-wrap: wrap;
+    }
+    body.xianbao-list .title,
+    body.xianbao-list .title a {
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    /* 移动端汉堡菜单修复：源站 .m-nav-btn 为 height:0 + 内部图标 position:absolute
+       脱离文档流，镜像里 position 退化为 static，导致零高度、图标飘到左上角、
+       按钮不可点。这里强制右侧定位 + 固定高度 + 图标回归正常流。
+       桌面端仍由源站规则 display:none 隐藏。 */
     .m-nav-btn {
         position: absolute !important;
         top: 0;
@@ -92,8 +177,44 @@ html.night body { background-color: #232931 !important; }
     }
 }
 
-/* 修复：Fancybox 灯箱打开/关闭时，强制滚动条常驻且 body 无 margin-right 补偿，
-   使文档宽度恒定，评论/正文不再左右晃动。不绑定 .with-fancybox 类，
-   因为关闭动画中该类会被 Fancybox 短暂移除，绑定类的规则会失效一瞬间。 */
+/* ==================== 断点：小屏手机（≤375px）==================== */
+@media screen and (max-width: 375px) {
+    .container,
+    .wrap,
+    .main,
+    .content,
+    .page,
+    .layout {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    body.xianbao-list #content.content.container {
+        padding: 0 8px !important;
+    }
+    body.xianbao-list .title,
+    body.xianbao-list .title a {
+        font-size: 15px;
+    }
+    /* 收紧列表缩略图与小徽标，避免挤压标题 */
+    .article-list .figure {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    .search-top input,
+    #q {
+        font-size: 15px !important;
+    }
+    /* 头部按钮在小屏适当收窄，避免与标题重叠 */
+    .xianbao-article-nav .dark-mode,
+    .xianbao-article-nav .search-button {
+        width: 46px !important;
+        height: 52px !important;
+    }
+}
+
+/* ==================== Fancybox 防晃动（务必保持在末尾）==================== */
+/* 灯箱开合时强制滚动条常驻且 body 无 margin-right 补偿，使文档宽度恒定，
+   评论 / 正文不再左右晃动。不绑定 .with-fancybox 类，因为关闭动画中该类会被
+   Fancybox 短暂移除，绑定类的规则会失效一瞬间，反而引发抖动。 */
 html { overflow-y: scroll !important; }
 body { margin-right: 0 !important; }
