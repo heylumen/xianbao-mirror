@@ -384,6 +384,59 @@ def _proxy_abs_url(val: str):
     return "https://" + ORIGIN_NETLOC + "/plus/api/image.php?imgurl=" + quote(real, safe="")
 
 
+_ABS_URL_RE = re.compile(r"^https?://", re.I)
+
+
+def _normalize_img_url(u: str) -> str:
+    """把「站内相对的图片代理占位符」规范化为绝对 URL；已是绝对 URL 则原样返回。
+
+    背景（后期维护中的真实缺陷）：源站图片走 IntersectionObserver 懒加载，静态 HTML 里
+    `<img src="/plus/api/image.php?imgurl=<真实CDN>">` 只是**相对**占位符；镜像站并不存在
+    image.php 这个 PHP 代理，直接请求必然 404，表现为「裂图」。而原先的图片本地化只处理
+    `http(s)` 绝对 URL，这类相对占位符被整体跳过，导致存量文章图片始终未被本地化
+    （实测仅 zuankeba 一个分类就有 6766 篇仍为占位符）。
+
+    规范化后，`_proxy_pair` 即可解析出真实 CDN 并下载到本地，
+    存量文章会在后续轮次中被自动修复，无需单独跑回填脚本。
+    """
+    if not u:
+        return u
+    if _ABS_URL_RE.match(u):
+        return u
+    return _proxy_abs_url(u) or u
+
+
+# 路径中的非法字符（Windows 文件名不允许）以及需要丢弃的路径段
+_ILLEGAL_PATH_RE = re.compile(r'[\\:*?"<>|]')
+_LOCAL_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0"}
+
+
+def img_rel_path(url: str):
+    """外站图片 URL -> 站内保存相对路径（无前缀）。非 http(s) 或本机地址返回 None。
+
+    提取为模块级，供 `localize_images` 与批量修复工具 `fix_images_batch.py` 共用，
+    确保两处的**路径 / 命名规则完全一致** —— 若两处规则漂移，同一张图会被存到
+    两个不同位置，表现为「明明下载过却依然裂图」，且难以排查。
+    """
+    p = urlparse((url or "").strip())
+    if not p.scheme or not p.netloc:
+        return None
+    if p.netloc.lower() in _LOCAL_HOSTS:
+        return None
+    raw_segs = (unquote(p.path or "") or "index").split("/")
+    segs = []
+    for s in raw_segs:
+        s = _ILLEGAL_PATH_RE.sub("_", s)
+        # 丢弃空段与 . / ..：既去掉前导斜杠产生的空串，也防止目录穿越与脏名
+        if s in ("", ".", ".."):
+            continue
+        segs.append(s)
+    rel = "zb_users/remote/" + p.netloc + "/" + "/".join(segs)
+    if rel.endswith("/"):
+        rel += "index"
+    return rel
+
+
 def fix_url(val: str, cat_slug: str = None) -> str:
     """改写单条链接：
     - 跨站 / 特殊协议：原样返回。
@@ -546,6 +599,28 @@ FANCYBOX_NOSHIFT_CSS = (
 )
 
 
+# 图片加载失败降级脚本：远程图片失效 / 源站删图时替换为内联 SVG 占位图，
+# 避免浏览器默认裂图图标撑破排版。占位图用 data URI 内联，不产生额外请求，
+# 与镜像「自包含、不依赖外部资源」的目标一致。
+# 采用捕获阶段监听，可覆盖懒加载后动态插入的图片；data-img-fallback 保证幂等。
+IMG_FALLBACK_JS = (
+    "(function(){\n"
+    "var PH='data:image/svg+xml;charset=utf-8,'+encodeURIComponent("
+    "\"<svg xmlns='http://www.w3.org/2000/svg' width='120' height='80'>"
+    "<rect width='120' height='80' fill='#eceef3'/>"
+    "<g fill='#b6bcc9'><rect x='52' y='24' width='46' height='30' rx='3'/>"
+    "<circle cx='42' cy='36' r='5'/>"
+    "<path d='M52 54l12-12 10 10 8-8 16 16z'/></g>"
+    "<text x='60' y='70' font-size='9' fill='#8a90a0' text-anchor='middle' "
+    "font-family='sans-serif'>图片不可用</text></svg>\");\n"
+    "document.addEventListener('error',function(e){\n"
+    "var t=e.target;if(!t||t.tagName!=='IMG')return;\n"
+    "if(t.getAttribute('data-img-fallback'))return;\n"
+    "t.setAttribute('data-img-fallback','1');\n"
+    "t.style.maxWidth='100%';t.style.height='auto';t.src=PH;},true);})();"
+)
+
+
 def strip_chrome(html: str, cat_slug: str = None) -> str:
     """剥离文章页的站外模板（侧边热门榜 / 页脚外链 / 悬浮搜索 / 二维码工具条等），
     仅保留正文 + 评论，并在顶部注入源站风格导航（分类标签 + 搜索 + 浅色模式），
@@ -695,6 +770,12 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 fb = soup.new_tag("script", id="xianbao-fancybox-init")
                 fb.string = FANCYBOX_INIT_JS
                 body.append(fb)
+            # 注入图片加载失败降级：远程图失效/源站删图时显示内联占位图，
+            # 避免裂图图标撑破排版（配合 override.css 的 img 占位底色）。
+            if body.find("script", id="xianbao-img-fallback") is None:
+                img_fb = soup.new_tag("script", id="xianbao-img-fallback")
+                img_fb.string = IMG_FALLBACK_JS
+                body.append(img_fb)
             _inject_nav_tools(soup)
     return str(soup)
 
@@ -1117,6 +1198,12 @@ def default_state():
         "dead_assets": {},      # 绝对URL -> {reason, ts} 永久失效资源（不再补）
         "recheck_idx": 0,
         "completed_at": None,
+        # 回填完成标记（一次性）：列表已翻完且待处理队列曾清空。
+        # ★ 与「源站持续更新」解耦 —— 置位后永不回退，使 maintenance 抽样复查
+        #   能被真正启动；源站后续新帖照常增量抓取，与复查并行互不阻塞。
+        #   旧状态文件缺此字段时经 load_state 补默认 False，不丢进度。
+        "backfill_complete": False,
+        "backfill_completed_at": None,
         "stats": {"pages": 0, "articles": 0, "rechecks": 0, "updated": 0},
     }
 
@@ -1160,6 +1247,38 @@ def _json_default(o):
 def save_state(path: Path, state):
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2,
                                 default=_json_default), encoding="utf-8")
+
+
+def mark_backfill_if_complete(state):
+    """回填完成判定（**一次性**标记，与「源站持续更新」解耦）。
+
+    ★ 修复说明（后期维护关键缺陷）：
+      原判定写在主循环 `drain_frontier` **之前**，形如
+      `all(category_exhausted) and not pending`；但每轮开头的「各分类第 1 页探新帖」
+      步骤都会把源站新帖补进 pending，使 `not pending` 恒成立为假 →
+      mode 永远停在 crawl、maintenance 抽样复查从未启动（实测 recheck_idx 恒为 0，
+      28632 篇存量文章的新评论 / 内容更新从未同步）。
+
+      本函数须在 `drain_frontier` **之后**调用（此时本轮新帖已抓完，pending 才可能
+      真正为空），并采用一次性标记 `backfill_complete`：一旦置位即不回退，
+      后续源站新帖照常增量抓取，复查与增量并行、互不阻塞。
+
+    Returns:
+        bool: 本次调用是否**刚刚**把 backfill_complete 置为 True。
+    """
+    if state.get("backfill_complete"):
+        return False  # 已置位，幂等且不回退
+    if not all(state["category_exhausted"].get(s, False)
+               for s in ALLOWED_CATEGORIES):
+        return False
+    if state.get("pending"):
+        return False
+
+    state["backfill_complete"] = True
+    state["backfill_completed_at"] = _now()
+    state["mode"] = "maintenance"
+    state["completed_at"] = _now()
+    return True
 
 
 def drain_frontier(page, raw_docs, save_page, state, counter):
@@ -1264,8 +1383,8 @@ SEARCH_HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像 · 站内搜索</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=4">
-<script src="https://cdn.jsdelivr.net/npm/minisearch@7/dist/umd/index.min.js"></script>
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=5">
+<script src="/lib/minisearch.umd.min.js"></script>
 <style>
   body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}
   .wrap{max-width:780px;margin:0 auto;padding:32px 16px}
@@ -1287,27 +1406,32 @@ SEARCH_HTML = """<!DOCTYPE html>
   <div id="r"></div>
 </div>
 <script>
-fetch('/search.json').then(r=>r.json()).then(function(docs){
-  if(!window.MiniSearch){document.getElementById('r').innerHTML='<p>搜索组件加载失败（请检查网络是否能访问 jsdelivr CDN）。</p>';return;}
-  var ms=new MiniSearch({fields:['title','body'],storeFields:['title','url','body']});
-  ms.addAll(docs);
-  var q=document.getElementById('q'),r=document.getElementById('r');
-  function go(){
-    var t=q.value.trim();
-    if(!t){r.innerHTML='';return;}
-    var res=ms.search(t,{prefix:true,fuzzy:0.2,boost:{title:2}});
-    if(!res.length){r.innerHTML='<p>没有找到相关结果。</p>';return;}
-    r.innerHTML=res.slice(0,50).map(function(x){
-      return '<div class="it"><a href="'+x.url+'">'+x.title+'</a>'
-        +'<p>'+((x.body||'').slice(0,140))+'</p></div>';
-    }).join('');
-  }
-  q.addEventListener('input',go);
+var _q=document.getElementById('q'),_r=document.getElementById('r'),_ms=null,_timer=null;
+fetch('/search.json').then(function(r){return r.json();}).then(function(docs){
+  if(!window.MiniSearch){_r.innerHTML='<p>搜索组件加载失败（本地 MiniSearch 库缺失）。</p>';return;}
+  _ms=new MiniSearch({fields:['title','body'],storeFields:['title','url','body']});
+  _ms.addAll(docs);
   var params=new URLSearchParams(window.location.search);
   var initial=params.get('q');
-  if(initial){{ q.value=initial; go(); }}
+  if(initial){ _q.value=initial; run(); }
 }).catch(function(e){
-  document.getElementById('r').innerHTML='<p>搜索索引加载失败：'+e+'</p>';
+  _r.innerHTML='<p>搜索索引加载失败：'+e+'</p>';
+});
+function run(){
+  if(!_ms) return;
+  var t=_q.value.trim();
+  if(!t){_r.innerHTML='';return;}
+  var res=_ms.search(t,{prefix:true,fuzzy:0.2,boost:{title:2}});
+  if(!res.length){_r.innerHTML='<p>没有找到相关结果。</p>';return;}
+  _r.innerHTML=res.slice(0,50).map(function(x){
+    return '<div class="it"><a href="'+x.url+'">'+x.title+'</a>'
+      +'<p>'+((x.body||'').slice(0,140))+'</p></div>';
+  }).join('');
+}
+// 输入防抖：合并连续输入触发的检索，避免每个按键都全量搜索
+_q.addEventListener('input',function(){
+  if(_timer) clearTimeout(_timer);
+  _timer=setTimeout(run,180);
 });
 </script>
 </body>
@@ -1362,7 +1486,8 @@ def build_search_index(out_dir: Path):
                                 ".article-content, #article_content, .content")
                 or soup.body)
         text = main.get_text(" ", strip=True) if main else ""
-        meta = _extract_article_meta(p)
+        # 复用上方已解析的 soup，避免对同一文件重复读盘 + 重复解析
+        meta = _extract_article_meta(p, soup)
         content_clean = _clean_text(text)
         items.append({
             "id": str(idx + 1),
@@ -1468,7 +1593,10 @@ def build_search_page(out_dir: Path, items: list) -> None:
     并在右侧生成 12/24/48 小时榜。"""
     template = out_dir / "category-zuankeba" / "index.html"
     if not template.exists():
-        # fallback 到旧版极简搜索页
+        # fallback 到旧版极简搜索页。
+        # 该页已改用本地 vendored 库（不再依赖外部 CDN），故需先确保库文件就位，
+        # 否则 /lib/minisearch.umd.min.js 404 会导致搜索完全不可用。
+        ensure_minisearch(out_dir)
         (out_dir / "search.html").write_text(SEARCH_HTML, encoding="utf-8")
         return
     html = template.read_text(encoding="utf-8", errors="replace")
@@ -1544,22 +1672,43 @@ def build_search_page(out_dir: Path, items: list) -> None:
       ul.appendChild(li);
     });
   }
-  function go(){
-    var t = q.value.trim();
-    if (!t){ ul.innerHTML=''; return; }
-    fetch('/search.json').then(function(r){return r.json();}).then(function(docs){
-      if (!window.MiniSearch){ render([]); return; }
+  // 索引与 MiniSearch 实例**只构建一次**并缓存复用。
+  // 修复说明：原先每次 input 都重新 fetch 近 29MB 的 search.json，并对 2.8 万条
+  // 重建一次 MiniSearch 索引，导致每敲一个字符都要重新下载 + 重建，搜索几乎不可用。
+  // 现改为「懒加载一次 + 复用实例 + 输入防抖」，检索参数保持不变，
+  // 因此结果集与排序逻辑与原先完全一致。
+  var msPromise = null;
+  function getIndex(){
+    if (msPromise) return msPromise;
+    msPromise = fetch('/search.json').then(function(r){ return r.json(); }).then(function(docs){
+      if (!window.MiniSearch) return null;
       var ms = new MiniSearch({fields:['title','body'], storeFields:['title','url','body','cat_label','comments']});
       ms.addAll(docs);
+      return ms;
+    });
+    return msPromise;
+  }
+  function search(){
+    var t = q.value.trim();
+    if (!t){ ul.innerHTML=''; return; }
+    getIndex().then(function(ms){
+      if (!ms){ render([]); return; }
+      // 检索参数与原先保持一致（prefix/fuzzy/boost 不变）→ 结果与排序不变
       render(ms.search(t, {prefix:true, fuzzy:0.2, boost:{title:2}}));
     }).catch(function(){
       ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">搜索索引加载失败。</p></li>';
     });
   }
-  q.addEventListener('input', go);
+  // 输入防抖：连续输入时合并检索，避免每个按键都触发一次全量检索
+  var timer = null;
+  function schedule(){
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(search, 180);
+  }
+  q.addEventListener('input', schedule);
   var params = new URLSearchParams(window.location.search);
   var initial = params.get('q');
-  if (initial){ q.value = initial; go(); }
+  if (initial){ q.value = initial; search(); }
 })();
 """
     if soup.body:
@@ -1655,7 +1804,7 @@ def _build_legacy_hub(out_dir: Path):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=4">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=5">
 <style>
 body{{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}}
 .wrap{{max-width:900px;margin:0 auto;padding:24px 16px}}
@@ -1719,13 +1868,23 @@ document.querySelectorAll('.tab').forEach(function(tab){{
     (out_dir / "index.html").write_text(html, encoding="utf-8")
 
 
-def _extract_article_meta(path: Path) -> dict:
-    """从本地文章 HTML 提取标题、发布时间、评论数等元数据。"""
-    try:
-        html = path.read_text(encoding="utf-8", errors="replace")
-    except Exception:
-        return {}
-    soup = BeautifulSoup(html, "html.parser")
+def _extract_article_meta(path: Path, soup=None) -> dict:
+    """从本地文章 HTML 提取标题、发布时间、评论数等元数据。
+
+    Args:
+        path: 文章 HTML 路径（用于推导站内相对路径与文章 ID）。
+        soup: 可选。调用方已解析好的 BeautifulSoup 对象。
+              传入时直接复用，避免对同一文件重复 read_text + BeautifulSoup：
+              构建搜索索引时每篇文章可省掉一次磁盘读与一次 HTML 解析，
+              存量约 2.8 万篇的规模下，索引构建耗时接近减半。
+              不传时行为与原先完全一致（保持向后兼容）。
+    """
+    if soup is None:
+        try:
+            html = path.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            return {}
+        soup = BeautifulSoup(html, "html.parser")
     title = ""
     if soup.title:
         title = soup.title.get_text(strip=True)
@@ -2470,19 +2629,26 @@ def main():
                         state["category_cursor"][slug] = end + 1
                     if cap_hit:
                         break
-                # 所有分类已抓完 且 待处理队列清空 -> 转 maintenance
-                if (all(state["category_exhausted"][s] for s in ALLOWED_CATEGORIES)
-                        and not state["pending"]):
-                    state["mode"] = "maintenance"
-                    state["completed_at"] = _now()
-                    print("==> 全部分类抓取完成，进入 maintenance（维护/增量更新）模式")
+                # 注：回填完成判定已移至下方 drain_frontier 之后 —— 此处 pending 刚被
+                # 上方「各分类第 1 页探新帖」步骤补充，必然非空，故原判定永不成立。
 
             # ---- 排空待处理队列（跨运行续爬，保证全量备份不丢页）----
             drain_frontier(page, raw_docs, save_page, state, counter)
 
+            # ---- 回填完成判定（一次性标记，与「源站持续更新」解耦）----
+            # 修复要点：原判定置于 drain 之前，pending 恒被第 1 页新帖补充而永不为空，
+            # 导致 maintenance 复查从未启动（实测 recheck_idx 恒为 0，28632 篇存量
+            # 文章的新评论 / 内容更新从未同步）。现移到 drain 之后判定，并改用一次性
+            # 标记 backfill_complete：一旦置位即不回退，后续新帖增量与复查并行。
+            if mark_backfill_if_complete(state):
+                print("==> 全部分类抓取完成（回填完成），"
+                      "进入 maintenance（维护/增量更新）模式")
+
             # ---- maintenance：抽样复查已抓文章（检测新评论/内容更新）----
-            if state["mode"] == "maintenance":
-                paths = list(state["crawled"].keys())
+            if state["mode"] == "maintenance" or state.get("backfill_complete"):
+                # 仅复查文章页：列表页（/category-xxx/、/category-xxx/N/ 等）每轮都会
+                # 重新生成，复查没有增量价值，只会挤占单轮配额。
+                paths = [p for p in state["crawled"].keys() if ART_RE.match(p)]
                 if paths:
                     idx = state["recheck_idx"] % len(paths)
                     sample = paths[idx: idx + RECHECK_PER_RUN] \
@@ -2578,7 +2744,11 @@ def fill_missing(state=None, raw_url_map=None, since=None):
             except OSError:
                 continue
         try:
-            text = open(fp, encoding="utf-8", errors="replace").read()
+            # 必须用 with 保证句柄释放：本函数会遍历数千个产物文件，
+            # 裸 open().read() 会累积未关闭句柄，Windows 下还会锁定文件
+            # 使其无法被后续写盘覆盖（表现为"文件被占用"的偶发失败）。
+            with open(fp, encoding="utf-8", errors="replace") as fh:
+                text = fh.read()
         except Exception:
             continue
         rel_path = os.path.relpath(fp, OUT_DIR).replace(os.sep, "/")
@@ -2690,7 +2860,9 @@ def strip_injection_scripts(raw_saved=None, since=None):
             except OSError:
                 continue
         try:
-            src = open(jf, encoding="utf-8", errors="replace").read()
+            # 同上：with 确保句柄释放，避免遍历大量 JS 文件时泄漏。
+            with open(jf, encoding="utf-8", errors="replace") as fh:
+                src = fh.read()
         except Exception:
             continue
         if re.search(r"document\.(write|writeln)\s*\(", src):
@@ -2894,6 +3066,10 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
     remote_re = re.compile(r"^https?://", re.I)
     illegal = re.compile(r'[\\:*?"<>|]')
 
+    # 注：图片 URL 的规范化由模块级 `_normalize_img_url` 负责（见 _proxy_abs_url 之后），
+    # 它会把站内相对懒加载占位符（/plus/api/image.php?imgurl=<真实CDN>）转成绝对 URL，
+    # 使存量文章的图片也能被本函数本地化。
+
     # 读取历史死链清单：已确认下载失败的外站图，本轮直接跳过（保留原链接），
     # 不再每 run 重下 + 8×30s 重试，避免逼近单 job 6h 超时。
     dead_path = out_dir / ".dead_remote_imgs.json"
@@ -2905,29 +3081,12 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
             dead_set = set()
 
     def rel_path(url: str):
-        """外站图片 URL -> 站内相对路径（无前缀）。非 http(s) 或本机返回 None。"""
-        p = urlparse(url.strip())
-        if not p.scheme or not p.netloc:
-            return None
-        if p.netloc.lower() in ("localhost", "127.0.0.1", "0.0.0.0"):
-            return None
-        raw_segs = (unquote(p.path or "") or "index").split("/")
-        segs = []
-        for s in raw_segs:
-            s = illegal.sub("_", s)
-            # 跳过路径前导斜杠产生的空段、以及 . / ..（避免目录穿越/脏名）
-            if s in ("", ".", ".."):
-                continue
-            segs.append(s)
-        # 注意：不要在这里剥离 `.../xxx.jpg/image.html` 之类的「查看页」末段。
-        # 存量镜像已按完整路径落盘（`.../xxx.jpg/image.webp` 共 400+ 张），
-        # 剥离后 rel 会指向一个已存在的**目录**，写文件必然失败。
-        # 扩展名与 Content-Type 不符的问题改由 ensure_download 纠正并回传真实
-        # 路径（见下方 NON_IMAGE_EXTS 逻辑）。
-        rel = "zb_users/remote/" + p.netloc + "/" + "/".join(segs)
-        if rel.endswith("/"):
-            rel += "index"
-        return rel
+        """外站图片 URL -> 站内相对路径（无前缀）。非 http(s) 或本机返回 None。
+
+        实现下沉到模块级 `img_rel_path`：与批量修复工具共用同一套路径/命名规则，
+        避免两处规则漂移导致「同一张图落到两个不同位置」这类隐蔽裂图。
+        """
+        return img_rel_path(url)
 
     def qr_local_rel(url: str):
         payload = _qr_payload(url)
@@ -3134,9 +3293,11 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                         val = img.get(attr)
                         if not isinstance(val, str) or not val.strip():
                             continue
-                        if not remote_re.match(val.strip()):
+                        # 站内相对占位符（/plus/api/image.php?imgurl=...）先规范化成绝对 URL，
+                        # 否则会被 remote_re 过滤掉，导致懒加载占位图永远无法本地化。
+                        url = _normalize_img_url(val.strip())
+                        if not remote_re.match(url):
                             continue
-                        url = val.strip()
                         stats["images_total"] += 1
                         handle_img_attr(img, attr, url, referer_hint, stats, failed_urls)
                     # srcset（逗号分隔的 url [描述符] 列表，跳过二维码）
@@ -3149,7 +3310,7 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
                             if not toks:
                                 new_parts.append(part)
                                 continue
-                            u = toks[0]
+                            u = _normalize_img_url(toks[0])
                             if not remote_re.match(u):
                                 new_parts.append(part)
                                 continue

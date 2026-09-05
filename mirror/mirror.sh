@@ -115,7 +115,7 @@ if [ -f "$SRC_CSS" ]; then
   echo "覆盖 CSS 已复制 -> $OUT_DIR/lib/xianbao-override.css"
 fi
 PREFIX="${PAGES_PREFIX:-/}"
-CSSLINK="<link rel=\"stylesheet\" href=\"${PREFIX%/}/lib/xianbao-override.css?v=4\">"
+CSSLINK="<link rel=\"stylesheet\" href=\"${PREFIX%/}/lib/xianbao-override.css?v=5\">"
 OUT_DIR="$OUT_DIR" CSSLINK="$CSSLINK" "$PY" - <<'PY'
 import os, pathlib, re
 out_dir = os.environ["OUT_DIR"]
@@ -307,7 +307,7 @@ import render
 out_dir = pathlib.Path(os.environ["OUT_DIR"])
 render.rebuild_category_pages(out_dir)
 render.build_hub(out_dir)
-css_link = '<link rel="stylesheet" href="/lib/xianbao-override.css?v=4">'
+css_link = '<link rel="stylesheet" href="/lib/xianbao-override.css?v=5">'
 marker = "xianbao-override.css"
 count = 0
 for p in out_dir.rglob("*"):
