@@ -2656,6 +2656,10 @@ def render_page_ex(page, url: str, path: str, raw_docs: dict, state=None):
     if not _nav_ok:
         return (False, None, None, "network")
     if _status in (404, 410) and state is not None:
+        # ⚠️ 档案级镜像原则（用户硬性要求）：源站删帖时**只标记 dead 状态，
+        # 绝不删除本地已备份的文章文件**——已备份帖子必须永久存在、URL 永久
+        # 可访问、搜索永久可搜到。任何情况下不得在此分支或 recheck 流程中
+        # 引入 os.remove/unlink 等文件删除逻辑。
         record_dead(state, path, f"HTTP {_status}", permanent=True)
         print(f"==> 永久失效（{_status}），已记录跳过：{url}")
         return (False, None, None, "dead")
