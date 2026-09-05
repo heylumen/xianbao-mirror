@@ -917,6 +917,29 @@ def test_build_search_index_includes_cat_and_comments(tmp_path):
     assert (tmp_path / "search.html").exists()
 
 
+def test_search_lite_docs_have_unique_id(tmp_path):
+    """回归（2026-09-05 线上事故）：MiniSearch 默认 idField='id'，若轻量索引
+    漏掉 id 字段，前端 addAll() 会整体抛「document does not have ID field
+    "id"」→ 搜索页显示「搜索索引加载失败」。lite 文档必须每条带唯一 id。"""
+    art = tmp_path / "zuankeba"
+    art.mkdir(parents=True)
+    (art / "6500001.html").write_text(
+        '<html><head><title>红包-线报酷</title></head>'
+        '<body><div class="head-info"><span class="comment"><i class="iconfont icon-comment"></i> 3</span></div>'
+        '<div class="content">京东红包</div></body></html>',
+        encoding="utf-8")
+    (art / "6500002.html").write_text(
+        '<html><head><title>话费-线报酷</title></head>'
+        '<body><div class="head-info"><span class="comment"><i class="iconfont icon-comment"></i> 1</span></div>'
+        '<div class="content">移动话费优惠</div></body></html>',
+        encoding="utf-8")
+    render.build_search_index(tmp_path)
+    lite = json.loads((tmp_path / "search-lite.json").read_text(encoding="utf-8"))
+    assert len(lite) == 2
+    assert all("id" in d and d["id"] for d in lite)      # 每条都有非空 id
+    assert len({d["id"] for d in lite}) == len(lite)     # id 全局唯一
+
+
 def test_prune_nav_removes_login_icon_and_about_and_hot_dropdown(tmp_path):
     cat_dir = tmp_path / "category-zuankeba"
     cat_dir.mkdir(parents=True)

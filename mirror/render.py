@@ -1619,7 +1619,11 @@ def build_search_index(out_dir: Path):
     # 轻量索引：仅供前端搜索页下载。
     # 检索范围 = 标题 + 正文全文 + 评论（fulltext）；展示只需标题/链接/分类/评论数/时间。
     # 不再单独存 body —— fulltext 开头即为正文，可省约三成体积。
+    # ⚠️ id 必须保留：MiniSearch 默认 idField='id'，漏掉该字段会让前端
+    # addAll() 整体抛「document does not have ID field "id"」→ 搜索全挂
+    # （2026-09-05 线上事故根因，勿再省略）。
     lite = [{
+        "id": it["id"],
         "title": it["title"],
         "url": it["url"],
         "fulltext": it.get("fulltext", ""),
