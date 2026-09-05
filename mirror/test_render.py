@@ -977,6 +977,40 @@ def test_prune_nav_removes_login_icon_and_about_and_hot_dropdown(tmp_path):
     assert 'footer' not in html
 
 
+def test_strip_dynamic_php_scripts_and_localize_iconfont():
+    """回归（2026-09-05 全站体检）：文章页加载源站 *.php 动态端点，静态镜像上
+    部署平台把 404 页当 JS 返回 → 每篇必现「initGM is not defined」；
+    iconfont 走 at.alicdn.com 外链，CDN 偶发超时导致全站图标缺字。"""
+    html = ('<html><head>'
+            '<link href="https://at.alicdn.com/" rel="dns-prefetch"/>'
+            '<link href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css" rel="stylesheet"/>'
+            '</head><body>'
+            '<script src="/zb_system/script/c_html_js_add.php"></script>'
+            '<script src="/zb_users/theme/xianbao_theme/script/meta.php?type=article&amp;artid=1"></script>'
+            '<p>正文</p></body></html>')
+    out = render.strip_dynamic_php_scripts(html)
+    out = render.localize_iconfont(out)
+    assert ".php" not in out                      # 动态端点脚本全部移除
+    assert "alicdn" not in out                    # 外域引用清零
+    assert "/lib/iconfont.css?v=1" in out         # 本地副本就位
+    assert "<p>正文</p>" in out                   # 其余内容不受影响
+
+
+def test_strip_chrome_no_php_scripts_no_alicdn():
+    """集成回归：strip_chrome 输出的文章页不得再引用 *.php / alicdn。"""
+    html = ('<html><head><title>测试-线报酷</title>'
+            '<link href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css" rel="stylesheet"/>'
+            '</head><body><div class="content"><p>正文内容</p></div>'
+            '<script src="/zb_system/script/c_html_js_add.php"></script>'
+            '<script src="/zb_users/theme/xianbao_theme/script/meta.php?artid=1"></script>'
+            '</body></html>')
+    out = render.strip_chrome(html, cat_slug="zuankeba")
+    assert ".php" not in out
+    assert "alicdn" not in out
+    assert "/lib/iconfont.css" in out
+    assert "正文内容" in out
+
+
 def test_strip_chrome_removes_xiangguan():
     html = (
         '<html><head></head><body>'

@@ -149,6 +149,28 @@ def strip_common_js(html: str) -> str:
         '', html, flags=re.S | re.I)
 
 
+def strip_dynamic_php_scripts(html: str) -> str:
+    """外科手术式删除指向源站动态端点（``*.php``）的脚本引用。镜像为纯静态站，
+    这些 PHP 端点不存在，部署平台会把 404 页当作 JS 返回并被浏览器执行，
+    每篇文章必现「initGM is not defined」ReferenceError（2026-09-05 全站体检发现）。
+    仅删除空脚本标签，不影响文档其余字节。"""
+    return re.sub(
+        r'<script[^>]*src="[^"]*\.php[^"]*"[^>]*>\s*</script>',
+        '', html, flags=re.S | re.I)
+
+
+def localize_iconfont(html: str) -> str:
+    """把源站 iconfont 外链（at.alicdn.com 的 CSS 与字体）替换为本地副本
+    ``/lib/iconfont.css``，并删除对应的 dns-prefetch。外部 CDN 偶发超时会让
+    全站图标显示为方框/空白（woff2 加载 ERR_TIMED_OUT 实测复现）。"""
+    html = html.replace(
+        '<link href="https://at.alicdn.com/t/c/font_1640420_ez6c8oh0s95.css" rel="stylesheet"/>',
+        '<link href="/lib/iconfont.css?v=1" rel="stylesheet"/>')
+    html = html.replace(
+        '<link href="https://at.alicdn.com/" rel="dns-prefetch"/>', '')
+    return html
+
+
 def strip_breadcrumb_icon(html: str) -> str:
     """外科手术式把面包屑分隔符 ``<i class="iconfont icon-right"></i>`` 替换为文本
     「 › 」，避免依赖外部 iconfont CDN（at.alicdn.com）导致分隔符不显示、面包屑挤成
@@ -696,6 +718,10 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     # 错误地破坏 .author 链接结构；还会在移动端评论列表里重复注入「顺序」控件。
     for _s in soup.find_all("script", src=re.compile(r"common\.js", re.I)):
         _s.decompose()
+    # 2c-2) 删除源站动态端点（*.php）脚本引用：静态镜像无 PHP，部署平台把 404 页
+    # 当 JS 返回并执行，每篇文章必现「initGM is not defined」ReferenceError。
+    for _s in list(soup.find_all("script", src=re.compile(r"\.php", re.I))):
+        _s.decompose()
     # 4) 文章页操作按钮：收藏、复制文案、重新抓取、举报
     for _cls in ("mochu_us_shoucang", "mochu-us-coll", "mochu-us-zhua",
                  "mochu-us-copy", "report"):
@@ -819,7 +845,9 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 img_fb.string = IMG_FALLBACK_JS
                 body.append(img_fb)
             _inject_nav_tools(soup)
-    return str(soup)
+    # iconfont 外链本地化：at.alicdn.com 偶发超时导致全站图标缺字（方框/空白）。
+    # 在最终序列化字符串上做字节级替换，避免再次 soup 往返。
+    return localize_iconfont(str(soup))
 
 
 def discover_article_links(html: str, base_url: str):
@@ -1666,8 +1694,9 @@ def build_search_index(out_dir: Path):
 
 
 def _mirror_base() -> str:
-    """站点绝对基址（sitemap/atom 需要）。由 env MIRROR_BASE_URL 指定，缺省占位。"""
-    return os.environ.get("MIRROR_BASE_URL", "https://xianbao-mirror.vercel.app").rstrip("/")
+    """站点绝对基址（sitemap/atom 需要）。由 env MIRROR_BASE_URL 指定，
+    缺省为正式自定义域名（2026-09-05 体检发现旧默认域名会写进 sitemap/atom）。"""
+    return os.environ.get("MIRROR_BASE_URL", "https://xianbao.1314151.xyz").rstrip("/")
 
 
 def build_sitemap(out_dir: Path, items: list) -> None:
@@ -2473,6 +2502,10 @@ def rebuild_category_page(
     # 点击搜索框反而隐藏、移动端汉堡菜单错乱。文章页由 strip_chrome 处理，列表页
     # 此前漏掉（首页因复用已剥离的 zuankeba 模板而侥幸正常）。
     html = strip_common_js(html)
+    # 源站动态端点（*.php）脚本在静态镜像上不存在，会把 404 页当 JS 执行 → 删除；
+    # iconfont 外链（at.alicdn.com）本地化，避免 CDN 偶发超时导致图标缺字。
+    html = strip_dynamic_php_scripts(html)
+    html = localize_iconfont(html)
     html = _replace_new_post_list(html, items)
     soup = BeautifulSoup(html, "html.parser")
     if title and soup.title:
