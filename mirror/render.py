@@ -1475,8 +1475,9 @@ SEARCH_HTML = """<!DOCTYPE html>
 </div>
 <script>
 var _q=document.getElementById('q'),_r=document.getElementById('r'),_ms=null,_timer=null;
+var LITE_URL='__LITE_URL__';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
 // 健壮加载：检查 HTTP 状态 + 120s 超时（19MB 大索引）+ 最多 3 次重试，
-// 让 Vercel 边缘偶发 502 / 传输截断能自愈，而不是一次性「加载失败」。
+// 让边缘偶发 5xx / 传输截断能自愈，而不是一次性「加载失败」。
 function _loadIndex(){
   return new Promise(function(resolve,reject){
     var tries=0, max=3;
@@ -1484,7 +1485,7 @@ function _loadIndex(){
       tries++;
       var ctrl=new AbortController();
       var to=setTimeout(function(){ctrl.abort();},120000);
-      fetch('/search-lite.json',{signal:ctrl.signal}).then(function(r){
+      fetch(LITE_URL,{signal:ctrl.signal}).then(function(r){
         clearTimeout(to);
         if(!r.ok) throw new Error('HTTP '+r.status);
         return r.json();
@@ -1494,13 +1495,26 @@ function _loadIndex(){
     })();
   });
 }
+// 分批建索引：addAll 一次性分词 2.8 万条会阻塞主线程约 7 秒（页面假死），
+// 改为每批 1500 条、批间 setTimeout(0) 让路事件循环，总耗时不变但页面可交互。
+function buildIndex(docs){
+  return new Promise(function(resolve){
+    _ms=new MiniSearch({fields:['title','fulltext'],storeFields:['title','url','fulltext','cat_label','comments','time']});
+    var i=0,STEP=800;
+    (function chunk(){
+      var end=Math.min(i+STEP,docs.length);
+      for(;i<end;i++) _ms.add(docs[i]);
+      if(i<docs.length){ setTimeout(chunk,0); } else { resolve(); }
+    })();
+  });
+}
 _loadIndex().then(function(docs){
   if(!window.MiniSearch){_r.innerHTML='<p>搜索组件加载失败（本地 MiniSearch 库缺失）。</p>';return;}
-  _ms=new MiniSearch({fields:['title','fulltext'],storeFields:['title','url','fulltext','cat_label','comments','time']});
-  _ms.addAll(docs);
-  var params=new URLSearchParams(window.location.search);
-  var initial=params.get('q');
-  if(initial){ _q.value=initial; run(); }
+  return buildIndex(docs).then(function(){
+    var params=new URLSearchParams(window.location.search);
+    var initial=params.get('q');
+    if(initial){ _q.value=initial; run(); }
+  });
 }).catch(function(e){
   _r.innerHTML='<p>搜索索引加载失败：'+(e&&e.message?e.message:e)+'</p>';
 });
@@ -1703,6 +1717,14 @@ def ensure_minisearch(out_dir: Path) -> bool:
     return dst.exists()
 
 
+def _lite_url() -> str:
+    """search-lite.json 的带版本 URL。版本随每次渲染变化（CI 可注入 RENDER_VERSION）。
+    配合 CDN/浏览器对该路径的 immutable 长缓存（见 vercel.json headers）：
+    版本不变 → 浏览器零请求秒加载；新部署 → URL 变化 → 自动拉取新索引。"""
+    version = os.environ.get("RENDER_VERSION") or str(int(time.time()))
+    return f"/search-lite.json?v={version}"
+
+
 def build_search_page(out_dir: Path, items: list) -> None:
     """生成源站风格的搜索页：复用 category-zuankeba 模板，替换主列表为 MiniSearch 搜索，
     并在右侧生成 12/24/48 小时榜。"""
@@ -1712,7 +1734,8 @@ def build_search_page(out_dir: Path, items: list) -> None:
         # 该页已改用本地 vendored 库（不再依赖外部 CDN），故需先确保库文件就位，
         # 否则 /lib/minisearch.umd.min.js 404 会导致搜索完全不可用。
         ensure_minisearch(out_dir)
-        (out_dir / "search.html").write_text(SEARCH_HTML, encoding="utf-8")
+        (out_dir / "search.html").write_text(
+            SEARCH_HTML.replace("__LITE_URL__", _lite_url()), encoding="utf-8")
         return
     html = template.read_text(encoding="utf-8", errors="replace")
     soup = BeautifulSoup(html, "html.parser")
@@ -1767,6 +1790,7 @@ def build_search_page(out_dir: Path, items: list) -> None:
   var q = document.getElementById('q');
   var ul = document.querySelector('ul.new-post');
   if (!q || !ul) return;
+  var LITE_URL = '__LITE_URL__';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
   function escapeHtml(s){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
@@ -1823,14 +1847,23 @@ def build_search_page(out_dir: Path, items: list) -> None:
     // 使用轻量索引 search-lite.json：只含检索与展示必需字段，体积约为完整版
     // search.json 的四成，可显著降低首次加载耗时；检索字段为 title + fulltext
     //（fulltext = 正文全文 + 评论），与完整版索引的检索语义一致。
-    msPromise = _fetchWithRetry('/search-lite.json').then(function(docs){
+    // LITE_URL 带渲染版本号：新部署 URL 变化自动拉新；版本不变走 immutable 长缓存。
+    msPromise = _fetchWithRetry(LITE_URL).then(function(docs){
       if (!window.MiniSearch) return null;
       // 检索范围：标题 + 正文全文 + 评论（fulltext 已包含二者）
-      var ms = new MiniSearch({fields:['title','fulltext'], storeFields:['title','url','cat_label','comments','time']});
-      ms.addAll(docs);
-      window.__msReady = true;
-      return ms;
+      // 分批建索引：addAll 一次性分词 2.8 万条会阻塞主线程约 7 秒（页面假死），
+      // 改为每批 1500 条、批间 setTimeout(0) 让路事件循环，总耗时不变但页面可交互。
+      return new Promise(function(resolve){
+        var ms = new MiniSearch({fields:['title','fulltext'], storeFields:['title','url','cat_label','comments','time']});
+        var i = 0, STEP = 800;
+        (function chunk(){
+          var end = Math.min(i + STEP, docs.length);
+          for (; i < end; i++) ms.add(docs[i]);
+          if (i < docs.length) { setTimeout(chunk, 0); } else { resolve(ms); }
+        })();
+      });
     });
+    msPromise.then(function(){ window.__msReady = true; });
     return msPromise;
   }
   function search(){
@@ -1855,11 +1888,16 @@ def build_search_page(out_dir: Path, items: list) -> None:
     timer = setTimeout(search, 180);
   }
   q.addEventListener('input', schedule);
+  // 页面加载即后台预热索引：下载 + 分批建索引都不阻塞交互，用户开始输入时
+  // 索引大概率已就绪，感知等待趋近于 0。预热失败静默处理（不打扰浏览），
+  // 仅重置缓存的 Promise，让真正检索时重新走一遍下载/建索引（含重试）。
+  getIndex().catch(function(){ msPromise = null; });
   var params = new URLSearchParams(window.location.search);
   var initial = params.get('q');
   if (initial){ q.value = initial; search(); }
 })();
 """
+    script.string = script.string.replace("__LITE_URL__", _lite_url())
     if soup.body:
         soup.body.append(script)
     # 样式补丁（含暗黑模式适配，避免移动端搜索框在夜间模式下仍为白色）

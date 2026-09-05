@@ -101,6 +101,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
   var q = document.getElementById('q');
   var ul = document.querySelector('ul.new-post');
   if (!q || !ul) return;
+  var LITE_URL = '/search-lite.json?v=1788593729';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
   function escapeHtml(s){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
@@ -155,15 +156,25 @@ html.night .search-top input:focus{border-color:#5c7cfa}
   function getIndex(){
     if (msPromise) return msPromise;
     // 使用轻量索引 search-lite.json：只含检索与展示必需字段，体积约为完整版
-    // search.json 的四成，可显著降低首次加载耗时；检索字段（title + body）不变。
-    msPromise = _fetchWithRetry('/search-lite.json').then(function(docs){
+    // search.json 的四成，可显著降低首次加载耗时；检索字段为 title + fulltext
+    //（fulltext = 正文全文 + 评论），与完整版索引的检索语义一致。
+    // LITE_URL 带渲染版本号：新部署 URL 变化自动拉新；版本不变走 immutable 长缓存。
+    msPromise = _fetchWithRetry(LITE_URL).then(function(docs){
       if (!window.MiniSearch) return null;
       // 检索范围：标题 + 正文全文 + 评论（fulltext 已包含二者）
-      var ms = new MiniSearch({fields:['title','fulltext'], storeFields:['title','url','cat_label','comments','time']});
-      ms.addAll(docs);
-      window.__msReady = true;
-      return ms;
+      // 分批建索引：addAll 一次性分词 2.8 万条会阻塞主线程约 7 秒（页面假死），
+      // 改为每批 1500 条、批间 setTimeout(0) 让路事件循环，总耗时不变但页面可交互。
+      return new Promise(function(resolve){
+        var ms = new MiniSearch({fields:['title','fulltext'], storeFields:['title','url','cat_label','comments','time']});
+        var i = 0, STEP = 800;
+        (function chunk(){
+          var end = Math.min(i + STEP, docs.length);
+          for (; i < end; i++) ms.add(docs[i]);
+          if (i < docs.length) { setTimeout(chunk, 0); } else { resolve(ms); }
+        })();
+      });
     });
+    msPromise.then(function(){ window.__msReady = true; });
     return msPromise;
   }
   function search(){
@@ -188,6 +199,10 @@ html.night .search-top input:focus{border-color:#5c7cfa}
     timer = setTimeout(search, 180);
   }
   q.addEventListener('input', schedule);
+  // 页面加载即后台预热索引：下载 + 分批建索引都不阻塞交互，用户开始输入时
+  // 索引大概率已就绪，感知等待趋近于 0。预热失败静默处理（不打扰浏览），
+  // 仅重置缓存的 Promise，让真正检索时重新走一遍下载/建索引（含重试）。
+  getIndex().catch(function(){ msPromise = null; });
   var params = new URLSearchParams(window.location.search);
   var initial = params.get('q');
   if (initial){ q.value = initial; search(); }
