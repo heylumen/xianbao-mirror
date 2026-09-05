@@ -59,6 +59,15 @@ img {
 html.night img {
     background-color: #2b303a;
 }
+/* logo 是透明 PNG（newlogo.png 四角 alpha=0），若被上面的全局灰底染色，
+   四周透明区会显示为灰色矩形，在浅色页头看起来像「边框阴影」。
+   这里给它单加例外，恢复透明，只让正文裂图走降级灰底。 */
+.logo-area img {
+    background: transparent;
+}
+html.night .logo-area img {
+    background: transparent;
+}
 
 /* ==================== 列表页居中 ==================== */
 body.xianbao-list #sidebar { display: none !important; }

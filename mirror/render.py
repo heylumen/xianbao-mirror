@@ -1451,7 +1451,7 @@ SEARCH_HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像 · 站内搜索</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=5">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=6">
 <script src="/lib/minisearch.umd.min.js"></script>
 <style>
   body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}
@@ -1475,7 +1475,26 @@ SEARCH_HTML = """<!DOCTYPE html>
 </div>
 <script>
 var _q=document.getElementById('q'),_r=document.getElementById('r'),_ms=null,_timer=null;
-fetch('/search-lite.json').then(function(r){return r.json();}).then(function(docs){
+// 健壮加载：检查 HTTP 状态 + 120s 超时（19MB 大索引）+ 最多 3 次重试，
+// 让 Vercel 边缘偶发 502 / 传输截断能自愈，而不是一次性「加载失败」。
+function _loadIndex(){
+  return new Promise(function(resolve,reject){
+    var tries=0, max=3;
+    (function attempt(){
+      tries++;
+      var ctrl=new AbortController();
+      var to=setTimeout(function(){ctrl.abort();},120000);
+      fetch('/search-lite.json',{signal:ctrl.signal}).then(function(r){
+        clearTimeout(to);
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return r.json();
+      }).then(resolve).catch(function(err){
+        if(tries<max){ setTimeout(attempt,700*tries); } else { reject(err); }
+      });
+    })();
+  });
+}
+_loadIndex().then(function(docs){
   if(!window.MiniSearch){_r.innerHTML='<p>搜索组件加载失败（本地 MiniSearch 库缺失）。</p>';return;}
   _ms=new MiniSearch({fields:['title','fulltext'],storeFields:['title','url','fulltext','cat_label','comments','time']});
   _ms.addAll(docs);
@@ -1483,7 +1502,7 @@ fetch('/search-lite.json').then(function(r){return r.json();}).then(function(doc
   var initial=params.get('q');
   if(initial){ _q.value=initial; run(); }
 }).catch(function(e){
-  _r.innerHTML='<p>搜索索引加载失败：'+e+'</p>';
+  _r.innerHTML='<p>搜索索引加载失败：'+(e&&e.message?e.message:e)+'</p>';
 });
 function run(){
   if(!_ms) return;
@@ -1776,12 +1795,31 @@ def build_search_page(out_dir: Path, items: list) -> None:
   // 现改为「懒加载一次 + 复用实例 + 输入防抖」，检索参数保持不变，
   // 因此结果集与排序逻辑与原先完全一致。
   var msPromise = null;
+  // 健壮加载：检查 HTTP 状态 + 120s 超时（19MB 大索引）+ 最多 3 次重试，
+  // 让 Vercel 边缘偶发 502 / 传输截断能自愈，而不是一次性「加载失败」。
+  function _fetchWithRetry(url){
+    return new Promise(function(resolve,reject){
+      var tries=0, max=3;
+      (function attempt(){
+        tries++;
+        var ctrl=new AbortController();
+        var to=setTimeout(function(){ctrl.abort();},120000);
+        fetch(url,{signal:ctrl.signal}).then(function(r){
+          clearTimeout(to);
+          if(!r.ok) throw new Error('HTTP '+r.status);
+          return r.json();
+        }).then(resolve).catch(function(err){
+          if(tries<max){ setTimeout(attempt,700*tries); } else { reject(err); }
+        });
+      })();
+    });
+  }
   function getIndex(){
     if (msPromise) return msPromise;
     // 使用轻量索引 search-lite.json：只含检索与展示必需字段，体积约为完整版
     // search.json 的四成，可显著降低首次加载耗时；检索字段为 title + fulltext
     //（fulltext = 正文全文 + 评论），与完整版索引的检索语义一致。
-    msPromise = fetch('/search-lite.json').then(function(r){ return r.json(); }).then(function(docs){
+    msPromise = _fetchWithRetry('/search-lite.json').then(function(docs){
       if (!window.MiniSearch) return null;
       // 检索范围：标题 + 正文全文 + 评论（fulltext 已包含二者）
       var ms = new MiniSearch({fields:['title','fulltext'], storeFields:['title','url','cat_label','comments','time']});
@@ -1802,8 +1840,8 @@ def build_search_page(out_dir: Path, items: list) -> None:
       if (!ms){ render([]); return; }
       // 检索参数与原先保持一致（prefix/fuzzy/boost 不变）→ 结果与排序不变
       render(ms.search(t, {prefix:true, fuzzy:0.2, boost:{title:2}}));
-    }).catch(function(){
-      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">搜索索引加载失败。</p></li>';
+    }).catch(function(e){
+      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">搜索索引加载失败：'+(e&&e.message?e.message:e)+'</p></li>';
     });
   }
   // 输入防抖：连续输入时合并检索，避免每个按键都触发一次全量检索
@@ -1911,7 +1949,7 @@ def _build_legacy_hub(out_dir: Path):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=5">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=6">
 <style>
 body{{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}}
 .wrap{{max-width:900px;margin:0 auto;padding:24px 16px}}
