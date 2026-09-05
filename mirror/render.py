@@ -1518,13 +1518,30 @@ _loadIndex().then(function(docs){
 }).catch(function(e){
   _r.innerHTML='<p>搜索索引加载失败：'+(e&&e.message?e.message:e)+'</p>';
 });
+// 时效加权：线报/优惠信息强时效，纯相关度排序会让老帖（词频高、标题命中）
+// 长期霸榜、近期帖被挤出展示窗口（2026-09-05 线上反馈：9月帖搜不到）。
+// 按帖龄乘系数后重排：7 天内 ×5、30 天内 ×3、90 天内 ×2、更早 ×1。
+function timeBoost(tstr){
+  var m=/(\\d{4})年(\\d{2})月(\\d{2})日/.exec(String(tstr||''));
+  if(!m) return 1;
+  var days=(Date.now()-new Date(+m[1],+m[2]-1,+m[3]).getTime())/86400000;
+  if(days<=7) return 5;
+  if(days<=30) return 3;
+  if(days<=90) return 2;
+  return 1;
+}
+function ranked(list){
+  list.forEach(function(x){ x._s=x.score*timeBoost(x.time); });
+  list.sort(function(a,b){ return b._s-a._s; });
+  return list;
+}
 function run(){
   if(!_ms) return;
   var t=_q.value.trim();
   if(!t){_r.innerHTML='';return;}
-  var res=_ms.search(t,{prefix:true,fuzzy:0.2,boost:{title:2}});
+  var res=ranked(_ms.search(t,{prefix:true,fuzzy:0.2,boost:{title:2}}));
   if(!res.length){_r.innerHTML='<p>没有找到相关结果。</p>';return;}
-  _r.innerHTML=res.slice(0,50).map(function(x){
+  _r.innerHTML=res.slice(0,100).map(function(x){
     return '<div class="it"><a href="'+x.url+'">'+x.title+'</a>'
       +'<p>'+((x.fulltext||'').slice(0,140))+'</p></div>';
   }).join('');
@@ -1800,7 +1817,7 @@ def build_search_page(out_dir: Path, items: list) -> None:
       ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">没有找到相关结果。</p></li>';
       return;
     }
-    res.slice(0,50).forEach(function(x){
+    res.slice(0,100).forEach(function(x){
       var li = document.createElement('li');
       li.className = 'article-list';
       // 展示发布时间（源站格式为「2026年06月22日 14:47」，原样呈现）
@@ -1866,6 +1883,18 @@ def build_search_page(out_dir: Path, items: list) -> None:
     msPromise.then(function(){ window.__msReady = true; });
     return msPromise;
   }
+  // 时效加权：线报/优惠信息强时效，纯相关度排序会让老帖（词频高、标题命中）
+  // 长期霸榜、近期帖被挤出展示窗口（2026-09-05 线上反馈：9月帖搜不到）。
+  // 按帖龄乘系数后重排：7 天内 ×5、30 天内 ×3、90 天内 ×2、更早 ×1。
+  function timeBoost(tstr){
+    var m=/(\\d{4})年(\\d{2})月(\\d{2})日/.exec(String(tstr||''));
+    if(!m) return 1;
+    var days=(Date.now()-new Date(+m[1],+m[2]-1,+m[3]).getTime())/86400000;
+    if(days<=7) return 5;
+    if(days<=30) return 3;
+    if(days<=90) return 2;
+    return 1;
+  }
   function search(){
     var t = q.value.trim();
     if (!t){ ul.innerHTML=''; return; }
@@ -1875,8 +1904,12 @@ def build_search_page(out_dir: Path, items: list) -> None:
     }
     getIndex().then(function(ms){
       if (!ms){ render([]); return; }
-      // 检索参数与原先保持一致（prefix/fuzzy/boost 不变）→ 结果与排序不变
-      render(ms.search(t, {prefix:true, fuzzy:0.2, boost:{title:2}}));
+      // 检索参数与原先保持一致（prefix/fuzzy/boost 不变），仅叠加时效权重重排：
+      // 相关度打分仍由 MiniSearch 给出，时间只作乘数，精确标题命中依然靠前
+      var res = ms.search(t, {prefix:true, fuzzy:0.2, boost:{title:2}});
+      res.forEach(function(x){ x._s = x.score * timeBoost(x.time); });
+      res.sort(function(a,b){ return b._s - a._s; });
+      render(res);
     }).catch(function(e){
       ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">搜索索引加载失败：'+(e&&e.message?e.message:e)+'</p></li>';
     });
