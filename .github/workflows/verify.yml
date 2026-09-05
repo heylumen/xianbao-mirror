@@ -1,0 +1,82 @@
+name: 镜像完整性 · 月度校验
+
+# 目的：定期校验已落盘的图片是否真实可用，防止「引用还在、文件已损坏/为空」
+# 这类隐蔽问题长期堆积而不被发现（每日渲染流程不会回头检查历史图片）。
+# 本 workflow 只做只读校验，不修改任何产物，不影响每日渲染流程。
+
+on:
+  schedule:
+    # 每月 2 号 北京时间 04:00（= UTC 1 号 20:00）。
+    # 与每日渲染（北京 01:00 / 13:00）错开，避免抢占 Actions 并发与源站请求。
+    - cron: "0 20 1 * *"
+  workflow_dispatch: {}   # 允许在 Actions 页面手动触发
+
+permissions:
+  contents: read
+
+jobs:
+  verify-images:
+    runs-on: ubuntu-latest
+    # 镜像产物约 2.7GB，检出 + 遍历校验需要时间，留足 2h
+    timeout-minutes: 120
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: mirror/requirements.txt
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r mirror/requirements.txt
+
+      - name: 校验已落盘图片（大小 + 文件头魔数）
+        # 注意：fix_images_batch.py --verify 发现损坏时**仅打印、不返回非零退出码**，
+        # 直接调用的话 workflow 永远不会失败，校验就失去告警意义。
+        # 故此处复用其 is_image_bytes 魔数校验函数，并显式 exit 1 让本步骤真正失败。
+        run: |
+          python - <<'PYEOF'
+          import sys, pathlib
+          sys.path.insert(0, 'mirror')
+          from fix_images_batch import is_image_bytes
+
+          root = pathlib.Path('xianbao/zb_users/remote')
+          checked = empty = corrupt = 0
+          bad = []
+          for p in sorted(root.rglob('*')):
+              if not p.is_file() or p.suffix == '.tmp':
+                  continue
+              checked += 1
+              try:
+                  if p.stat().st_size == 0:
+                      empty += 1
+                      bad.append(str(p))
+                      continue
+                  if not is_image_bytes(p.open('rb').read(16)):
+                      corrupt += 1
+                      bad.append(str(p))
+              except OSError:
+                  continue
+
+          print(f'已检查图片文件 : {checked}')
+          print(f'  空文件(0字节): {empty}')
+          print(f'  文件头非法   : {corrupt}')
+          for s in bad[:10]:
+              print(f'    - {s}')
+          if empty or corrupt:
+              print(f'::error::检测到 {empty + corrupt} 个损坏的本地图片')
+              sys.exit(1)
+          print('全部图片校验通过')
+          PYEOF
+
+      - name: 产物统计
+        run: |
+          echo "HTML 页面数   : $(find xianbao -name '*.html' | wc -l)"
+          echo "已本地化图片 : $(find xianbao/zb_users/remote -type f | wc -l)"

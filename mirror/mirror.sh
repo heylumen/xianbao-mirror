@@ -98,10 +98,45 @@ ICOLINK=""
 PNGLINK=""
 [ -f "$OUT_DIR/favicon.png" ] && PNGLINK="<link rel=\"icon\" href=\"${PREFIX%/}/favicon.png\" type=\"image/png\">"
 if [ -n "$ICOLINK$PNGLINK" ]; then
-  find "$OUT_DIR" -type f \( -iname '*.html' -o -iname '*.htm' \) | while read -r f; do
-    grep -qi 'rel="icon"' "$f" || sed -i "s#<head>#<head>\n$ICOLINK\n$PNGLINK#I" "$f"
-  done
-  echo "favicon 声明已注入"
+  # 原实现：find … | while read; do grep -qi … || sed -i …; done
+  # 会为**每个** HTML 单独启动一次 grep（+可能的 sed）进程 —— 29176 个文件即
+  # 29176 次进程创建，是单轮耗时的主要来源之一。改为 Python 内联后进程创建降为 0。
+  #
+  # 等价性要点（已用 8 组边界用例 A/B 逐字节验证，含 CRLF 输入用例）：
+  #   1) `grep -qi 'rel="icon"'` → re.search(..., IGNORECASE)，大小写不敏感；
+  #   2) `sed s#…#…#I` 不带 g 标志 = 对**每一行**替换第一个匹配，
+  #      故此处逐行处理并 count=1，而非对全文一次性替换；
+  #   3) 用 newline="" 禁用 Python 的换行转换，保留原始行尾（CRLF/LF 原样），
+  #      与 Linux GNU sed 行为一致（CI 为 ubuntu-latest）。
+  OUT_DIR="$OUT_DIR" ICOLINK="$ICOLINK" PNGLINK="$PNGLINK" "$PY" - <<'PY'
+import os, pathlib, re
+
+out_dir = pathlib.Path(os.environ["OUT_DIR"])
+ico_link = os.environ.get("ICOLINK", "")
+png_link = os.environ.get("PNGLINK", "")
+repl = "<head>\n" + ico_link + "\n" + png_link
+changed = 0
+for p in out_dir.rglob("*"):
+    if p.suffix.lower() not in (".html", ".htm"):
+        continue
+    try:
+        html = p.read_text(encoding="utf-8", errors="replace", newline="")
+    except Exception:
+        continue
+    if re.search(r'rel="icon"', html, re.IGNORECASE):
+        continue
+    lines = html.splitlines(keepends=True)
+    hit = False
+    for i, line in enumerate(lines):
+        new_line, n = re.subn(r"<head>", repl, line, count=1, flags=re.IGNORECASE)
+        if n:
+            lines[i] = new_line
+            hit = True
+    if hit:
+        p.write_text("".join(lines), encoding="utf-8", newline="")
+        changed += 1
+print(f"favicon 声明已注入（改写 {changed} 个文件）")
+PY
 fi
 
 # ---------------------------------------------------------------------------

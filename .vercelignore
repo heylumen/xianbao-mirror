@@ -2,3 +2,14 @@
 xianbao/.crawl-state.json
 xianbao/.dead_remote_imgs.json
 xianbao/.mirror-meta.json
+
+# link-map.json（约 25MB）：本意为「死链重定向中间件」提供 URL->本地路径映射，
+# 但本站是纯静态部署（vercel.json 无 routes/functions），并不存在中间件，
+# 经核查全站 0 处引用。生成逻辑已同步移除，此处排除以免历史产物仍被上传。
+xianbao/link-map.json
+
+# search.json（约 28MB）：完整归档索引，含 content_clean/tags/author 等归档字段。
+# 前端搜索页实际只加载轻量版 search-lite.json（约 19MB，已含正文全文与评论），
+# 经核查无任何前端 fetch 指向 search.json（降级页也已统一改用 lite 版）。
+# 仍保留在 git 中作归档用途，仅不参与部署，以免拖慢发布。
+xianbao/search.json

@@ -138,12 +138,13 @@ def test_build_search_index_metadata_and_generators(tmp_path, monkeypatch):
     # 生成器产物
     assert (tmp_path / "sitemap.xml").exists()
     assert (tmp_path / "atom.xml").exists()
-    assert (tmp_path / "link-map.json").exists()
     sm = (tmp_path / "sitemap.xml").read_text(encoding="utf-8")
     assert "<urlset" in sm and "/xiaodigu/6437971.html" in sm
-    lm = json.loads((tmp_path / "link-map.json").read_text(encoding="utf-8"))
-    assert "/xiaodigu/6437971.html" in lm
-    assert "https://new.xianbao.fun/xiaodigu/6437971.html" in lm
+    # link-map.json 已停止生成：该映射表本供「死链重定向中间件」使用，而本站是
+    # 纯静态部署（vercel.json 无 routes/functions），并不存在中间件，且经核查
+    # 全站 0 处引用；生成它只会让产物每轮多出约 25MB、拖慢发布。
+    # 此处断言「不再生成」，锁定该决策，防止后续被误加回。
+    assert not (tmp_path / "link-map.json").exists()
 
 
 # ---------------------------------------------------------------------------

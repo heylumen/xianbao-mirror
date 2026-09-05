@@ -3,15 +3,19 @@ name: 网站镜像 · 每日渲染
 on:
   schedule:
     # 公开仓库（GitHub Actions 对 public 仓无限免费、不计时长，唯一硬约束=单 job 6h 超时）。
-    # 目标：8/31 前爬完全站（自 8/15 起约 16 天窗口）→ 需 ≥1145 篇/天（≈2 轮/天保底）。
-    # 取 3 轮/天（北京 01:00 / 09:00 / 17:00）≈ 1695 篇/天，约 8/26 前完成，留 5 天冗余至 8/31。
+    #
+    # 2026-09-05 调整：存量已爬取完毕（pending=0、5 个分类列表均翻到底），
+    # 由「回填式全量爬取」转为「增量 + 更新式爬取」。
+    # 源站新帖约 400 篇/天，而单轮配额 MAX_PAGES_PER_RUN=600 已绰绰有余，
+    # 故由 3 轮/天降为 2 轮/天：
+    #   · 部署次数减少 33%（每次 push 会触发一次线上发布）；
+    #   · 省下的配额转投老帖复查（RECHECK_PER_RUN=200），用于同步存量文章的新评论
+    #     ——此前 rechecks=0，28632 篇存量文章的新评论从未同步过。
     # GitHub Actions cron 为 UTC，北京=UTC+8：
-    #   北京 01:00 = UTC 17:00 | 北京 09:00 = UTC 01:00 | 北京 17:00 = UTC 09:00
-    # 每轮实际约 3~4h（MAX_PAGES_PER_RUN=600），8h 间隔不会重叠；即便偶发超时，
-    # CHECKPOINT_EVERY=120 已开检查点，仅丢最后 ≤120 页，次日续爬不重复。
+    #   北京 01:00 = UTC 17:00 | 北京 13:00 = UTC 05:00
+    # 两轮间隔 12h，远大于单轮耗时（约 3~4h），不会重叠。
     - cron: "0 17 * * *"
-    - cron: "0 1 * * *"
-    - cron: "0 9 * * *"
+    - cron: "0 5 * * *"
   workflow_dispatch: {}   # 允许在 Actions 页面手动触发，便于验证与补跑
 
 # Vercel / Netlify 通过 Git 集成读取提交的 xianbao/ 目录直接发布，
@@ -76,9 +80,9 @@ jobs:
 
       - name: 执行网站渲染镜像（Playwright，增量 + 5 分类白名单，输出到 xianbao/）
         env:
-          # —— 8/31 前爬完调参（公开仓无限时长，瓶颈=单 job 6h 超时）——
-          # 单轮吞吐 ~565 篇（MAX_PAGES_PER_RUN=600）；3 轮/天 ≈ 1695 篇/天，
-          # 18325 pending ÷ 1695 ≈ 11 天 → 约 8/26 前完成，留 5 天冗余至 8/31。
+          # —— 存量已爬完，转为「增量新帖 + 老帖复查」——
+          # 单轮吞吐上限 600 篇；源站新帖约 400 篇/天，2 轮/天已足以跟上，
+          # 剩余配额由 RECHECK_PER_RUN（默认 200）用于复查老帖、同步新评论。
           # 注：这些调参仅作用于本渲染步骤，刻意不放在 job 级 env，
           # 以免泄漏到上方「单元测试」步骤、覆盖 render.py 的代码默认值
           # （如 MAX_PAGES_PER_RUN 默认 200），导致回归测试误判失败。
@@ -105,3 +109,23 @@ jobs:
           # 只要有本地 commit 就尽量同步，减少进度丢失。
           git pull --rebase origin main
           git push
+
+      - name: 失败诊断摘要（输出关键状态指标，便于排查）
+        if: failure()
+        run: |
+          echo "::error::网站镜像任务失败，详见上方日志"
+          if [ -f xianbao/.crawl-state.json ]; then
+            python - <<'PYEOF'
+          import json
+          st = json.load(open('xianbao/.crawl-state.json', encoding='utf-8'))
+          print(f"  mode={st.get('mode')}  crawled={len(st.get('crawled', {}))}"
+                f"  pending={len(st.get('pending', []))}"
+                f"  dead={len(st.get('dead', {}))}")
+          print(f"  exhausted={st.get('category_exhausted')}")
+          print(f"  backfill_complete={st.get('backfill_complete')}"
+                f"  completed_at={st.get('completed_at')}")
+          print(f"  stats={st.get('stats')}")
+          PYEOF
+          else
+            echo "  未找到 .crawl-state.json（可能在渲染开始前就已失败）"
+          fi

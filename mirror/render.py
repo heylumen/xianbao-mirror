@@ -201,9 +201,11 @@ RECHECK_PER_RUN = int(os.environ.get("RECHECK_PER_RUN", "200"))
 # 实测 5 分类合计约 2.6 万篇，按 200/天约需 130 天（约 4 个半月）；源站请求分散在
 # 单次运行的深夜窗口内（约 0.3 req/s），隐蔽性良好；稳后可调大到 300 提速。
 MAX_PAGES_PER_RUN = int(os.environ.get("MAX_PAGES_PER_RUN", "200"))
-# 每渲染多少页做一次「检查点提交」（commit + push 状态与新页面），
-# 使中途取消/崩溃也不丢进度、次日不重复爬。0 = 关闭检查点（仅跑完才提交）。
-CHECKPOINT_EVERY = int(os.environ.get("CHECKPOINT_EVERY", "0"))
+# 每渲染多少页做一次「检查点提交」（只做本地 commit 并落地状态文件，不 push，
+# 以免每个检查点都触发一次线上部署），使中途取消/崩溃也不丢进度、次日不重复爬。
+# 默认 120（此前默认为 0，即关闭检查点；CI 已显式设为 120，此处对齐以免本地
+# 运行时因缺少环境变量而丢失整轮进度）。0 = 关闭检查点（仅跑完才落盘）。
+CHECKPOINT_EVERY = int(os.environ.get("CHECKPOINT_EVERY", "120"))
 # 分类列表页连续「无新文章」达到此次数，判定该分类已抓完。
 CONSEC_MISS_LIMIT = int(os.environ.get("CONSEC_MISS_LIMIT", "3"))
 # 单分类列表页安全上限（防止死循环）。
@@ -223,10 +225,40 @@ DEAD_TTL_DAYS = int(os.environ.get("DEAD_TTL_DAYS", "90"))
 
 NAV_TIMEOUT_MS = int(os.environ.get("NAV_TIMEOUT_MS", "30000"))
 CRAWL_DELAY_MS = int(os.environ.get("CRAWL_DELAY_MS", "200"))
-COMMENT_WAIT_MS = int(os.environ.get("COMMENT_WAIT_MS", "6000"))
+# 延迟上限：实际休眠在 [CRAWL_DELAY_MS, CRAWL_DELAY_MAX_MS] 区间内**随机**取值，
+# 避免固定间隔那种过于规整的请求节律被源站识别为爬虫（更像人类访问）。
+# 保持原有语义：CRAWL_DELAY_MS=0 仍表示「关闭延迟」（单测依赖该行为）。
+CRAWL_DELAY_MAX_MS = int(os.environ.get("CRAWL_DELAY_MAX_MS", "600"))
+# 是否跳过文章页的「懒加载滚动」。
+# 背景：滚动的本意是触发源站 IntersectionObserver 懒加载，让占位符
+# <img src="/plus/api/image.php?imgurl=<真实CDN>> 被 JS 替换为真实地址。
+# 但两条证据表明它是冗余的：
+#   ① 9/5 全站扫描在**已滚动过**的页面上仍发现 10810 个残留占位符；
+#   ② 2026-09-05 真实浏览器 A/B（4 篇真实文章，滚动前后逐一对比 img 的 src）：
+#      占位符与非占位符数量**完全无变化**（如 /zuankeba/6956164.html 滚动前后均为
+#      占位符=2、其他=101），即滚动未触发任何替换；且页面里 101 个 img 本就是
+#      真实 URL，仅 0–2 个是占位符。
+# 真正生效的是 localize_images：解析 imgurl 参数后经源站 image.php 代理取图
+# （9/5 修复率 99%）。
+# 故默认置 1：跳过「滚动 + 其后 1.5s 等待」，约省 2.3s/页（600 页/轮 ≈ 20 分钟）。
+# 回退到旧行为：设 SKIP_LAZY_SCROLL=0。
+SKIP_LAZY_SCROLL = os.environ.get("SKIP_LAZY_SCROLL", "1") == "1"
 
 TEXT_EXT = {".html", ".htm", ".css", ".js", ".mjs", ".json", ".xml",
             ".svg", ".txt", ".map", ".webmanifest", ".php"}
+
+
+def _crawl_delay():
+    """抓取间隔：在 [CRAWL_DELAY_MS, CRAWL_DELAY_MAX_MS] 区间内随机休眠。
+
+    固定间隔的请求节律过于规整，容易被源站识别为爬虫；随机化后更接近人类访问。
+    CRAWL_DELAY_MS=0 时直接返回，保持「关闭延迟」的原有语义（单测依赖）。
+    """
+    lo = max(0, CRAWL_DELAY_MS)
+    if lo <= 0:
+        return
+    hi = max(lo, CRAWL_DELAY_MAX_MS)
+    time.sleep(random.uniform(lo, hi) / 1000.0)
 
 # 资源型扩展名：这类 URL 一律本地化（与页面链接的「是否白名单」判定无关）。
 ASSET_EXT = {
@@ -295,8 +327,18 @@ STEALTH_JS = r"""
 })()
 """
 
-USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-              "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+# UA 池：每轮运行随机取一个，避免长期以**完全固定**的 UA 请求源站。
+# 刻意只在「桌面 Chrome / Windows」这一形态内轮换相近的小版本（124/125/126），
+# 不引入移动端或异类浏览器 —— 否则源站可能返回不同版式，反而影响渲染结果。
+USER_AGENT_POOL = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+]
+USER_AGENT = random.choice(USER_AGENT_POOL)
 
 SKIP_EXT = {".png", ".jpg", ".jpeg", ".gif", ".ico", ".css", ".js", ".mjs",
             ".woff", ".woff2", ".ttf", ".svg", ".json", ".webp", ".mp4",
@@ -1193,6 +1235,7 @@ def default_state():
         "category_exhausted": {s: False for s in ALLOWED_CATEGORIES},
         "category_miss": {s: 0 for s in ALLOWED_CATEGORIES},
         "pending": set(),       # 已发现但尚未渲染的文章 path 集合（跨运行续爬，保证全量不丢页）
+        "pending_fails": {},    # path -> 连续抓取失败次数；达 DEAD_FAIL_LIMIT 后转 dead，避免无限回填
         "crawled": {},          # path -> {hash, local, last_check}
         "dead": {},             # path -> {reason, fails, ts, permanent} 永久失效页（不再爬）
         "dead_assets": {},      # 绝对URL -> {reason, ts} 永久失效资源（不再补）
@@ -1218,6 +1261,14 @@ def load_state(path: Path):
                          if k in base and k not in ("category_cursor",
                                                     "category_exhausted",
                                                     "category_miss", "crawled")})
+            # stats 采用「合并」而非整体覆盖：以**默认字段集**为基底，再用状态文件
+            # 中的值覆盖。注意必须以 default_state() 取基底 —— 此时 base["stats"]
+            # 已被上面的 base.update() 整体替换成 data 的值，不能再以它为基底。
+            # 旧状态文件可能不含后续新增的计数字段（如 updated），若被整体替换，
+            # save_page 中的 state["stats"]["updated"] += 1 会触发 KeyError 使整轮中断。
+            _stats = dict(default_state()["stats"])
+            _stats.update(data.get("stats") or {})
+            base["stats"] = _stats
             for s in ALLOWED_CATEGORIES:
                 base["category_cursor"][s] = data.get(
                     "category_cursor", {}).get(s, 1)
@@ -1318,10 +1369,27 @@ def drain_frontier(page, raw_docs, save_page, state, counter):
         url = TARGET + path
         ok, rendered, raw = render_page(page, url, path, raw_docs, state)
         if not ok:
+            # H1 修复：原逻辑在此直接 continue —— 而此时 path 已从 pending 移除、
+            # 又未写入 crawled、也未记入 dead（只有 404/410 才会记 dead），
+            # 该文章就此永久丢失且无任何日志。
+            # 现改为「有限重试」：先回填 pending 供下轮再试；累计失败达
+            # DEAD_FAIL_LIMIT 后标记失效（permanent=False，DEAD_TTL_DAYS 到期后可
+            # 重试），避免个别长期不可达的页面无限占用 pending，导致依赖
+            # 「pending 为空」的回填完成判定永远无法置位。
+            fails = state.setdefault("pending_fails", {})
+            n = fails.get(path, 0) + 1
+            if n >= DEAD_FAIL_LIMIT:
+                record_dead(state, path, f"fetch_failed x{n}", permanent=False)
+                fails.pop(path, None)
+            else:
+                fails[path] = n
+                state["pending"].add(path)
             continue
         save_page(path, rendered, "article")
+        # 抓取成功，清除该 path 的历史失败计数
+        state.get("pending_fails", {}).pop(path, None)
         if CRAWL_DELAY_MS > 0:
-            time.sleep(CRAWL_DELAY_MS / 1000.0)
+            _crawl_delay()
         for a in discover_article_links(raw if raw else rendered, url):
             ap = urlparse(a).path
             if ap not in seen and ap not in state["crawled"] and not is_dead(state, ap):
@@ -1407,9 +1475,9 @@ SEARCH_HTML = """<!DOCTYPE html>
 </div>
 <script>
 var _q=document.getElementById('q'),_r=document.getElementById('r'),_ms=null,_timer=null;
-fetch('/search.json').then(function(r){return r.json();}).then(function(docs){
+fetch('/search-lite.json').then(function(r){return r.json();}).then(function(docs){
   if(!window.MiniSearch){_r.innerHTML='<p>搜索组件加载失败（本地 MiniSearch 库缺失）。</p>';return;}
-  _ms=new MiniSearch({fields:['title','body'],storeFields:['title','url','body']});
+  _ms=new MiniSearch({fields:['title','fulltext'],storeFields:['title','url','fulltext','cat_label','comments','time']});
   _ms.addAll(docs);
   var params=new URLSearchParams(window.location.search);
   var initial=params.get('q');
@@ -1425,7 +1493,7 @@ function run(){
   if(!res.length){_r.innerHTML='<p>没有找到相关结果。</p>';return;}
   _r.innerHTML=res.slice(0,50).map(function(x){
     return '<div class="it"><a href="'+x.url+'">'+x.title+'</a>'
-      +'<p>'+((x.body||'').slice(0,140))+'</p></div>';
+      +'<p>'+((x.fulltext||'').slice(0,140))+'</p></div>';
   }).join('');
 }
 // 输入防抖：合并连续输入触发的检索，避免每个按键都全量搜索
@@ -1544,7 +1612,6 @@ def build_search_index(out_dir: Path):
         json.dumps(lite, ensure_ascii=False), encoding="utf-8")
     build_sitemap(out_dir, items)
     build_atom(out_dir, items)
-    build_link_map(out_dir, items)
     build_search_page(out_dir, items)
     return len(items)
 
@@ -1589,18 +1656,6 @@ def build_atom(out_dir: Path, items: list) -> None:
             f'  <updated>{time.strftime("%Y-%m-%dT%H:%M:%S+08:00")}</updated>\n'
             + "\n".join(entries) + "\n</feed>\n")
     (out_dir / "atom.xml").write_text(feed, encoding="utf-8")
-
-
-def build_link_map(out_dir: Path, items: list) -> None:
-    """生成 link-map.json：源站各域名同路径 URL -> 本地路径，供死链重定向中间件使用。"""
-    m = {}
-    for it in items:
-        local = it["url"]  # /cat/id.html
-        m[local] = {"title": it["title"], "local": local}
-        for net in ALL_NETLOCS:
-            m[f"https://{net}{local}"] = {"local": local, "title": it["title"]}
-    (out_dir / "link-map.json").write_text(
-        json.dumps(m, ensure_ascii=False), encoding="utf-8")
 
 
 def _parse_time_to_iso(time_str: str) -> str:
@@ -1724,7 +1779,8 @@ def build_search_page(out_dir: Path, items: list) -> None:
   function getIndex(){
     if (msPromise) return msPromise;
     // 使用轻量索引 search-lite.json：只含检索与展示必需字段，体积约为完整版
-    // search.json 的四成，可显著降低首次加载耗时；检索字段（title + body）不变。
+    // search.json 的四成，可显著降低首次加载耗时；检索字段为 title + fulltext
+    //（fulltext = 正文全文 + 评论），与完整版索引的检索语义一致。
     msPromise = fetch('/search-lite.json').then(function(r){ return r.json(); }).then(function(docs){
       if (!window.MiniSearch) return null;
       // 检索范围：标题 + 正文全文 + 评论（fulltext 已包含二者）
@@ -2420,9 +2476,18 @@ def build_hub(out_dir: Path):
 # ---------------------------------------------------------------------------
 # 渲染页面（单页）
 # ---------------------------------------------------------------------------
-def render_page(page, url: str, path: str, raw_docs: dict, state=None):
-    """导航并渲染单页，返回 (ok, rendered_html, raw_html)。
-    若响应为永久失效（404/410），记录到 state.dead 并跳过，下次不再爬取。"""
+def render_page_ex(page, url: str, path: str, raw_docs: dict, state=None):
+    """导航并渲染单页，返回 (ok, rendered_html, raw_html, reason)。
+
+    reason 取值：
+      - "ok"           渲染成功
+      - "dead"         404/410，已记入 state.dead（下次不再爬取）
+      - "server_error" 5xx：重试耗尽后仍失败
+      - "network"      导航超时/异常（网络抖动）
+
+    返回 reason 是为了让调用方能区分「页面真的到底了」与「网络临时故障」，
+    避免把源站抖动误判成「该分类已抓完」（H4）。
+    """
     _status = None
     _nav_ok = False
     for _attempt in range(3):
@@ -2430,6 +2495,16 @@ def render_page(page, url: str, path: str, raw_docs: dict, state=None):
             _resp = page.goto(url, wait_until="domcontentloaded", timeout=NAV_TIMEOUT_MS)
             _nav_ok = True
             _status = _resp.status if _resp is not None else None
+            # H3 修复：源站 5xx（临时故障/限流）不应被当作正常页面渲染入库，
+            # 否则错误页会被写进镜像并计入 crawled，污染内容。
+            # 现将 5xx 视同一次失败并重试；重试耗尽后返回 server_error 由调用方跳过。
+            if _status is not None and _status >= 500:
+                print(f"::warning:: 源站 {_status}（第 {_attempt+1}/3 次）{url}",
+                      file=sys.stderr)
+                if _attempt < 2:
+                    time.sleep(2 ** _attempt)
+                    continue
+                return (False, None, None, "server_error")
             break
         except PWTimeout:
             print(f"::warning:: 导航超时（第 {_attempt+1}/3 次）{url}", file=sys.stderr)
@@ -2438,11 +2513,11 @@ def render_page(page, url: str, path: str, raw_docs: dict, state=None):
         if _attempt < 2:
             time.sleep(2 ** _attempt)
     if not _nav_ok:
-        return (False, None, None)
+        return (False, None, None, "network")
     if _status in (404, 410) and state is not None:
         record_dead(state, path, f"HTTP {_status}", permanent=True)
         print(f"==> 永久失效（{_status}），已记录跳过：{url}")
-        return (False, None, None)
+        return (False, None, None, "dead")
 
     local = url_to_local(url)
     cat_slug = slug_from_path(path)
@@ -2467,25 +2542,33 @@ def render_page(page, url: str, path: str, raw_docs: dict, state=None):
             # <img src="/plus/api/image.php"> 需滚动进入视口后才被 JS 替换为
             # image.php?imgurl=<真实CDN>。不滚动则永远停在占位符，镜像后图片 404。
             # 逐段滚到页面底部再滚回顶部，等待所有占位符被替换，再读 DOM。
-            try:
-                page.evaluate(
-                    "() => new Promise(res => {"
-                    "  let y = 0; const step = 800;"
-                    "  const max = document.body.scrollHeight || 0;"
-                    "  const tick = () => {"
-                    "    window.scrollTo(0, Math.min(y, max)); y += step;"
-                    "    if (y <= max + step) { setTimeout(tick, 120); }"
-                    "    else { window.scrollTo(0, 0); res(); }"
-                    "  };"
-                    "  tick();"
-                    "})"
-                )
-            except Exception:
-                pass
-            try:
-                page.wait_for_timeout(1500)
-            except Exception:
-                pass
+            #
+            # 注：9/5 全站扫描在**已滚动过**的页面上仍发现 10810 个残留占位符，
+            # 说明滚动并未可靠触发替换；图片实际由 localize_images 解析 imgurl 参数后
+            # 经源站 image.php 代理取回（修复率 99%）。据此判断滚动很可能是冗余的。
+            # 置 SKIP_LAZY_SCROLL=1 可跳过「滚动 + 其后 1.5s 等待」，约省 2.3s/页
+            # （600 页/轮 ≈ 20 分钟）；默认 0 保持滚动，待 CI 灰度验证图片无损后再
+            # 改默认值。
+            if not SKIP_LAZY_SCROLL:
+                try:
+                    page.evaluate(
+                        "() => new Promise(res => {"
+                        "  let y = 0; const step = 800;"
+                        "  const max = document.body.scrollHeight || 0;"
+                        "  const tick = () => {"
+                        "    window.scrollTo(0, Math.min(y, max)); y += step;"
+                        "    if (y <= max + step) { setTimeout(tick, 120); }"
+                        "    else { window.scrollTo(0, 0); res(); }"
+                        "  };"
+                        "  tick();"
+                        "})"
+                    )
+                except Exception:
+                    pass
+                try:
+                    page.wait_for_timeout(1500)
+                except Exception:
+                    pass
         try:
             dom = page.evaluate("document.documentElement.outerHTML")
         except Exception as e:
@@ -2500,7 +2583,16 @@ def render_page(page, url: str, path: str, raw_docs: dict, state=None):
     if local and ART_RE.match("/" + local):
         cat_slug = local.split("/")[0]
         rendered = strip_chrome(rendered, cat_slug=cat_slug)
-    return (True, rendered, raw)
+    return (True, rendered, raw, "ok")
+
+
+def render_page(page, url: str, path: str, raw_docs: dict, state=None):
+    """render_page_ex 的 3 元组兼容封装，保持既有调用点与测试签名不变。
+
+    需要区分失败原因（例如判断某分类是否真的「已抓完」）时应改用 render_page_ex。
+    """
+    ok, rendered, raw, _reason = render_page_ex(page, url, path, raw_docs, state)
+    return (ok, rendered, raw)
 
 
 # ---------------------------------------------------------------------------
@@ -2625,7 +2717,7 @@ def main():
                     continue
                 save_page(path, rendered, "list")
                 if CRAWL_DELAY_MS > 0:
-                    time.sleep(CRAWL_DELAY_MS / 1000.0)
+                    _crawl_delay()
                 for a in discover_article_links(raw if raw else rendered, url):
                     ap = urlparse(a).path
                     if ap not in state["crawled"]:
@@ -2647,8 +2739,20 @@ def main():
                             break
                         path = f"/category-{slug}/{n}/"
                         url = TARGET + path
-                        ok, rendered, raw = render_page(page, url, path, raw_docs, state)
+                        # H4 修复：改用 render_page_ex 以区分失败原因。
+                        # 原逻辑把「网络抖动 / 源站 5xx」与「翻到不存在的页」混为一谈，
+                        # 只要 ok=False 就累加 category_miss，连续 CONSEC_MISS_LIMIT
+                        # 次便把该分类永久标记为 exhausted —— 源站一次临时故障就能让
+                        # 整个分类再也不翻页，并进而使依赖 all(category_exhausted) 的
+                        # 回填完成判定永不成立。现仅对「确实到底」（404/410）计数；
+                        # 网络类与 5xx 只跳过本页，不计数、不判定抓完。
+                        ok, rendered, raw, reason = render_page_ex(
+                            page, url, path, raw_docs, state)
                         if not ok:
+                            if reason in ("network", "server_error"):
+                                print(f"==> 分类 {slug} 第 {n} 页抓取失败"
+                                      f"（{reason}），跳过本页且不判定为已抓完")
+                                continue
                             state["category_miss"][slug] += 1
                             if state["category_miss"][slug] >= CONSEC_MISS_LIMIT:
                                 state["category_exhausted"][slug] = True
@@ -2661,7 +2765,7 @@ def main():
                             cap_hit = True
                             break
                         if CRAWL_DELAY_MS > 0:
-                            time.sleep(CRAWL_DELAY_MS / 1000.0)
+                            _crawl_delay()
                         fresh_found = False
                         for a in discover_article_links(raw if raw else rendered, url):
                             ap = urlparse(a).path
@@ -2716,22 +2820,32 @@ def main():
                         if counter[0] >= MAX_PAGES_PER_RUN:
                             break
                         if CRAWL_DELAY_MS > 0:
-                            time.sleep(CRAWL_DELAY_MS / 1000.0)
+                            _crawl_delay()
         finally:
             browser.close()
 
     # 落地索引与首页 hub
-    n_idx = build_search_index(OUT_DIR)
-    build_hub(OUT_DIR)
-    rebuild_category_pages(OUT_DIR)
+    # H2 修复：后处理是全轮最易超时/崩溃的阶段（localize_images 每轮全量扫描数万
+    # 个 HTML，随镜像增长而变慢）。原逻辑把 save_state 放在函数末尾、且不在 finally
+    # 中，一旦此处抛出，本轮全部 crawled 记录都会丢失（只剩 checkpoint 的进度）。
+    # 现用 try/finally 保证无论成败都先落盘一次；末尾仍会再写一次（覆盖写，幂等）。
+    try:
+        n_idx = build_search_index(OUT_DIR)
+        build_hub(OUT_DIR)
+        rebuild_category_pages(OUT_DIR)
 
-    # 后处理：补全缺失资源 + 剥离注入/分析脚本
-    # （仅扫描本轮新产生的文件，避免随镜像增长而每轮全量重扫导致超时）
-    fill_missing(state, since=run_start_ts)
-    stripped = strip_injection_scripts(set(), since=run_start_ts)
-    stripped_analytics = strip_analytics_scripts(since=run_start_ts)
-    # 图片本地化：外站图下载到本地，防源站删帖/删图后无法查看
-    img_stats = localize_images(OUT_DIR)
+        # 后处理：补全缺失资源 + 剥离注入/分析脚本
+        # （仅扫描本轮新产生的文件，避免随镜像增长而每轮全量重扫导致超时）
+        fill_missing(state, since=run_start_ts)
+        stripped = strip_injection_scripts(set(), since=run_start_ts)
+        stripped_analytics = strip_analytics_scripts(since=run_start_ts)
+        # 图片本地化：外站图下载到本地，防源站删帖/删图后无法查看
+        img_stats = localize_images(OUT_DIR)
+    finally:
+        try:
+            save_state(OUT_DIR / ".crawl-state.json", state)
+        except Exception as _e:
+            print(f"::warning:: 后处理阶段状态落盘失败: {_e}", file=sys.stderr)
 
     (OUT_DIR / ".nojekyll").write_text("", encoding="utf-8")
 
