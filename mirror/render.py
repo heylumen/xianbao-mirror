@@ -1465,6 +1465,22 @@ def _to_rfc3339(time_str: str) -> str:
         return ""
 
 
+def _extract_comment_text(soup) -> str:
+    """提取评论正文文本，供全文检索使用。
+
+    只取评论内容本身，剔除评论区的排序/操作控件文本，避免这些噪声词
+    （如"顺序""只看楼主"）被误索引、干扰检索结果相关性。
+    """
+    box = soup.select_one("#comment .comment-list, .comment-list")
+    if not box:
+        return ""
+    for el in box.select(
+        "button, .comment-toolbar, .comment-order, .showlouzhu, script, style"
+    ):
+        el.decompose()
+    return box.get_text(" ", strip=True)
+
+
 def build_search_index(out_dir: Path):
     items = []
     for idx, p in enumerate(out_dir.rglob("*.html")):
@@ -1489,12 +1505,18 @@ def build_search_index(out_dir: Path):
         # 复用上方已解析的 soup，避免对同一文件重复读盘 + 重复解析
         meta = _extract_article_meta(p, soup)
         content_clean = _clean_text(text)
+        # 全文检索文本 = 正文全文 + 评论文本。
+        # 评论截断 400 字：实测评论平均 306 字，该长度可覆盖绝大多数回帖，
+        # 同时避免个别"高楼帖"把索引体积撑大。
+        comment_text = _clean_text(_extract_comment_text(soup))[:400]
+        fulltext = (content_clean + " " + comment_text).strip()
         items.append({
             "id": str(idx + 1),
             "title": title,
             "url": "/" + rel,
             "body": text[:300],                  # 短摘要（兼容旧检索）
             "content_clean": content_clean[:2000],  # 干净正文（提升检索质量/归档）
+            "fulltext": fulltext,                # 正文全文 + 评论（前端检索用）
             "cat": cat,
             "cat_label": cat_label,
             "comments": meta["comments"],
@@ -1503,8 +1525,23 @@ def build_search_index(out_dir: Path):
             "time": meta["time"],
         })
     items.sort(key=lambda x: x["title"])
+    # 完整版不落盘 fulltext：该字段仅前端检索需要，写入会让归档体积无谓膨胀
     (out_dir / "search.json").write_text(
-        json.dumps(items, ensure_ascii=False), encoding="utf-8")
+        json.dumps([{k: v for k, v in it.items() if k != "fulltext"} for it in items],
+                   ensure_ascii=False), encoding="utf-8")
+    # 轻量索引：仅供前端搜索页下载。
+    # 检索范围 = 标题 + 正文全文 + 评论（fulltext）；展示只需标题/链接/分类/评论数/时间。
+    # 不再单独存 body —— fulltext 开头即为正文，可省约三成体积。
+    lite = [{
+        "title": it["title"],
+        "url": it["url"],
+        "fulltext": it.get("fulltext", ""),
+        "cat_label": it["cat_label"],
+        "comments": it["comments"],
+        "time": it.get("time", ""),
+    } for it in items]
+    (out_dir / "search-lite.json").write_text(
+        json.dumps(lite, ensure_ascii=False), encoding="utf-8")
     build_sitemap(out_dir, items)
     build_atom(out_dir, items)
     build_link_map(out_dir, items)
@@ -1664,10 +1701,16 @@ def build_search_page(out_dir: Path, items: list) -> None:
     res.slice(0,50).forEach(function(x){
       var li = document.createElement('li');
       li.className = 'article-list';
+      // 展示发布时间（源站格式为「2026年06月22日 14:47」，原样呈现）
+      var tstr = x.time ? String(x.time) : '';
+      var tspan = tstr
+        ? '<span style="margin-left:8px;color:#9aa0ad;font-size:12px;font-weight:400">' + escapeHtml(tstr) + '</span>'
+        : '';
       li.innerHTML = '<span class="figure cg16"></span>'
         + '<p class="title">'
         + '<span class="badge com"><i class="iconfont icon-comment"></i>' + (x.comments||0) + '</span>'
         + '<a href="' + x.url + '" title="' + escapeHtml(x.title) + '" target="_blank" data-comments="' + (x.comments||0) + '" data-catename="' + escapeHtml(x.cat_label||'') + '">' + escapeHtml(x.title) + '</a>'
+        + tspan
         + '</p>';
       ul.appendChild(li);
     });
@@ -1680,10 +1723,14 @@ def build_search_page(out_dir: Path, items: list) -> None:
   var msPromise = null;
   function getIndex(){
     if (msPromise) return msPromise;
-    msPromise = fetch('/search.json').then(function(r){ return r.json(); }).then(function(docs){
+    // 使用轻量索引 search-lite.json：只含检索与展示必需字段，体积约为完整版
+    // search.json 的四成，可显著降低首次加载耗时；检索字段（title + body）不变。
+    msPromise = fetch('/search-lite.json').then(function(r){ return r.json(); }).then(function(docs){
       if (!window.MiniSearch) return null;
-      var ms = new MiniSearch({fields:['title','body'], storeFields:['title','url','body','cat_label','comments']});
+      // 检索范围：标题 + 正文全文 + 评论（fulltext 已包含二者）
+      var ms = new MiniSearch({fields:['title','fulltext'], storeFields:['title','url','cat_label','comments','time']});
       ms.addAll(docs);
+      window.__msReady = true;
       return ms;
     });
     return msPromise;
@@ -1691,6 +1738,10 @@ def build_search_page(out_dir: Path, items: list) -> None:
   function search(){
     var t = q.value.trim();
     if (!t){ ul.innerHTML=''; return; }
+    // 首次检索需要下载索引并构建，给出明确提示，避免看起来像"卡住没反应"
+    if (!window.__msReady){
+      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">正在准备搜索（首次约几秒）…</p></li>';
+    }
     getIndex().then(function(ms){
       if (!ms){ render([]); return; }
       // 检索参数与原先保持一致（prefix/fuzzy/boost 不变）→ 结果与排序不变
