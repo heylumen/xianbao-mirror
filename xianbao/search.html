@@ -21,7 +21,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
   var q = document.getElementById('q');
   var ul = document.querySelector('ul.new-post');
   if (!q || !ul) return;
-  var LITE_URL = '/search-lite.json?v=1788686842';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
+  var LITE_URL = '/search-lite.json?v=1788722011';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
   function escapeHtml(s){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
