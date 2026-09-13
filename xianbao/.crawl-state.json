@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "target": "https://new.ixbk.fun",
+  "target": "https://news.ixbk.net",
   "allowed_categories": [
     "zuankeba",
     "xinzuanba",
@@ -31,11 +31,18 @@
     "xiaodao": 3
   },
   "pending": [
-    "/xinzuanba/313702.html",
-    "/xinzuanba/313703.html",
-    "/xinzuanba/313704.html",
-    "/xinzuanba/313706.html",
-    "/xinzuanba/313714.html"
+    "/xinzuanba/313716.html",
+    "/xinzuanba/313718.html",
+    "/xinzuanba/313719.html",
+    "/xinzuanba/313721.html",
+    "/xinzuanba/313723.html",
+    "/xinzuanba/313726.html",
+    "/xinzuanba/313727.html",
+    "/xinzuanba/313728.html",
+    "/xinzuanba/313730.html",
+    "/xinzuanba/313732.html",
+    "/xinzuanba/313733.html",
+    "/xinzuanba/313734.html"
   ],
   "pending_fails": {
     "/xinzuanba/313332.html": 1,
@@ -343,33 +350,45 @@
     "/xinzuanba/313703.html": 1,
     "/xinzuanba/313704.html": 1,
     "/xinzuanba/313706.html": 1,
-    "/xinzuanba/313714.html": 1
+    "/xinzuanba/313714.html": 1,
+    "/xinzuanba/313716.html": 1,
+    "/xinzuanba/313718.html": 1,
+    "/xinzuanba/313719.html": 1,
+    "/xinzuanba/313721.html": 1,
+    "/xinzuanba/313723.html": 1,
+    "/xinzuanba/313726.html": 1,
+    "/xinzuanba/313727.html": 1,
+    "/xinzuanba/313728.html": 1,
+    "/xinzuanba/313730.html": 1,
+    "/xinzuanba/313732.html": 1,
+    "/xinzuanba/313733.html": 1,
+    "/xinzuanba/313734.html": 1
   },
   "crawled": {
     "/category-zuankeba/": {
-      "hash": "7ec3fc2168ea82d109d76b0ae170112c8554021a9869060bb5331c16ab5990fc",
+      "hash": "4537c8a6b15344358153eed79180ca1b4dbdff55041252babd20691f93ff8ec0",
       "local": "category-zuankeba/index.html",
-      "last_check": "2026-09-13T10:01:55+0000"
+      "last_check": "2026-09-13T19:17:06+0000"
     },
     "/category-xinzuanba/": {
-      "hash": "5e58dd3f299d81a8a5832d204bc439951ae16076db3c75bbe24cf39b0f020cdf",
+      "hash": "75ddfa2754c5401b75429f743bddc868615480b5f52ab1b3718b663d8eb9c453",
       "local": "category-xinzuanba/index.html",
-      "last_check": "2026-09-13T10:01:57+0000"
+      "last_check": "2026-09-13T19:17:07+0000"
     },
     "/category-xiaodigu/": {
-      "hash": "e514242e79e5990a03025ff3aa972f9cd15277dc14e9cd06cb0b45f086cb8407",
+      "hash": "3ed6bbe8191475163232524b2ffaa6c8c4193d5c4c6a7779c522a106acbf7c26",
       "local": "category-xiaodigu/index.html",
-      "last_check": "2026-09-13T10:01:58+0000"
+      "last_check": "2026-09-13T19:17:08+0000"
     },
     "/category-huluxia/": {
-      "hash": "4502cdea69e8c631d3b0f132c27dc4235b045ebca475ec301f5fe323634a8262",
+      "hash": "95d402025a5c077e12589d1d95b2a7493dc47393a7a76e9579f0efb545364ecd",
       "local": "category-huluxia/index.html",
-      "last_check": "2026-09-13T10:02:00+0000"
+      "last_check": "2026-09-13T19:17:10+0000"
     },
     "/category-xiaodao/": {
-      "hash": "46e908390e209b37ca341af0ecc9bf7bca91a793f2773e89bb55c60a1464d355",
+      "hash": "54031e9cd14437eb31eb52da4d1f307f5721a25ddb17fe3d7b174bf354b8f29e",
       "local": "category-xiaodao/index.html",
-      "last_check": "2026-09-13T10:02:01+0000"
+      "last_check": "2026-09-13T19:17:11+0000"
     },
     "/category-zuankeba/2/": {
       "hash": "0193ddd7ac4f9aae4d252a9aaec61a051cc7993862907f59b705926a37e19cfd",
@@ -18279,7 +18298,7 @@
     "/zuankeba/6363836.html": {
       "hash": "c1c0cda4ca03e02a54065a863fd8ba314f7387ce59bd285e98576c0a03f4ad8a",
       "local": "zuankeba/6363836.html",
-      "last_check": "2026-07-29T18:22:16+0000"
+      "last_check": "2026-09-13T19:22:45+0000"
     },
     "/xinzuanba/6277111.html": {
       "hash": "cd59e89b6f45d92159ac48168276611d6bcde47eb70f4573de734aa0b81f6394",
@@ -18289,7 +18308,7 @@
     "/zuankeba/6363859.html": {
       "hash": "00788c16e10acf4873ce3e079b2a3e92ec7a9bcf6714d78f4ceb04bf6851293b",
       "local": "zuankeba/6363859.html",
-      "last_check": "2026-07-29T18:22:31+0000"
+      "last_check": "2026-09-13T19:22:50+0000"
     },
     "/xinzuanba/6277181.html": {
       "hash": "e6a1d15cea5e4c93271e54f7bbc74a44349c18238dc1e1780a21406e10a61dc4",
@@ -18299,7 +18318,7 @@
     "/zuankeba/6363872.html": {
       "hash": "ae4c7047724d672c607187a0182cc2f8735e48f6f910ff4f63cb2926b7505a65",
       "local": "zuankeba/6363872.html",
-      "last_check": "2026-07-29T18:22:46+0000"
+      "last_check": "2026-09-13T19:22:55+0000"
     },
     "/xinzuanba/6277374.html": {
       "hash": "c778caa12359656df784368f8c4e357ad51bc3d33de53a5d462756ba908ca0c1",
@@ -18309,7 +18328,7 @@
     "/zuankeba/6363905.html": {
       "hash": "b95b9ddd854df42ade11e91955a4a64ff1ece04faee04b330f1e9869cf9c54f4",
       "local": "zuankeba/6363905.html",
-      "last_check": "2026-07-29T18:22:57+0000"
+      "last_check": "2026-09-13T19:22:59+0000"
     },
     "/xinzuanba/6277422.html": {
       "hash": "e6ecd4e2906aa6d84a55627df10a5c053a4f75e2697ecdb0e910d347354f9255",
@@ -18319,7 +18338,7 @@
     "/zuankeba/6363916.html": {
       "hash": "1813bce6794541c1afbac04e506fb975a0310e1f3d60ba875af8377e2d26129d",
       "local": "zuankeba/6363916.html",
-      "last_check": "2026-07-29T18:23:12+0000"
+      "last_check": "2026-09-13T19:23:04+0000"
     },
     "/xinzuanba/6277544.html": {
       "hash": "3af47e5cace351432da4d65a3c3a90519d0b29b81407b16a2c7bbc9942683bbe",
@@ -18329,7 +18348,7 @@
     "/zuankeba/6363918.html": {
       "hash": "647c6e10951958030584fe0a74ce85bd9aa6bf7b5d25e99a020c5efffc8cd29d",
       "local": "zuankeba/6363918.html",
-      "last_check": "2026-07-29T18:23:23+0000"
+      "last_check": "2026-09-13T19:23:08+0000"
     },
     "/xinzuanba/6277597.html": {
       "hash": "cff1b7301977d7cfe566df12898f880d90602aeb03fe775e172b093cbabf36fe",
@@ -18339,7 +18358,7 @@
     "/zuankeba/6363920.html": {
       "hash": "1abd496a26b31b6abd432b596afd3d34e1130951343748e88eff5552df6808a3",
       "local": "zuankeba/6363920.html",
-      "last_check": "2026-07-29T18:23:38+0000"
+      "last_check": "2026-09-13T19:23:14+0000"
     },
     "/xinzuanba/6278449.html": {
       "hash": "7d271577cb146aba66e929700a7b84f9625650a75f5d43e2f1dfdfc2e13a66b9",
@@ -18349,7 +18368,7 @@
     "/zuankeba/6363974.html": {
       "hash": "fec66eb9c93f860db82291a68f40230bd694ba79c93e1bede9188947abfd1772",
       "local": "zuankeba/6363974.html",
-      "last_check": "2026-07-29T18:23:52+0000"
+      "last_check": "2026-09-13T19:23:19+0000"
     },
     "/xinzuanba/6278683.html": {
       "hash": "cfb5752f8ba02960daeac442fd7e892cd6f4fd71c2e181ee7f2058b55824ab9b",
@@ -18359,7 +18378,7 @@
     "/zuankeba/6363978.html": {
       "hash": "7f07ca301d240d506a6014707bc88dfaf488d008af5897107dec1e7193e538db",
       "local": "zuankeba/6363978.html",
-      "last_check": "2026-07-29T18:24:04+0000"
+      "last_check": "2026-09-13T19:23:23+0000"
     },
     "/xinzuanba/6279089.html": {
       "hash": "e748d30b10135d1006a0420ed879f8ebf58b17a33b6646b14dff1f4ff316c5d8",
@@ -18369,7 +18388,7 @@
     "/zuankeba/6364097.html": {
       "hash": "ace26faf12669f75fb4aa24b95d0b35274ff285e164c27fe36065ece85fe1041",
       "local": "zuankeba/6364097.html",
-      "last_check": "2026-07-29T18:24:17+0000"
+      "last_check": "2026-09-13T19:23:27+0000"
     },
     "/xinzuanba/6279362.html": {
       "hash": "9307513a367db5995bb79f470bc5fef0909cec3964fed4d9a09b2feaadfd0f9d",
@@ -18379,7 +18398,7 @@
     "/zuankeba/6364103.html": {
       "hash": "a5f74a7842b1a032dd53cee901536443934b965f34fe2775a03ce57919bcf89e",
       "local": "zuankeba/6364103.html",
-      "last_check": "2026-07-29T18:24:28+0000"
+      "last_check": "2026-09-13T19:23:32+0000"
     },
     "/xinzuanba/6279398.html": {
       "hash": "092b1cff023c1b68d7e7ea38ff8329ac5aa23b18e966d64c5f9448e6412b844a",
@@ -18389,7 +18408,7 @@
     "/zuankeba/6364109.html": {
       "hash": "7f44ccf167c7b56000d8768ff7dceba23a4104d582be3835ec2e31df98d45e17",
       "local": "zuankeba/6364109.html",
-      "last_check": "2026-07-29T18:24:40+0000"
+      "last_check": "2026-09-13T19:23:36+0000"
     },
     "/xinzuanba/6279533.html": {
       "hash": "263b5c5b910cea3149c366dd11c6b26c1cc096fb41ac55c8cebc9e311be2dad8",
@@ -18399,7 +18418,7 @@
     "/zuankeba/6364138.html": {
       "hash": "b2be1cf46301471df5dc190770f0eb40b2243ad2cb31faa324d4dddfc110b21c",
       "local": "zuankeba/6364138.html",
-      "last_check": "2026-07-29T18:24:53+0000"
+      "last_check": "2026-09-13T19:23:41+0000"
     },
     "/xinzuanba/6279604.html": {
       "hash": "97c6552854577a6fe524b6854e11f38d8290a1622d30109325b90e836b8632d6",
@@ -18409,7 +18428,7 @@
     "/zuankeba/6364161.html": {
       "hash": "6353f6f669dbee1d8d9e73b6778f20ce5b85d5b43be3cba3e0df43fbb50a0d0e",
       "local": "zuankeba/6364161.html",
-      "last_check": "2026-07-29T18:25:04+0000"
+      "last_check": "2026-09-13T19:23:45+0000"
     },
     "/xinzuanba/6279640.html": {
       "hash": "2059a5c072dbc4d357cc7ae4bb4546970b221665c7559be175271d6cff5c4de3",
@@ -18419,7 +18438,7 @@
     "/zuankeba/6364177.html": {
       "hash": "30942d083d5495245178fd00e699ef27718ba00dcafc10e916365ff67dcb22ab",
       "local": "zuankeba/6364177.html",
-      "last_check": "2026-07-29T18:25:21+0000"
+      "last_check": "2026-09-13T19:23:49+0000"
     },
     "/xinzuanba/6279736.html": {
       "hash": "5907e9fd0929af4441920bff6ec3f626d224a979cdeb9b16f2739ef5e0045917",
@@ -18429,7 +18448,7 @@
     "/zuankeba/6364203.html": {
       "hash": "dbc8c39a0cf3611f19c91af066eb5e1ef50f7ad0da4333ef3b71d5ff5b6271ab",
       "local": "zuankeba/6364203.html",
-      "last_check": "2026-07-29T18:25:37+0000"
+      "last_check": "2026-09-13T19:23:54+0000"
     },
     "/xinzuanba/6279755.html": {
       "hash": "993e09458760226151bf0fa15c04d205178b47298b4fd7d8cb3f93ebf460004f",
@@ -18439,7 +18458,7 @@
     "/zuankeba/6364209.html": {
       "hash": "04d102a68abf6b2325fb62323b782242b7eb20079fcd11f4fe7ed4c02ad0a855",
       "local": "zuankeba/6364209.html",
-      "last_check": "2026-07-29T18:25:50+0000"
+      "last_check": "2026-09-13T19:24:00+0000"
     },
     "/xinzuanba/6279807.html": {
       "hash": "1bd5c9a71d436430961267b60dc23445bed899ad60dca5461ae8712a3af5f4a2",
@@ -18449,7 +18468,7 @@
     "/zuankeba/6364255.html": {
       "hash": "1777232b4e31c4a4c985e3bb447e920772082804542b44e70e3a87360387d90a",
       "local": "zuankeba/6364255.html",
-      "last_check": "2026-07-29T18:26:05+0000"
+      "last_check": "2026-09-13T19:24:04+0000"
     },
     "/xinzuanba/6279917.html": {
       "hash": "e54e8087ff52f882c81d64685c1d94fb2373c2540c6faa1639b73f1308455475",
@@ -18459,7 +18478,7 @@
     "/zuankeba/6364266.html": {
       "hash": "212fa518ed991d109759382a47ca75fe14e7607ce09a44d533832b63c2acda24",
       "local": "zuankeba/6364266.html",
-      "last_check": "2026-07-29T18:26:17+0000"
+      "last_check": "2026-09-13T19:24:09+0000"
     },
     "/xiaodigu/6376446.html": {
       "hash": "fc72a1c0863d5ef2a3e91e12d836d09aa8de846b10db198d185d337b206d3bba",
@@ -18474,7 +18493,7 @@
     "/zuankeba/6364270.html": {
       "hash": "04e2a15e81ebcb7d83c88137eae0f991a9a272fdc1f989210e4df10ad728f6c8",
       "local": "zuankeba/6364270.html",
-      "last_check": "2026-07-29T18:26:35+0000"
+      "last_check": "2026-09-13T19:24:15+0000"
     },
     "/xiaodigu/6376484.html": {
       "hash": "09f8d28989252672e6acf92957ed7eea0dd88d6b52e5184b10f282608627c1fb",
@@ -18489,7 +18508,7 @@
     "/zuankeba/6364285.html": {
       "hash": "bc82e547e18d1640b1b5f50aa45cad579073ccde71c934d13e893b55708fed67",
       "local": "zuankeba/6364285.html",
-      "last_check": "2026-07-29T18:26:55+0000"
+      "last_check": "2026-09-13T19:24:19+0000"
     },
     "/xiaodigu/6376494.html": {
       "hash": "29e0d88f17d2fa735ce544120039df31a8d9e2d3f721bee68a7d8de5986545ad",
@@ -18504,7 +18523,7 @@
     "/zuankeba/6364295.html": {
       "hash": "4e9512dcc84c848df0f8fab42ad36d18957b6baaea8d16cef1ae7447172e7659",
       "local": "zuankeba/6364295.html",
-      "last_check": "2026-07-29T18:27:13+0000"
+      "last_check": "2026-09-13T19:24:25+0000"
     },
     "/xiaodigu/6376533.html": {
       "hash": "046ca5760223dd7b6b4df46e69039303871b5c24af3fdfbe95edf4d719dfb701",
@@ -18517,9 +18536,9 @@
       "last_check": "2026-07-29T18:27:28+0000"
     },
     "/zuankeba/6364301.html": {
-      "hash": "9f2dda41e103f3f346457c29137fd49ef92da6630e54b046400b05647dea33b1",
+      "hash": "a3b0423837ab6c4c7ad0cbcb0337d0069a5d37aa6389637a71ca8de3d2d862d1",
       "local": "zuankeba/6364301.html",
-      "last_check": "2026-07-29T18:27:36+0000"
+      "last_check": "2026-09-13T19:24:32+0000"
     },
     "/xiaodigu/6376599.html": {
       "hash": "076c06b5d057d6f22cbaba14790deb30a7655299130a2d745e87ba051b6afcd4",
@@ -18534,7 +18553,7 @@
     "/zuankeba/6364308.html": {
       "hash": "c7ace7b96bac1ca30fa16cd9620f85a0ed5521d51dd18a21eaeb0c4afa41c89a",
       "local": "zuankeba/6364308.html",
-      "last_check": "2026-07-29T18:27:53+0000"
+      "last_check": "2026-09-13T19:24:36+0000"
     },
     "/xiaodigu/6376654.html": {
       "hash": "31d21e67d59058ec3f5247c4c343455312ce66f588685fbd0e0f0670a4d6f1c5",
@@ -18549,7 +18568,7 @@
     "/zuankeba/6364333.html": {
       "hash": "67e9ee46184e14dfe6f0e270f5e213656dfaf939e1db91b282aa09e0ef25d49f",
       "local": "zuankeba/6364333.html",
-      "last_check": "2026-07-29T18:28:14+0000"
+      "last_check": "2026-09-13T19:24:42+0000"
     },
     "/xiaodigu/6376662.html": {
       "hash": "3dfe311f80c49b0fd4a2405d76bccd831b2ff84c6f5fc306b3f5ea3f74235f0d",
@@ -18564,7 +18583,7 @@
     "/zuankeba/6364351.html": {
       "hash": "d63e1667ed7996f86fa29fb653a57ec9ff7fecea91f135873ee9ff6236062d36",
       "local": "zuankeba/6364351.html",
-      "last_check": "2026-07-29T18:28:29+0000"
+      "last_check": "2026-09-13T19:24:47+0000"
     },
     "/xiaodigu/6376705.html": {
       "hash": "35ee9b9bfbccd3f0840b1d2349165b7060f2d8ccb91ffcc974b911e1720b6fa0",
@@ -18579,7 +18598,7 @@
     "/zuankeba/6364360.html": {
       "hash": "c0983458ffc6798794bca09e91082c59723b05f728826e7624ab27bbb5af1f80",
       "local": "zuankeba/6364360.html",
-      "last_check": "2026-07-29T18:28:45+0000"
+      "last_check": "2026-09-13T19:24:52+0000"
     },
     "/xiaodigu/6376769.html": {
       "hash": "6282531513a66d9d47fb8bc784a455b8ed36c5b551cfe2c3057f4cedd3df7ab3",
@@ -18594,7 +18613,7 @@
     "/zuankeba/6364386.html": {
       "hash": "af99f72ca978b60c156a19a3c2c81a20088f2db5790f0b97bd26ebc1b833d041",
       "local": "zuankeba/6364386.html",
-      "last_check": "2026-07-29T18:29:02+0000"
+      "last_check": "2026-09-13T19:24:57+0000"
     },
     "/xiaodigu/6376787.html": {
       "hash": "147ef1802f2f625c027b375a1cc31d2575f3fcf02a4d91dbb88c58b06f151a03",
@@ -18609,7 +18628,7 @@
     "/zuankeba/6364391.html": {
       "hash": "2c8734bfd9cb7fcd977b9c054a7774d2ba4f391009b904176abda23ca62d225b",
       "local": "zuankeba/6364391.html",
-      "last_check": "2026-07-29T18:29:18+0000"
+      "last_check": "2026-09-13T19:25:03+0000"
     },
     "/xiaodigu/6376832.html": {
       "hash": "43e699e20bec972f913e2810d1433e9534aad1185a69669eb64ac81de471bf1f",
@@ -18649,22 +18668,22 @@
     "/zuankeba/6358182.html": {
       "hash": "9b5fbed1c14f6b19decdee2146da800f0ff28295f1ad8e27a3d4aaf70e0b4772",
       "local": "zuankeba/6358182.html",
-      "last_check": "2026-08-03T18:50:22+0000"
+      "last_check": "2026-09-13T19:25:07+0000"
     },
     "/huluxia/6715535.html": {
       "hash": "3cd89e15f784db31ccd7872fc9d191dd9bc67be29231bc0fec47dcb274f3e9e4",
       "local": "huluxia/6715535.html",
-      "last_check": "2026-08-03T18:50:29+0000"
+      "last_check": "2026-09-13T19:25:12+0000"
     },
     "/xiaodao/6716576.html": {
       "hash": "fd9ddcfc7a79b5b9759787ec3f0e28f3f51c8bb11498919b613da9e983d0042a",
       "local": "xiaodao/6716576.html",
-      "last_check": "2026-08-03T18:50:35+0000"
+      "last_check": "2026-09-13T19:25:17+0000"
     },
     "/zuankeba/6358190.html": {
       "hash": "7b2f4a34a31af155cc38509d55f2fd2f7dba7952697e82a53fabadc1498139ef",
       "local": "zuankeba/6358190.html",
-      "last_check": "2026-08-03T18:50:43+0000"
+      "last_check": "2026-09-13T19:25:22+0000"
     },
     "/huluxia/6715542.html": {
       "hash": "400a325cf9af26639f9b876c45413a8e35c034e5f5da96113f89413c24fb93ad",
@@ -154845,6 +154864,416 @@
       "hash": "1f93c76777778069526c9b4e668a67fc694c1d8f7fb1562c068a9b522100d25c",
       "local": "zuankeba/7011440.html",
       "last_check": "2026-09-13T10:07:45+0000"
+    },
+    "/zuankeba/7011594.html": {
+      "hash": "e5d1e0b0abdb0f15cf562d8a21a95aa8aff8f2708fb8590bcaa0f1bbfe4701d9",
+      "local": "zuankeba/7011594.html",
+      "last_check": "2026-09-13T19:17:16+0000"
+    },
+    "/xiaodigu/7011556.html": {
+      "hash": "7a8d402e3a9e926b17a42813e6f923b0e49b6287fe4ce1ad4b5154c33ae9e9bd",
+      "local": "xiaodigu/7011556.html",
+      "last_check": "2026-09-13T19:17:20+0000"
+    },
+    "/huluxia/7012887.html": {
+      "hash": "4eeafe2cb6dbbac843ab047ee4fe8132d7a9112cf289a1fec4ab850f88f999ed",
+      "local": "huluxia/7012887.html",
+      "last_check": "2026-09-13T19:17:25+0000"
+    },
+    "/zuankeba/7011625.html": {
+      "hash": "21fc45bbcd727b751471ddeadc8cb6b84a70541f6923973e81ea10336463562b",
+      "local": "zuankeba/7011625.html",
+      "last_check": "2026-09-13T19:17:29+0000"
+    },
+    "/xiaodigu/7011623.html": {
+      "hash": "a69e36323e523480a961a3130645fa29a974b240934c279fecfe2ce2f91a7bdd",
+      "local": "xiaodigu/7011623.html",
+      "last_check": "2026-09-13T19:17:32+0000"
+    },
+    "/huluxia/7012896.html": {
+      "hash": "98cd38699fb9baee2a531ccdefe412a8f6c353407d0cafac7037d7c710e0272c",
+      "local": "huluxia/7012896.html",
+      "last_check": "2026-09-13T19:17:37+0000"
+    },
+    "/zuankeba/7011647.html": {
+      "hash": "37c98e0424519269ea5d71ed5be67905273c3082abbaa2d89b80394f86fe9df9",
+      "local": "zuankeba/7011647.html",
+      "last_check": "2026-09-13T19:17:42+0000"
+    },
+    "/xiaodigu/7011659.html": {
+      "hash": "b69f7a950e9b19ddd14247b42ccec3b8170e33434aeb3bb903e9df477f5d18b7",
+      "local": "xiaodigu/7011659.html",
+      "last_check": "2026-09-13T19:17:45+0000"
+    },
+    "/huluxia/7012900.html": {
+      "hash": "773f98a7f0bea1495e44f6a2038c8677a8a6f0b1757eb8e6a7e65fd91699de7b",
+      "local": "huluxia/7012900.html",
+      "last_check": "2026-09-13T19:17:51+0000"
+    },
+    "/zuankeba/7011739.html": {
+      "hash": "7fe99408ffa607c02291ef68ed306fc8e589cace31f2575785d81d62b2e4ef6c",
+      "local": "zuankeba/7011739.html",
+      "last_check": "2026-09-13T19:17:56+0000"
+    },
+    "/xiaodigu/7011721.html": {
+      "hash": "3c0e1225e0ddc5fc5d4ccd1115bb7c8b095b467ac7e1ce6f3dcd06f442f403ac",
+      "local": "xiaodigu/7011721.html",
+      "last_check": "2026-09-13T19:17:59+0000"
+    },
+    "/huluxia/7012908.html": {
+      "hash": "cfb284180df7b588f69e5c8ac6b36be7953ed02f7f3b6939866fbed516b594b0",
+      "local": "huluxia/7012908.html",
+      "last_check": "2026-09-13T19:18:04+0000"
+    },
+    "/zuankeba/7011780.html": {
+      "hash": "716d34f8ef9d847a717526c88c6f0c241a5d69d557cb80a66bf21d69303dd7fe",
+      "local": "zuankeba/7011780.html",
+      "last_check": "2026-09-13T19:18:08+0000"
+    },
+    "/xiaodigu/7011865.html": {
+      "hash": "0dd56820b026916a9302fed65996e080ad1a83c2ef72890241f4b89dc596e664",
+      "local": "xiaodigu/7011865.html",
+      "last_check": "2026-09-13T19:18:11+0000"
+    },
+    "/huluxia/7012916.html": {
+      "hash": "859efb1191d62f9717011241042a10bc6dc91d46ce903f0c5968006442b25dfc",
+      "local": "huluxia/7012916.html",
+      "last_check": "2026-09-13T19:18:17+0000"
+    },
+    "/zuankeba/7012017.html": {
+      "hash": "fd5315f9dd36bef89df8ac12ec8527edf3d5c30d4bcef4060f5b9a75ba43bbfa",
+      "local": "zuankeba/7012017.html",
+      "last_check": "2026-09-13T19:18:20+0000"
+    },
+    "/xiaodigu/7011905.html": {
+      "hash": "73882134bf189de6fa179b6a8499ee76c16f36242a5e51f49cb689ee38c4b9f5",
+      "local": "xiaodigu/7011905.html",
+      "last_check": "2026-09-13T19:18:24+0000"
+    },
+    "/xinzuanba/7011595.html": {
+      "hash": "1ebd082686b2f577a3ae337c0b67f7e6c0e56f737da5ed4aee4a6b89776d51e9",
+      "local": "xinzuanba/7011595.html",
+      "last_check": "2026-09-13T19:18:27+0000"
+    },
+    "/huluxia/7012921.html": {
+      "hash": "b5c093228623c1d5e7322753927b8df89a2c5096759d38ef2b278d4727f0d7bb",
+      "local": "huluxia/7012921.html",
+      "last_check": "2026-09-13T19:18:33+0000"
+    },
+    "/zuankeba/7012037.html": {
+      "hash": "234ac5de0abfc3802f3978a82fcdc29d56d60d70ed39a932502efb4e601b3155",
+      "local": "zuankeba/7012037.html",
+      "last_check": "2026-09-13T19:18:36+0000"
+    },
+    "/xiaodigu/7011965.html": {
+      "hash": "71b0c8c0602d091039db84b79ca5262dcd73deceaabfa6461b839c14eade561d",
+      "local": "xiaodigu/7011965.html",
+      "last_check": "2026-09-13T19:18:40+0000"
+    },
+    "/xinzuanba/7012024.html": {
+      "hash": "c4ec496a49bc59019a6c1fff062aa20c0efd3d18a43538d86d3aaead5eacd5f8",
+      "local": "xinzuanba/7012024.html",
+      "last_check": "2026-09-13T19:18:43+0000"
+    },
+    "/huluxia/7012924.html": {
+      "hash": "6180011c5b32bd04024237e7ac784bf051262f0bee442ebf63b1798c9e5c3a18",
+      "local": "huluxia/7012924.html",
+      "last_check": "2026-09-13T19:18:49+0000"
+    },
+    "/zuankeba/7012171.html": {
+      "hash": "fa8bcc8b96852f4c5a347fbe47ade371179342dd0bb73686c36f818d87d31668",
+      "local": "zuankeba/7012171.html",
+      "last_check": "2026-09-13T19:18:53+0000"
+    },
+    "/xiaodigu/7012264.html": {
+      "hash": "f7fbd3404fcb3a1582c568d2ac64a3ce2ee874e6dcdd61961139ec638228ae11",
+      "local": "xiaodigu/7012264.html",
+      "last_check": "2026-09-13T19:18:57+0000"
+    },
+    "/xinzuanba/7012130.html": {
+      "hash": "186a5c8686cd4b43a900fdf4912353a44a4794369bb6a3fe7421a618c1827c1b",
+      "local": "xinzuanba/7012130.html",
+      "last_check": "2026-09-13T19:19:00+0000"
+    },
+    "/huluxia/7012928.html": {
+      "hash": "c176ade9cb6c2a8697d5cbaab45a70be14a622cc582581c9c5f0e80cb1db09e1",
+      "local": "huluxia/7012928.html",
+      "last_check": "2026-09-13T19:19:05+0000"
+    },
+    "/zuankeba/7012249.html": {
+      "hash": "02e396b166fd633aa1602fb93b3070a1d7dfbdb593a0a4bef855cb073c00b5a2",
+      "local": "zuankeba/7012249.html",
+      "last_check": "2026-09-13T19:19:10+0000"
+    },
+    "/xiaodigu/7012410.html": {
+      "hash": "00558699e57d1d34c94909e15991e49feb5c586e34c94445c56f34eda98bde90",
+      "local": "xiaodigu/7012410.html",
+      "last_check": "2026-09-13T19:19:14+0000"
+    },
+    "/xinzuanba/7012725.html": {
+      "hash": "4bddc5611628166c610a70a00b7f28ba59585a5880f486d9412c31259679769c",
+      "local": "xinzuanba/7012725.html",
+      "last_check": "2026-09-13T19:19:17+0000"
+    },
+    "/huluxia/7012931.html": {
+      "hash": "7250a14caea8abbcd48d28f0ba88c95c7470e38c5bc33414beef313104bced9d",
+      "local": "huluxia/7012931.html",
+      "last_check": "2026-09-13T19:19:22+0000"
+    },
+    "/zuankeba/7012305.html": {
+      "hash": "f7195e47b315b23690c678197378a0ded8988ba76f9e83b588fa76a7704ced8f",
+      "local": "zuankeba/7012305.html",
+      "last_check": "2026-09-13T19:19:26+0000"
+    },
+    "/xiaodigu/7012613.html": {
+      "hash": "2d4e843e8e8dcb37b703eea9bb38457e6bb8317f4ffefd7925820bb84711c24c",
+      "local": "xiaodigu/7012613.html",
+      "last_check": "2026-09-13T19:19:29+0000"
+    },
+    "/xinzuanba/7012923.html": {
+      "hash": "007663e08eac847451917d47071c37ff72285d155f4ed746031d4e208e53ad13",
+      "local": "xinzuanba/7012923.html",
+      "last_check": "2026-09-13T19:19:33+0000"
+    },
+    "/huluxia/7012953.html": {
+      "hash": "2be72521d78605aab584a7e3f9148af7fcb588a81bee17c766bf975fb6dce279",
+      "local": "huluxia/7012953.html",
+      "last_check": "2026-09-13T19:19:38+0000"
+    },
+    "/zuankeba/7012332.html": {
+      "hash": "328fb62707dbd05e99c459c091ac8abf03f0125a435f8815c3cb08adbd2c1f5b",
+      "local": "zuankeba/7012332.html",
+      "last_check": "2026-09-13T19:19:42+0000"
+    },
+    "/xiaodigu/7012647.html": {
+      "hash": "5fc2927d16a7fc2c75392923355a0e24c52ee11843ace648fdede6259f507933",
+      "local": "xiaodigu/7012647.html",
+      "last_check": "2026-09-13T19:19:45+0000"
+    },
+    "/xinzuanba/7013153.html": {
+      "hash": "e5717d92a0e82abf3af0d9a95e47a40589853015866783764bab0c9c7049fe1a",
+      "local": "xinzuanba/7013153.html",
+      "last_check": "2026-09-13T19:19:50+0000"
+    },
+    "/huluxia/7012959.html": {
+      "hash": "624c02ea15f656ddd32da739283d33d4465c3d5c363c5822a19802355071744f",
+      "local": "huluxia/7012959.html",
+      "last_check": "2026-09-13T19:19:55+0000"
+    },
+    "/zuankeba/7012415.html": {
+      "hash": "113614b1149756f4ec656fa1674f15db6ebd026e02e91932f422ea980abd6deb",
+      "local": "zuankeba/7012415.html",
+      "last_check": "2026-09-13T19:19:59+0000"
+    },
+    "/xiaodigu/7012792.html": {
+      "hash": "5f39a607ba73b3934e1ae3c52bdd21bf68f93950c436cacc615927e48e64c887",
+      "local": "xiaodigu/7012792.html",
+      "last_check": "2026-09-13T19:20:02+0000"
+    },
+    "/xinzuanba/7013434.html": {
+      "hash": "f07676eb3b365c9558116707111961f3b249c35c9be7638bf09395baca6ec0de",
+      "local": "xinzuanba/7013434.html",
+      "last_check": "2026-09-13T19:20:06+0000"
+    },
+    "/huluxia/7012964.html": {
+      "hash": "d970f69295865d0f5fb1f68d5df45bafc6619e43ebfdcf648b52dcc8e3199d83",
+      "local": "huluxia/7012964.html",
+      "last_check": "2026-09-13T19:20:12+0000"
+    },
+    "/zuankeba/7012419.html": {
+      "hash": "c96453f2ca6f40cd67eff96a9866677cda79ed056f31a7162b0cf0351eb0f168",
+      "local": "zuankeba/7012419.html",
+      "last_check": "2026-09-13T19:20:15+0000"
+    },
+    "/xiaodigu/7012849.html": {
+      "hash": "cb0b0d82b5620b390205ffb6677a3b310d0498503ba6690fd61eed5d47496300",
+      "local": "xiaodigu/7012849.html",
+      "last_check": "2026-09-13T19:20:19+0000"
+    },
+    "/xinzuanba/7013472.html": {
+      "hash": "c03811cc7117b10a7ee82de8f71b41666303eba1f09cf266e0857f0e8624085a",
+      "local": "xinzuanba/7013472.html",
+      "last_check": "2026-09-13T19:20:23+0000"
+    },
+    "/zuankeba/7012552.html": {
+      "hash": "33afe21a4ee05eb3e6dcd32474869dfb0c31099c4aee5357316ec3df805563d5",
+      "local": "zuankeba/7012552.html",
+      "last_check": "2026-09-13T19:20:26+0000"
+    },
+    "/xiaodigu/7012869.html": {
+      "hash": "a506456910e8f69bd97ef345323c7b42df0f0efcb28fbc719046e350a100cedb",
+      "local": "xiaodigu/7012869.html",
+      "last_check": "2026-09-13T19:20:30+0000"
+    },
+    "/xinzuanba/7013485.html": {
+      "hash": "32f8db731f3f543686646882e20e202c6abbc698b527b5d977db811923ad358c",
+      "local": "xinzuanba/7013485.html",
+      "last_check": "2026-09-13T19:20:35+0000"
+    },
+    "/zuankeba/7012728.html": {
+      "hash": "0f88c3b71d12e24ec5fefc055802d846d242f161181e73feea52ac85023ea0de",
+      "local": "zuankeba/7012728.html",
+      "last_check": "2026-09-13T19:20:38+0000"
+    },
+    "/xiaodigu/7013247.html": {
+      "hash": "d172ce5c0dab6e9d65c54df986c3a7b8d3bac89260cdd52ff99261c37eb539a4",
+      "local": "xiaodigu/7013247.html",
+      "last_check": "2026-09-13T19:20:42+0000"
+    },
+    "/xinzuanba/7013676.html": {
+      "hash": "46b4068a0968e6fce60b9069a5759feee445910cdf4951d2c172c6dc19e98571",
+      "local": "xinzuanba/7013676.html",
+      "last_check": "2026-09-13T19:20:46+0000"
+    },
+    "/zuankeba/7012809.html": {
+      "hash": "df7a9be3fdf460c3f2e79fd066d611bd7316a8d5142c4d21c9f8c977170b1a89",
+      "local": "zuankeba/7012809.html",
+      "last_check": "2026-09-13T19:20:50+0000"
+    },
+    "/xiaodigu/7013385.html": {
+      "hash": "6ed95f16ee852207ea18bc5803480fdfee3a436f172fd656ea681252f35497ad",
+      "local": "xiaodigu/7013385.html",
+      "last_check": "2026-09-13T19:20:53+0000"
+    },
+    "/xinzuanba/7013784.html": {
+      "hash": "1e111fd26ac0d6745f8a46df5f51ce8281720bbc18b57e0ba1901d8bb6f581b6",
+      "local": "xinzuanba/7013784.html",
+      "last_check": "2026-09-13T19:20:57+0000"
+    },
+    "/zuankeba/7012883.html": {
+      "hash": "df1fef918a6db54cae0cf77351b3a47735fef35ec759d1b0c868e66349063869",
+      "local": "zuankeba/7012883.html",
+      "last_check": "2026-09-13T19:21:00+0000"
+    },
+    "/xiaodigu/7013435.html": {
+      "hash": "d34fe02d18be0a0bc1c6bcdefd5fb04b495beb75deb3b903feb198d31f5072de",
+      "local": "xiaodigu/7013435.html",
+      "last_check": "2026-09-13T19:21:03+0000"
+    },
+    "/xinzuanba/7013817.html": {
+      "hash": "5bdf834f28b1a16f194f4bc1e122e5fa0ed278a89f1c1069bf5c7214fce1b0a8",
+      "local": "xinzuanba/7013817.html",
+      "last_check": "2026-09-13T19:21:07+0000"
+    },
+    "/zuankeba/7012927.html": {
+      "hash": "205ed4b403f9fdc8f6d3843118bc41f1c3dff4a116b874408a7ec88b04f0ee1b",
+      "local": "zuankeba/7012927.html",
+      "last_check": "2026-09-13T19:21:12+0000"
+    },
+    "/xiaodigu/7013442.html": {
+      "hash": "a224b3c9f256d3faca76db1f2d56b937111e990d25093c278971511ef506e31d",
+      "local": "xiaodigu/7013442.html",
+      "last_check": "2026-09-13T19:21:15+0000"
+    },
+    "/zuankeba/7013059.html": {
+      "hash": "c1064031551eb90e1aa842c198a8df3719b9d40eba95a2a8b9f52baaedf170a3",
+      "local": "zuankeba/7013059.html",
+      "last_check": "2026-09-13T19:21:19+0000"
+    },
+    "/xiaodigu/7013493.html": {
+      "hash": "e7939020994569805dabac6cb630858a4d4bb86b6e24bbd8ad05a88c9908d8c8",
+      "local": "xiaodigu/7013493.html",
+      "last_check": "2026-09-13T19:21:23+0000"
+    },
+    "/zuankeba/7013085.html": {
+      "hash": "df95410d709cb2b31d5c133effa31bb29977cc794046639236fcd5aa4fab83e5",
+      "local": "zuankeba/7013085.html",
+      "last_check": "2026-09-13T19:21:27+0000"
+    },
+    "/xiaodigu/7013575.html": {
+      "hash": "e1a8c138b8e86d83432fddcd0b113473cc78e7953a86b794a5017763b5a73a78",
+      "local": "xiaodigu/7013575.html",
+      "last_check": "2026-09-13T19:21:30+0000"
+    },
+    "/zuankeba/7013233.html": {
+      "hash": "da2dda7f1e266cd1948bc2072de6a2dd2c00c1a64774b9d7a2a6aa0befe811da",
+      "local": "zuankeba/7013233.html",
+      "last_check": "2026-09-13T19:21:34+0000"
+    },
+    "/xiaodigu/7013580.html": {
+      "hash": "29435acac79f5f0854ef2e6ba73533d2b806f14d62dff057f2e1a7fb124a3861",
+      "local": "xiaodigu/7013580.html",
+      "last_check": "2026-09-13T19:21:38+0000"
+    },
+    "/zuankeba/7013349.html": {
+      "hash": "63239cace91ed392f93c6e6fd52ea7bb16c9fd32e5ac06eb672700c5200d566b",
+      "local": "zuankeba/7013349.html",
+      "last_check": "2026-09-13T19:21:42+0000"
+    },
+    "/xiaodigu/7013608.html": {
+      "hash": "e5091be2599b8ce56d1cba5a398dfd91a32f79e025b60bd2745b141ce8daa3d2",
+      "local": "xiaodigu/7013608.html",
+      "last_check": "2026-09-13T19:21:46+0000"
+    },
+    "/zuankeba/7013394.html": {
+      "hash": "2d6b2709a1d18c5f74f79f4546d5161633b44f1c44fc3dae6a54b90f8597c23f",
+      "local": "zuankeba/7013394.html",
+      "last_check": "2026-09-13T19:21:50+0000"
+    },
+    "/xiaodigu/7013675.html": {
+      "hash": "79b009e5806c0d4fa781448a0dd1add8da529d56adec67b46c8c797f790de570",
+      "local": "xiaodigu/7013675.html",
+      "last_check": "2026-09-13T19:21:53+0000"
+    },
+    "/zuankeba/7013424.html": {
+      "hash": "221cc87d7272876ee9af5dbb36981236077d6bdf4869eaf6dfa4264a5d2bea12",
+      "local": "zuankeba/7013424.html",
+      "last_check": "2026-09-13T19:21:58+0000"
+    },
+    "/xiaodigu/7013703.html": {
+      "hash": "db200c891107728bfd5ff3bf1ef4708c71903ae5db8f4326db29ae95264a6155",
+      "local": "xiaodigu/7013703.html",
+      "last_check": "2026-09-13T19:22:01+0000"
+    },
+    "/zuankeba/7013447.html": {
+      "hash": "e0b1c5ba85a8856e7738df43e4bc16ad9c66a46c2ab4a3f6e56b0db5ea0abaf2",
+      "local": "zuankeba/7013447.html",
+      "last_check": "2026-09-13T19:22:05+0000"
+    },
+    "/xiaodigu/7013728.html": {
+      "hash": "a86475dc2ed06ab1f67b92072dc9190d68bc0a68c97f31383dea73379415f68a",
+      "local": "xiaodigu/7013728.html",
+      "last_check": "2026-09-13T19:22:09+0000"
+    },
+    "/zuankeba/7013471.html": {
+      "hash": "22d454471523b089648245166e81566fa06bd7fbf78cea83335f7fff3f18ecf8",
+      "local": "zuankeba/7013471.html",
+      "last_check": "2026-09-13T19:22:13+0000"
+    },
+    "/xiaodigu/7013815.html": {
+      "hash": "d9e83a147069494f9ee5615b582f7eeeb242f49836396e15bec3e45328e35bec",
+      "local": "xiaodigu/7013815.html",
+      "last_check": "2026-09-13T19:22:17+0000"
+    },
+    "/zuankeba/7013515.html": {
+      "hash": "d40575effa3d7e913c27294fc7a8b3c1fb6152d12a64cf45a00ebd9995ed0d86",
+      "local": "zuankeba/7013515.html",
+      "last_check": "2026-09-13T19:22:21+0000"
+    },
+    "/xiaodigu/7013894.html": {
+      "hash": "ad413692229af6157c34c45053300fce781ea1abd3ee8c26c5946adffcf44f54",
+      "local": "xiaodigu/7013894.html",
+      "last_check": "2026-09-13T19:22:24+0000"
+    },
+    "/zuankeba/7013532.html": {
+      "hash": "6fecf95c975e1097edd2259235e73a33ac3fd653ec15a85e8c3a3ddd0262f682",
+      "local": "zuankeba/7013532.html",
+      "last_check": "2026-09-13T19:22:28+0000"
+    },
+    "/xiaodigu/7013911.html": {
+      "hash": "50be15d2359503984d406ddac0e9d029612d852ceda00f7721914c97f2230e13",
+      "local": "xiaodigu/7013911.html",
+      "last_check": "2026-09-13T19:22:32+0000"
+    },
+    "/zuankeba/7013718.html": {
+      "hash": "80a528ae045a1b78d1206503d31c01d500ead5f454cd26e5557147be53c76c41",
+      "local": "zuankeba/7013718.html",
+      "last_check": "2026-09-13T19:22:37+0000"
+    },
+    "/xiaodigu/7013912.html": {
+      "hash": "92bf8e74058c6917f6414fbdfb02dde0b464f83d995aebe84094ebec8c22193d",
+      "local": "xiaodigu/7013912.html",
+      "last_check": "2026-09-13T19:22:40+0000"
     }
   },
   "dead": {
@@ -211247,6 +211676,318 @@
       "fails": 1,
       "ts": 1789294694,
       "permanent": true
+    },
+    "/xinzuanba/313716.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327276,
+      "permanent": true
+    },
+    "/xinzuanba/313718.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327284,
+      "permanent": true
+    },
+    "/xinzuanba/313719.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327292,
+      "permanent": true
+    },
+    "/xinzuanba/313721.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327299,
+      "permanent": true
+    },
+    "/xinzuanba/313723.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327307,
+      "permanent": true
+    },
+    "/xinzuanba/313726.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327315,
+      "permanent": true
+    },
+    "/xinzuanba/313727.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327322,
+      "permanent": true
+    },
+    "/xinzuanba/313728.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327330,
+      "permanent": true
+    },
+    "/xinzuanba/313730.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327338,
+      "permanent": true
+    },
+    "/xinzuanba/313732.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327345,
+      "permanent": true
+    },
+    "/xinzuanba/313733.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327353,
+      "permanent": true
+    },
+    "/xinzuanba/313734.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327361,
+      "permanent": true
+    },
+    "/xinzuanba/6277021.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327362,
+      "permanent": true
+    },
+    "/xinzuanba/6277111.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327367,
+      "permanent": true
+    },
+    "/xinzuanba/6277181.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327371,
+      "permanent": true
+    },
+    "/xinzuanba/6277374.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327376,
+      "permanent": true
+    },
+    "/xinzuanba/6277422.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327380,
+      "permanent": true
+    },
+    "/xinzuanba/6277544.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327385,
+      "permanent": true
+    },
+    "/xinzuanba/6277597.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327390,
+      "permanent": true
+    },
+    "/xinzuanba/6278449.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327395,
+      "permanent": true
+    },
+    "/xinzuanba/6278683.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327400,
+      "permanent": true
+    },
+    "/xinzuanba/6279089.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327404,
+      "permanent": true
+    },
+    "/xinzuanba/6279362.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327409,
+      "permanent": true
+    },
+    "/xinzuanba/6279398.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327413,
+      "permanent": true
+    },
+    "/xinzuanba/6279533.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327417,
+      "permanent": true
+    },
+    "/xinzuanba/6279604.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327422,
+      "permanent": true
+    },
+    "/xinzuanba/6279640.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327426,
+      "permanent": true
+    },
+    "/xinzuanba/6279736.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327430,
+      "permanent": true
+    },
+    "/xinzuanba/6279755.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327435,
+      "permanent": true
+    },
+    "/xinzuanba/6279807.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327441,
+      "permanent": true
+    },
+    "/xinzuanba/6279917.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327446,
+      "permanent": true
+    },
+    "/xiaodigu/6376446.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327450,
+      "permanent": true
+    },
+    "/xinzuanba/6279918.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327451,
+      "permanent": true
+    },
+    "/xiaodigu/6376484.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327456,
+      "permanent": true
+    },
+    "/xinzuanba/6279956.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327456,
+      "permanent": true
+    },
+    "/xiaodigu/6376494.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327461,
+      "permanent": true
+    },
+    "/xinzuanba/6279963.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327461,
+      "permanent": true
+    },
+    "/xiaodigu/6376533.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327466,
+      "permanent": true
+    },
+    "/xinzuanba/6279967.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327467,
+      "permanent": true
+    },
+    "/xiaodigu/6376599.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327473,
+      "permanent": true
+    },
+    "/xinzuanba/6280008.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327473,
+      "permanent": true
+    },
+    "/xiaodigu/6376654.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327478,
+      "permanent": true
+    },
+    "/xinzuanba/6280081.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327478,
+      "permanent": true
+    },
+    "/xiaodigu/6376662.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327483,
+      "permanent": true
+    },
+    "/xinzuanba/6280354.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327484,
+      "permanent": true
+    },
+    "/xiaodigu/6376705.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327488,
+      "permanent": true
+    },
+    "/xinzuanba/6280367.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327489,
+      "permanent": true
+    },
+    "/xiaodigu/6376769.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327493,
+      "permanent": true
+    },
+    "/xinzuanba/6280414.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327494,
+      "permanent": true
+    },
+    "/xiaodigu/6376787.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327498,
+      "permanent": true
+    },
+    "/xinzuanba/6280502.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327499,
+      "permanent": true
+    },
+    "/xiaodigu/6376832.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789327504,
+      "permanent": true
     }
   },
   "dead_assets": {
@@ -211283,98 +212024,61 @@
       "ts": 1787775965
     }
   },
-  "recheck_idx": 3400,
+  "recheck_idx": 3600,
   "completed_at": "2026-09-05T05:12:11+0000",
   "backfill_complete": true,
   "backfill_completed_at": "2026-09-05T05:12:11+0000",
   "stats": {
     "pages": 251,
-    "articles": 30649,
-    "rechecks": 1375,
-    "updated": 198
+    "articles": 30731,
+    "rechecks": 1407,
+    "updated": 199
   },
   "tombstones": {
-    "/xinzuanba/6268386.html": "xianbao/archive/xinzuanba/6268386/dead.html",
-    "/xinzuanba/6268478.html": "xianbao/archive/xinzuanba/6268478/dead.html",
-    "/xinzuanba/6268517.html": "xianbao/archive/xinzuanba/6268517/dead.html",
-    "/xinzuanba/6268638.html": "xianbao/archive/xinzuanba/6268638/dead.html",
-    "/xinzuanba/6268677.html": "xianbao/archive/xinzuanba/6268677/dead.html",
-    "/xinzuanba/6268707.html": "xianbao/archive/xinzuanba/6268707/dead.html",
-    "/xinzuanba/6268714.html": "xianbao/archive/xinzuanba/6268714/dead.html",
-    "/xinzuanba/6268723.html": "xianbao/archive/xinzuanba/6268723/dead.html",
-    "/xinzuanba/6268767.html": "xianbao/archive/xinzuanba/6268767/dead.html",
-    "/xinzuanba/6268892.html": "xianbao/archive/xinzuanba/6268892/dead.html",
-    "/xinzuanba/6268951.html": "xianbao/archive/xinzuanba/6268951/dead.html",
-    "/xinzuanba/6269075.html": "xianbao/archive/xinzuanba/6269075/dead.html",
-    "/xinzuanba/6269077.html": "xianbao/archive/xinzuanba/6269077/dead.html",
-    "/xinzuanba/6269332.html": "xianbao/archive/xinzuanba/6269332/dead.html",
-    "/xinzuanba/6269696.html": "xianbao/archive/xinzuanba/6269696/dead.html",
-    "/xinzuanba/6269768.html": "xianbao/archive/xinzuanba/6269768/dead.html",
-    "/xinzuanba/6269775.html": "xianbao/archive/xinzuanba/6269775/dead.html",
-    "/xinzuanba/6270776.html": "xianbao/archive/xinzuanba/6270776/dead.html",
-    "/xinzuanba/6271031.html": "xianbao/archive/xinzuanba/6271031/dead.html",
-    "/xinzuanba/6271538.html": "xianbao/archive/xinzuanba/6271538/dead.html",
-    "/xinzuanba/6271628.html": "xianbao/archive/xinzuanba/6271628/dead.html",
-    "/xinzuanba/6271678.html": "xianbao/archive/xinzuanba/6271678/dead.html",
-    "/xinzuanba/6271702.html": "xianbao/archive/xinzuanba/6271702/dead.html",
-    "/xinzuanba/6271705.html": "xianbao/archive/xinzuanba/6271705/dead.html",
-    "/xinzuanba/6271710.html": "xianbao/archive/xinzuanba/6271710/dead.html",
-    "/xinzuanba/6271925.html": "xianbao/archive/xinzuanba/6271925/dead.html",
-    "/xinzuanba/6272036.html": "xianbao/archive/xinzuanba/6272036/dead.html",
-    "/xinzuanba/6272400.html": "xianbao/archive/xinzuanba/6272400/dead.html",
-    "/xinzuanba/6272513.html": "xianbao/archive/xinzuanba/6272513/dead.html",
-    "/xinzuanba/6272608.html": "xianbao/archive/xinzuanba/6272608/dead.html",
-    "/xinzuanba/6272891.html": "xianbao/archive/xinzuanba/6272891/dead.html",
-    "/xinzuanba/6273009.html": "xianbao/archive/xinzuanba/6273009/dead.html",
-    "/xinzuanba/6273324.html": "xianbao/archive/xinzuanba/6273324/dead.html",
-    "/xinzuanba/6273411.html": "xianbao/archive/xinzuanba/6273411/dead.html",
-    "/xinzuanba/6273420.html": "xianbao/archive/xinzuanba/6273420/dead.html",
-    "/xinzuanba/6273578.html": "xianbao/archive/xinzuanba/6273578/dead.html",
-    "/xinzuanba/6273761.html": "xianbao/archive/xinzuanba/6273761/dead.html",
-    "/xinzuanba/6274011.html": "xianbao/archive/xinzuanba/6274011/dead.html",
-    "/xinzuanba/6274012.html": "xianbao/archive/xinzuanba/6274012/dead.html",
-    "/xinzuanba/6274052.html": "xianbao/archive/xinzuanba/6274052/dead.html",
-    "/xinzuanba/6274073.html": "xianbao/archive/xinzuanba/6274073/dead.html",
-    "/xinzuanba/6274074.html": "xianbao/archive/xinzuanba/6274074/dead.html",
-    "/xinzuanba/6274114.html": "xianbao/archive/xinzuanba/6274114/dead.html",
-    "/xinzuanba/6274203.html": "xianbao/archive/xinzuanba/6274203/dead.html",
-    "/xinzuanba/6274465.html": "xianbao/archive/xinzuanba/6274465/dead.html",
-    "/xinzuanba/6274471.html": "xianbao/archive/xinzuanba/6274471/dead.html",
-    "/xinzuanba/6274722.html": "xianbao/archive/xinzuanba/6274722/dead.html",
-    "/xinzuanba/6274810.html": "xianbao/archive/xinzuanba/6274810/dead.html",
-    "/xinzuanba/6274890.html": "xianbao/archive/xinzuanba/6274890/dead.html",
-    "/xinzuanba/6275407.html": "xianbao/archive/xinzuanba/6275407/dead.html",
-    "/xinzuanba/6275692.html": "xianbao/archive/xinzuanba/6275692/dead.html",
-    "/xinzuanba/6275820.html": "xianbao/archive/xinzuanba/6275820/dead.html",
-    "/xinzuanba/6276213.html": "xianbao/archive/xinzuanba/6276213/dead.html",
-    "/xinzuanba/6276228.html": "xianbao/archive/xinzuanba/6276228/dead.html",
-    "/xinzuanba/6276246.html": "xianbao/archive/xinzuanba/6276246/dead.html",
-    "/xinzuanba/6276264.html": "xianbao/archive/xinzuanba/6276264/dead.html",
-    "/xinzuanba/6276426.html": "xianbao/archive/xinzuanba/6276426/dead.html",
-    "/xinzuanba/6276474.html": "xianbao/archive/xinzuanba/6276474/dead.html",
-    "/xinzuanba/6276613.html": "xianbao/archive/xinzuanba/6276613/dead.html",
-    "/xinzuanba/6276734.html": "xianbao/archive/xinzuanba/6276734/dead.html",
-    "/xinzuanba/6276817.html": "xianbao/archive/xinzuanba/6276817/dead.html",
-    "/xinzuanba/6276883.html": "xianbao/archive/xinzuanba/6276883/dead.html"
+    "/xinzuanba/6277021.html": "xianbao/archive/xinzuanba/6277021/dead.html",
+    "/xinzuanba/6277111.html": "xianbao/archive/xinzuanba/6277111/dead.html",
+    "/xinzuanba/6277181.html": "xianbao/archive/xinzuanba/6277181/dead.html",
+    "/xinzuanba/6277374.html": "xianbao/archive/xinzuanba/6277374/dead.html",
+    "/xinzuanba/6277422.html": "xianbao/archive/xinzuanba/6277422/dead.html",
+    "/xinzuanba/6277544.html": "xianbao/archive/xinzuanba/6277544/dead.html",
+    "/xinzuanba/6277597.html": "xianbao/archive/xinzuanba/6277597/dead.html",
+    "/xinzuanba/6278449.html": "xianbao/archive/xinzuanba/6278449/dead.html",
+    "/xinzuanba/6278683.html": "xianbao/archive/xinzuanba/6278683/dead.html",
+    "/xinzuanba/6279089.html": "xianbao/archive/xinzuanba/6279089/dead.html",
+    "/xinzuanba/6279362.html": "xianbao/archive/xinzuanba/6279362/dead.html",
+    "/xinzuanba/6279398.html": "xianbao/archive/xinzuanba/6279398/dead.html",
+    "/xinzuanba/6279533.html": "xianbao/archive/xinzuanba/6279533/dead.html",
+    "/xinzuanba/6279604.html": "xianbao/archive/xinzuanba/6279604/dead.html",
+    "/xinzuanba/6279640.html": "xianbao/archive/xinzuanba/6279640/dead.html",
+    "/xinzuanba/6279736.html": "xianbao/archive/xinzuanba/6279736/dead.html",
+    "/xinzuanba/6279755.html": "xianbao/archive/xinzuanba/6279755/dead.html",
+    "/xinzuanba/6279807.html": "xianbao/archive/xinzuanba/6279807/dead.html",
+    "/xinzuanba/6279917.html": "xianbao/archive/xinzuanba/6279917/dead.html",
+    "/xiaodigu/6376446.html": "xianbao/archive/xiaodigu/6376446/dead.html",
+    "/xinzuanba/6279918.html": "xianbao/archive/xinzuanba/6279918/dead.html",
+    "/xiaodigu/6376484.html": "xianbao/archive/xiaodigu/6376484/dead.html",
+    "/xinzuanba/6279956.html": "xianbao/archive/xinzuanba/6279956/dead.html",
+    "/xiaodigu/6376494.html": "xianbao/archive/xiaodigu/6376494/dead.html",
+    "/xinzuanba/6279963.html": "xianbao/archive/xinzuanba/6279963/dead.html",
+    "/xiaodigu/6376533.html": "xianbao/archive/xiaodigu/6376533/dead.html",
+    "/xinzuanba/6279967.html": "xianbao/archive/xinzuanba/6279967/dead.html",
+    "/xiaodigu/6376599.html": "xianbao/archive/xiaodigu/6376599/dead.html",
+    "/xinzuanba/6280008.html": "xianbao/archive/xinzuanba/6280008/dead.html",
+    "/xiaodigu/6376654.html": "xianbao/archive/xiaodigu/6376654/dead.html",
+    "/xinzuanba/6280081.html": "xianbao/archive/xinzuanba/6280081/dead.html",
+    "/xiaodigu/6376662.html": "xianbao/archive/xiaodigu/6376662/dead.html",
+    "/xinzuanba/6280354.html": "xianbao/archive/xinzuanba/6280354/dead.html",
+    "/xiaodigu/6376705.html": "xianbao/archive/xiaodigu/6376705/dead.html",
+    "/xinzuanba/6280367.html": "xianbao/archive/xinzuanba/6280367/dead.html",
+    "/xiaodigu/6376769.html": "xianbao/archive/xiaodigu/6376769/dead.html",
+    "/xinzuanba/6280414.html": "xianbao/archive/xinzuanba/6280414/dead.html",
+    "/xiaodigu/6376787.html": "xianbao/archive/xiaodigu/6376787/dead.html",
+    "/xinzuanba/6280502.html": "xianbao/archive/xinzuanba/6280502/dead.html",
+    "/xiaodigu/6376832.html": "xianbao/archive/xiaodigu/6376832/dead.html"
   },
   "versions": {
-    "/huluxia/6709621.html": [
-      "20260913T101114"
-    ],
-    "/huluxia/6709662.html": [
-      "20260913T101146"
-    ],
-    "/huluxia/6711780.html": [
-      "20260913T101222"
-    ],
-    "/huluxia/6712781.html": [
-      "20260913T101301"
-    ],
-    "/zuankeba/6361376.html": [
-      "20260913T101353"
-    ],
-    "/zuankeba/6362508.html": [
-      "20260913T101527"
+    "/zuankeba/6364301.html": [
+      "20260913T192432"
     ]
   }
 }
