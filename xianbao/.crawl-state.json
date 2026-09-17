@@ -27726,7 +27726,7 @@
     "/huluxia/6806820.html": {
       "hash": "653afb830f3f732952662adca92e1208bcae51b439d27ecf8ec7ec0930265702",
       "local": "huluxia/6806820.html",
-      "last_check": "2026-08-16T09:42:52+0000"
+      "last_check": "2026-09-17T20:17:59+0000"
     },
     "/zuankeba/6205477.html": {
       "hash": "f01d7e7cd1712627f7afc01d64be7c228a0e3a07b888a37bde8352289ba39282",
@@ -27736,7 +27736,7 @@
     "/huluxia/6806824.html": {
       "hash": "e6f244dc8a865ffef6f7a5f43f2dd8a5923530d955b4b8f01f052db82962df57",
       "local": "huluxia/6806824.html",
-      "last_check": "2026-08-16T09:43:08+0000"
+      "last_check": "2026-09-17T20:18:05+0000"
     },
     "/zuankeba/6205497.html": {
       "hash": "1972c1da57ee04e8a4abf624b83c0b1660d05f930ecb695fece6991761835a7d",
@@ -27744,9 +27744,9 @@
       "last_check": "2026-08-16T09:43:15+0000"
     },
     "/huluxia/6806826.html": {
-      "hash": "f389b3932d1ab0b534288a6dd2c675f47b4a80b0c4191cf5d8005d3e0b00d09d",
+      "hash": "efbcc9b2311f651c26dbdabcca322764ce0ac4dfa9465c4c968df128da8ff3e0",
       "local": "huluxia/6806826.html",
-      "last_check": "2026-08-16T09:43:25+0000"
+      "last_check": "2026-09-17T20:18:14+0000"
     },
     "/zuankeba/6205549.html": {
       "hash": "1069b2720f297268a88b6c84305e2769ac32d5d2a662b372aa3a27a0b11a77b6",
@@ -27756,7 +27756,7 @@
     "/huluxia/6806833.html": {
       "hash": "5633755d26fc143ec80cc6679885126196b4fab4c48199d839582704e5943fa5",
       "local": "huluxia/6806833.html",
-      "last_check": "2026-08-16T09:43:40+0000"
+      "last_check": "2026-09-17T20:18:19+0000"
     },
     "/zuankeba/6205597.html": {
       "hash": "e97136fd4e294f85ef68fcf8dae63d2261817b15ee478b1c82a91284c4ab7f82",
@@ -27766,7 +27766,7 @@
     "/huluxia/6806835.html": {
       "hash": "f90c7356ded070083be71509f3bce21f5e1358e52fa368e917033217f6a1553f",
       "local": "huluxia/6806835.html",
-      "last_check": "2026-08-16T09:43:57+0000"
+      "last_check": "2026-09-17T20:18:26+0000"
     },
     "/zuankeba/6205603.html": {
       "hash": "c397790063840424095d8de82ebe3258b1024855a6e8f93797bb8544d81147ce",
@@ -27776,7 +27776,7 @@
     "/huluxia/6809968.html": {
       "hash": "14b5d5032d648492780575cbced3e72f46f01b8b28a0e6cbdcd6b8cb2d59d739",
       "local": "huluxia/6809968.html",
-      "last_check": "2026-08-16T09:44:14+0000"
+      "last_check": "2026-09-17T20:18:32+0000"
     },
     "/zuankeba/6205610.html": {
       "hash": "0380e1520cbd9d698cd1cedaec5c12be0fec7e7b00df906b67e3869c39bb4f2a",
@@ -225478,6 +225478,48 @@
       "fails": 1,
       "ts": 1789676266,
       "permanent": true
+    },
+    "/zuankeba/6205461.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789676275,
+      "permanent": true
+    },
+    "/zuankeba/6205477.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789676280,
+      "permanent": true
+    },
+    "/zuankeba/6205497.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789676286,
+      "permanent": true
+    },
+    "/zuankeba/6205549.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789676295,
+      "permanent": true
+    },
+    "/zuankeba/6205597.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789676300,
+      "permanent": true
+    },
+    "/zuankeba/6205603.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789676307,
+      "permanent": true
+    },
+    "/zuankeba/6205610.html": {
+      "reason": "HTTP 404",
+      "fails": 1,
+      "ts": 1789676313,
+      "permanent": true
     }
   },
   "dead_assets": {
@@ -225521,8 +225563,8 @@
   "stats": {
     "pages": 251,
     "articles": 31764,
-    "rechecks": 1947,
-    "updated": 242
+    "rechecks": 1954,
+    "updated": 243
   },
   "tombstones": {
     "/zuankeba/6225026.html": "xianbao/archive/zuankeba/6225026/dead.html",
@@ -225696,7 +225738,14 @@
     "/zuankeba/6205364.html": "xianbao/archive/zuankeba/6205364/dead.html",
     "/zuankeba/6205376.html": "xianbao/archive/zuankeba/6205376/dead.html",
     "/zuankeba/6205395.html": "xianbao/archive/zuankeba/6205395/dead.html",
-    "/zuankeba/6205420.html": "xianbao/archive/zuankeba/6205420/dead.html"
+    "/zuankeba/6205420.html": "xianbao/archive/zuankeba/6205420/dead.html",
+    "/zuankeba/6205461.html": "xianbao/archive/zuankeba/6205461/dead.html",
+    "/zuankeba/6205477.html": "xianbao/archive/zuankeba/6205477/dead.html",
+    "/zuankeba/6205497.html": "xianbao/archive/zuankeba/6205497/dead.html",
+    "/zuankeba/6205549.html": "xianbao/archive/zuankeba/6205549/dead.html",
+    "/zuankeba/6205597.html": "xianbao/archive/zuankeba/6205597/dead.html",
+    "/zuankeba/6205603.html": "xianbao/archive/zuankeba/6205603/dead.html",
+    "/zuankeba/6205610.html": "xianbao/archive/zuankeba/6205610/dead.html"
   },
   "versions": {
     "/huluxia/6797355.html": [
@@ -225707,6 +225756,9 @@
     ],
     "/huluxia/6804351.html": [
       "20260917T201738"
+    ],
+    "/huluxia/6806826.html": [
+      "20260917T201814"
     ]
   }
 }
