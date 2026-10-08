@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="renderer" content="webkit">
+<meta name="robots" content="noindex,nofollow">
+<title>您访问的页面不存在或已删除-线报酷</title>
+<script>/* 主题防白屏（FOUC），与 header.php 同款逻辑：cookie xb_theme，旧 night cookie 只读兼容（20261006） */
+(function(){function gt(n){var m=document.cookie.match(new RegExp('(?:^|;\\s*)'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null}
+var t=gt('xb_theme');
+if(t===null){var ck=gt('night');t=ck==='1'?'night':(ck==='0'?'day':'system')}
+if(t==='system'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'night':'day'}
+if(t==='night'){document.documentElement.className+=' night'}
+else if(t!=='day'){document.documentElement.setAttribute('data-xb-theme',t)}})();
+</script>
+<style>html.night body{background:#18181b;color:#fafafa}
+html[data-xb-theme="sunset"] body{background:#241a1f;color:#f7ebe0}
+html[data-xb-theme="gray"] body{background:#2b2b2f;color:#f4f4f5}
+html[data-xb-theme="dracula"] body{background:#282a36;color:#f8f8f2}
+html[data-xb-theme="nord"] body{background:#2e3440;color:#eceff4}
+html[data-xb-theme="tokyo"] body{background:#1a1b26;color:#c0caf5}
+html[data-xb-theme="catppuccin"] body{background:#1e1e2e;color:#cdd6f4}
+html[data-xb-theme="rosepine"] body{background:#191724;color:#e0def4}
+html[data-xb-theme="gruvbox"] body{background:#282828;color:#ebdbb2}
+html[data-xb-theme="everforest"] body{background:#2d353b;color:#d3c6aa}
+</style>
+<style>html.night body{background:#18181b}</style>
+<link rel="stylesheet" href="/design/tokens.css?v=20261006b">
+<link rel="stylesheet" href="/zb_users/theme/xianbao_theme/style/style.css?v=20261006007000">
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
+.nf{text-align:center;padding:0 24px}
+.nf-code{font-size:76px;font-weight:700;letter-spacing:-2px;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.nf-code span{color:var(--text-3)}
+.nf-p{margin:14px 0 0;font-size:14px;color:var(--text-2)}
+.nf-btns{margin-top:28px;display:flex;gap:12px;justify-content:center}
+.nf-btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 20px;border-radius:var(--radius-control);font-size:13.5px;text-decoration:none;cursor:pointer;border:none}
+.nf-btn-primary{background:var(--primary);color:var(--on-primary);font-weight:500}
+.nf-btn-primary:hover{background:var(--primary-hover)}
+.nf-btn-outline{background:var(--surface);color:var(--text);box-shadow:var(--shadow-ring-sm)}
+.nf-btn-outline:hover{box-shadow:var(--shadow-ring-strong)}
+@media (max-width:480px){.nf-code{font-size:60px}}
+</style>
+</head>
+<body>
+<div class="nf">
+    <div class="nf-code">4<span>0</span>4</div>
+    <p class="nf-p">您访问的页面不存在或已删除</p>
+    <div class="nf-btns">
+        <button type="button" class="nf-btn nf-btn-outline" onclick="history.back()">返回上一页</button>
+        <a class="nf-btn nf-btn-primary" href="/">返回首页</a>
+    </div>
+</div>
+</body>
+</html>
