@@ -105,13 +105,14 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <!-- 图标体系（20261005）：Lucide v1.52.0（ISC）+ simple-icons（CC0）共 34 枚线性 SVG symbol，内联于 body 开头（xb-icon-sprite），iconfont 字体退役，本页零字体请求 -->
 <link href="/design/tokens.css?v=20261013173000" rel="stylesheet"/>
 <link href="/zb_users/theme/xianbao_theme/style/style.css?v=20261013200000" rel="stylesheet"/>
-<link href="/zb_users/theme/xianbao_theme/style/haodan.css?v=20261005200000" rel="stylesheet"/>
 <link href="/zb_users/theme/xianbao_theme/style/swiper-bundle.min.css?v=20261010230000" rel="stylesheet"/>
 <script src="/zb_system/script/jquery-2.2.4.min.js"></script>
 <script src="/zb_system/script/zblogphp.js"></script>
 <script defer="" src="/zb_users/theme/xianbao_theme/script/dark-mode.js?v=20261009220000"></script>
-<script src="/zb_system/script/c_html_js_add.php"></script>
-<link href="/zb_users/plugin/xc_report/style/style.css?r=20230523095540" media="all" rel="stylesheet" type="text/css"/><meta content="线报酷" name="apple-mobile-web-app-title"/>
+<!-- 20261014：改 defer（c_html_js_add 内部全部为 $(function(){}) ready 包裹 + 一处 fuiPrismLoad 自判 readyState，
+     无解析期 DOM 操作；defer 执行晚于 head 同步的 jquery/zblogphp，依赖顺序不变，解除解析期阻塞） -->
+<script defer="" src="/zb_system/script/c_html_js_add.php"></script>
+<meta content="线报酷" name="apple-mobile-web-app-title"/>
 <link href="/zb_users/theme/xianbao_theme/image/iosicon/icon.png" rel="apple-touch-icon"/>
 <link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-57.png" rel="apple-touch-icon-precomposed" sizes="57x57"/>
 <link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-72.png" rel="apple-touch-icon-precomposed" sizes="72x72"/>
@@ -305,7 +306,7 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 </main>
 </div>
 </div>
-<script src="/zb_users/plugin/xc_report/script/script.js?r=20230523095540" type="text/javascript"></script><script src="/zb_users/plugin/mochu_us/layer/layer.js"></script><script src="/zb_users/plugin/mochu_us/style/mochu_us.js?r=20261005200000&amp;v=20261005b"></script>
+<script defer="" src="/zb_users/plugin/mochu_us/layer/layer.js"></script><script defer="" src="/zb_users/plugin/mochu_us/style/mochu_us.js?r=20261005200000&amp;v=20261005b"></script>
 <link href="/zb_users/plugin/mochu_us/style/mochu_us.css?r=20261005200000" rel="stylesheet"/>
 <!--黑色透明遮罩-->
 <div class="mask-hidden transition" id="mask-hidden"></div>
