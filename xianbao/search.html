@@ -9,6 +9,14 @@
 <meta content="IE=edge,Chrome=1" http-equiv="X-UA-Compatible"/>
 <meta content="pc,mobile" name="applicable-device"/>
 <style>
+/* 首绘放行闸门（20261016，后台「前台功能 → 首屏一次性绘制」可关）：内联脚本在首绘前挂
+   html.xb-boot，body 先不绘制，DOMContentLoaded（defer 链执行完：标红/筛选/已读置灰/Swiper
+   均已成最终态）后放行——页面一次性完整出现，不再自上往下逐段流出。用 visibility 不用 display：
+   保留布局，几何测量（Swiper autoHeight、两列宽度、sticky 基准）不受影响。底色兜底 #fafafa
+   （=--bg 浅色画布）；紧随其后的 html.night / html[data-xb-theme] 规则与之同特异性且后写，
+   暗色主题仍正确覆盖，无白闪。代价（4G 节流实测 FCP +0.87s）与放行兜底见同段内联脚本注释。 */
+html.xb-boot{background:#fafafa}
+html.xb-boot>body{visibility:hidden}
 /* 夜间模式首屏关键背景（zinc-dark 提亮版，与 /design/tokens.css html.night 一致）：CSS 下载慢于首帧时兜底 */
 html.night{background:#18181b;color:#fafafa}
 html.night body{background:#18181b;color:#fafafa}
@@ -39,6 +47,37 @@ html[data-xb-theme="everforest"] body,html[data-xb-theme="everforest"] .header,h
 html[data-xb-theme="one-dark"]{background:#282c34;color:#f7f7fb}
 html[data-xb-theme="one-dark"] body,html[data-xb-theme="one-dark"] .header,html[data-xb-theme="one-dark"] .footer{background:#282c34;color:#f7f7fb}
 </style>
+<script>/* 首绘放行闸门（20261016）：必须早于首次绘制同步执行——先挂 html.xb-boot（body 不绘制），
+   defer 链执行完（DOMContentLoaded）后放行，页面一次性完整出现，不再自上往下逐段流出。
+   为什么锚 DOMContentLoaded：defer 链（含 132KB 的 meta.php）在它之前全部执行完，标红/筛选/
+   已读置灰/Swiper 建实例都已就位 —— 放行后看到的就是最终态，顺带治好「先画后变」。
+   兜底（三道，任一先到即放行，防脚本异常/网络挂起把页面永久藏在闸门后面）：
+     ① window.load；② 解析完成后 1.5s（此时整份 HTML 已解析，SSR 内容齐全，只是 defer 链没跑完）；
+     ③ 挂闸后 8s 绝对上限（防 HTML 本身一直没解析完）。
+   放行幂等。JS 未执行则 xb-boot 从未挂上，页面照常显示，无需 noscript。
+   注意：ZBP 模板编译器把「花括号紧跟 标识符(」当模板函数标签（lib/template.php:474），
+   故本段所有左花括号后一律留空格；改动后必须验 compiled 产物。
+   真机首绘帧验证见 traework/test/scripts/gate_verify.js（含 layout-shift 与文档总高轨迹）。 */
+(function () {
+var d = document.documentElement;
+d.className += ' xb-boot';
+function r() {
+if (d.classList) { d.classList.remove('xb-boot') }
+else { d.className = d.className.replace(/(^| )xb-boot( |$)/, ' ') }
+}
+window.xbBootRelease = r;
+setTimeout(r, 8000);
+function afterParse() { setTimeout(r, 1500) }
+if (document.readyState === 'loading') {
+document.addEventListener('readystatechange', function h() {
+if (document.readyState !== 'loading') { document.removeEventListener('readystatechange', h); afterParse() }
+});
+} else { afterParse() }
+if (document.readyState !== 'loading') { r() }
+else { document.addEventListener('DOMContentLoaded', function () { requestAnimationFrame(function () { requestAnimationFrame(r) }) }) }
+window.addEventListener('load', r);
+})();
+</script>
 <script>/* 主题防白屏（FOUC）：必须在首次绘制前同步执行。选择存 cookie xb_theme；旧 night cookie 只读兼容（1=锁定夜/0=锁定日/无=跟随系统）；夜间挂 html.night，其余主题挂 data-xb-theme（20261006 多主题化） */
 (function(){function gt(n){var m=document.cookie.match(new RegExp('(?:^|;\\s*)'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null}
 var t=gt('xb_theme');
@@ -68,7 +107,7 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <meta content="线报酷" property="og:site_name"/>
 <meta content="summary" name="twitter:card"/>
 <script type="application/ld+json">[{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"}]},{"@context":"https://schema.org","@type":"CollectionPage","name":"赚客吧","url":"/category-zuankeba/","isPartOf":{"@type":"WebSite","name":"线报酷","url":"/"},"inLanguage":"zh-CN"}]</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"交行数币4-8元开通哈啰月卡更新了","url":"/zuankeba/7222071.html"},{"@type":"ListItem","position":2,"name":"建行湖南xyk每月5元立减金","url":"/zuankeba/7221898.html"},{"@type":"ListItem","position":3,"name":"微信支付摇一摇","url":"/zuankeba/7221887.html"},{"@type":"ListItem","position":4,"name":"光大转盘有小水","url":"/zuankeba/7221886.html"},{"@type":"ListItem","position":5,"name":"双11第一天结束，准备下班了","url":"/zuankeba/7221882.html"},{"@type":"ListItem","position":6,"name":"天天基金固收福利社40+50券上新了","url":"/zuankeba/7221850.html"},{"@type":"ListItem","position":7,"name":"10.16京东拍卖","url":"/zuankeba/7221847.html"},{"@type":"ListItem","position":8,"name":"支付宝运通卡大毛","url":"/zuankeba/7221586.html"},{"@type":"ListItem","position":9,"name":"淘宝苹果官网记得先加购","url":"/zuankeba/7221520.html"},{"@type":"ListItem","position":10,"name":"二手激光打印机（带wifi） 黑白 学生打印作业用","url":"/zuankeba/7221449.html"},{"@type":"ListItem","position":11,"name":"现在缴电费怎么没有什么优惠了啊？","url":"/zuankeba/7221436.html"},{"@type":"ListItem","position":12,"name":"京东试用现在弹5元券","url":"/zuankeba/7221249.html"},{"@type":"ListItem","position":13,"name":"中信 8元 毛 又有了","url":"/zuankeba/7221212.html"},{"@type":"ListItem","position":14,"name":"苹果官网现在就不能登录了吗","url":"/zuankeba/7221139.html"},{"@type":"ListItem","position":15,"name":"现在三星价格咋这么坚挺，还没到时候吗？","url":"/zuankeba/7221083.html"},{"@type":"ListItem","position":16,"name":"好像是bug价洗衣机","url":"/zuankeba/7220991.html"},{"@type":"ListItem","position":17,"name":"已收藏的历史帖子，大家可以访问了吗？","url":"/zuankeba/7220964.html"},{"@type":"ListItem","position":18,"name":"海鲜市场买会员被骗，自动收货了还能追回来吗？","url":"/zuankeba/7220948.html"},{"@type":"ListItem","position":19,"name":"工行xing/用卡可以抽奖了","url":"/zuankeba/7220877.html"},{"@type":"ListItem","position":20,"name":"中信抽","url":"/zuankeba/7220795.html"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"羊城通没了？","url":"/zuankeba/7226687.html"},{"@type":"ListItem","position":2,"name":"支付宝免费领一年证件照会员","url":"/zuankeba/7226671.html"},{"@type":"ListItem","position":3,"name":"必胜客真的很划算","url":"/zuankeba/7226549.html"},{"@type":"ListItem","position":4,"name":"60v，20A电池以旧换新200块钱包上门安装","url":"/zuankeba/7226487.html"},{"@type":"ListItem","position":5,"name":"准备国补买个17自用，现在入还是等等20号左右入","url":"/zuankeba/7226450.html"},{"@type":"ListItem","position":6,"name":"工行答题","url":"/zuankeba/7226428.html"},{"@type":"ListItem","position":7,"name":"刚去给电动车换电池，430","url":"/zuankeba/7226097.html"},{"@type":"ListItem","position":8,"name":"小黄鱼能打12315吗","url":"/zuankeba/7226087.html"},{"@type":"ListItem","position":9,"name":"已下单  到手850","url":"/zuankeba/7226049.html"},{"@type":"ListItem","position":10,"name":"哪里还能办收款码啊。果蔬","url":"/zuankeba/7225984.html"},{"@type":"ListItem","position":11,"name":"摇一摇交通大水","url":"/zuankeba/7225930.html"},{"@type":"ListItem","position":12,"name":"好价露营帐篷","url":"/zuankeba/7225924.html"},{"@type":"ListItem","position":13,"name":"多多哪家的鸭蛋好吃","url":"/zuankeba/7225848.html"},{"@type":"ListItem","position":14,"name":"大众点评搜【评友周末派】 页面抽试试 有反馈蜜雪珍珠奶茶","url":"/zuankeba/7225818.html"},{"@type":"ListItem","position":15,"name":"小米t1 净烟机，1540元","url":"/zuankeba/7225803.html"},{"@type":"ListItem","position":16,"name":"现在还有能用的码子平台吗，求一个","url":"/zuankeba/7225746.html"},{"@type":"ListItem","position":17,"name":"最早的收藏17","url":"/zuankeba/7225626.html"},{"@type":"ListItem","position":18,"name":"纪念币降价，大家都怎么出的？","url":"/zuankeba/7225308.html"},{"@type":"ListItem","position":19,"name":"中行京东PLUS卡可以注销了","url":"/zuankeba/7225207.html"},{"@type":"ListItem","position":20,"name":"怎么完成建行代发资格，有果","url":"/zuankeba/7225156.html"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"}]}</script>
 <link href="/favicon.ico" rel="shortcut icon"/>
 <link href="/rss.php" rel="alternate" title="线报酷 RSS 订阅" type="application/rss+xml"/>
@@ -111,7 +150,8 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 </script>
 <!-- 图标体系（20261005）：Lucide v1.52.0（ISC）+ simple-icons（CC0）共 34 枚线性 SVG symbol，内联于 body 开头（xb-icon-sprite），iconfont 字体退役，本页零字体请求 -->
 <link href="/design/tokens.css?v=20261013173000" rel="stylesheet"/>
-<link href="/zb_users/theme/xianbao_theme/style/style.css?v=20261015235500" rel="stylesheet"/>
+<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261016130700" rel="stylesheet"/>
+<!-- 20261016 带宽优化：fancybox.css（24KB）不再直出，随 vendor/fancybox.js 同批懒注入（footer.php xbLazyFancybox.load） -->
 <!-- 20261015：jQuery/zblogphp 改 defer——zblogphp.js 顶层为纯定义 IIFE（0 处解析期 DOM 访问），
      全站模板内联脚本扫描确认无解析期顶级 $() 调用（唯一 tool.php 的 $ 为 ready 包裹）；
      defer 保序执行，head 内 dark-mode/c_html_js_add 及 footer 全部 defer 链依赖顺序不变。 -->
@@ -314,7 +354,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
 <div class="hs-panel sb br" id="hs-panel">
 <div class="search-hot hidden" id="hs-hot">
 <p class="search-hot-title">热门搜索</p>
-<div class="search-hot-list" id="hs-hotlist"><a class="search-hot-chip" href="" rel="nofollow">京豆</a><a class="search-hot-chip" href="" rel="nofollow">猫粮</a><a class="search-hot-chip" href="" rel="nofollow">猫砂</a><a class="search-hot-chip" href="" rel="nofollow">霍曼</a><a class="search-hot-chip" href="" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="" rel="nofollow">高德</a><a class="search-hot-chip" href="" rel="nofollow">爱肯拿</a><a class="search-hot-chip" href="" rel="nofollow">云包场</a><a class="search-hot-chip" href="" rel="nofollow">饿了么</a><a class="search-hot-chip" href="" rel="nofollow">渴望</a></div>
+<div class="search-hot-list" id="hs-hotlist"><a class="search-hot-chip" href="" rel="nofollow">京豆</a><a class="search-hot-chip" href="" rel="nofollow">猫粮</a><a class="search-hot-chip" href="" rel="nofollow">猫砂</a><a class="search-hot-chip" href="" rel="nofollow">霍曼</a><a class="search-hot-chip" href="" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="" rel="nofollow">爱肯拿</a><a class="search-hot-chip" href="" rel="nofollow">高德</a><a class="search-hot-chip" href="" rel="nofollow">云包场</a><a class="search-hot-chip" href="" rel="nofollow">渴望</a><a class="search-hot-chip" href="" rel="nofollow">饿了么</a></div>
 </div>
 <div class="fp-scope"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-info"></use></svg><span>提交后在「赚客吧」分类内搜索</span></div>
 </div>
@@ -340,7 +380,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
 <div class="fp-scope"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-info"></use></svg><span>提交后在「赚客吧」分类内搜索</span></div>
 <div class="fp-hot">
 <p class="search-hot-title">热门搜索</p>
-<div class="search-hot-list"><a class="search-hot-chip" href="" rel="nofollow">京豆</a><a class="search-hot-chip" href="" rel="nofollow">猫粮</a><a class="search-hot-chip" href="" rel="nofollow">猫砂</a><a class="search-hot-chip" href="" rel="nofollow">霍曼</a><a class="search-hot-chip" href="" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="" rel="nofollow">高德</a><a class="search-hot-chip" href="" rel="nofollow">爱肯拿</a><a class="search-hot-chip" href="" rel="nofollow">云包场</a><a class="search-hot-chip" href="" rel="nofollow">饿了么</a><a class="search-hot-chip" href="" rel="nofollow">渴望</a></div>
+<div class="search-hot-list"><a class="search-hot-chip" href="" rel="nofollow">京豆</a><a class="search-hot-chip" href="" rel="nofollow">猫粮</a><a class="search-hot-chip" href="" rel="nofollow">猫砂</a><a class="search-hot-chip" href="" rel="nofollow">霍曼</a><a class="search-hot-chip" href="" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="" rel="nofollow">爱肯拿</a><a class="search-hot-chip" href="" rel="nofollow">高德</a><a class="search-hot-chip" href="" rel="nofollow">云包场</a><a class="search-hot-chip" href="" rel="nofollow">渴望</a><a class="search-hot-chip" href="" rel="nofollow">饿了么</a></div>
 </div>
 <p class="fp-note"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-info"></use></svg>价格区间仅对带价格的微博 / 好单 / 值得买内容生效。</p>
 </form>
@@ -377,6 +417,8 @@ html.night .search-top input:focus{border-color:#5c7cfa}
 <!--黑色透明遮罩-->
 <div class="mask-hidden transition" id="mask-hidden"></div>
 <!-- JS 第三方库（vendor）：defer 并行下载、按声明顺序执行，不阻塞页面解析 -->
+<!-- 20261016 带宽优化：翻页只取列表片段（list.js 的 IAS load 事件据此改写请求地址；后台「翻页只取列表片段」可关） -->
+<script>window.xb_rows_frag=1;</script>
 <script defer="" src="/zb_users/theme/xianbao_theme/script/vendor/lscache.min.js?v=20261015200000"></script>
 <script defer="" src="/zb_users/theme/xianbao_theme/script/vendor/infinite-ajax-scroll.min.js?v=20261015200000"></script>
 <script defer="" src="/zb_users/theme/xianbao_theme/script/vendor/js-md5.min.js?v=20261015200000"></script>
@@ -386,8 +428,8 @@ html.night .search-top input:focus{border-color:#5c7cfa}
 <script defer="" src="/zb_users/theme/xianbao_theme/script/app/core.min.js?v=20261015200000"></script>
 <script defer="" src="/zb_users/theme/xianbao_theme/script/app/xbstore.min.js?v=20261015200000"></script>
 <script defer="" src="/zb_users/theme/xianbao_theme/script/app/xbfavdrawer.min.js?v=20261015200000"></script>
-<script defer="" src="/zb_users/theme/xianbao_theme/script/app/navigation.min.js?v=20261015200000"></script>
-<script defer="" src="/zb_users/theme/xianbao_theme/script/app/list.min.js?v=20261015200000"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/navigation.min.js?v=20261016120000"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/list.min.js?v=20261016072800"></script>
 <!-- app/push.js 已随 20261012 休眠推送管线（tuisongkaiguan 总闸无入口）退役删除 -->
 <script defer="" src="/zb_users/theme/xianbao_theme/script/app/rank.min.js?v=20261015200000"></script>
 <script defer="" src="/zb_users/theme/xianbao_theme/script/app/main.min.js?v=20261015200000"></script>
@@ -398,7 +440,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
   var q = document.getElementById('q');
   var ul = document.querySelector('ul.new-post');
   if (!q || !ul) return;
-  var LITE_URL = '/search-lite.json?v=1792096551';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
+  var LITE_URL = '/search-lite.json?v=1792144734';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
   function escapeHtml(s){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
