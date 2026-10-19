@@ -87,7 +87,11 @@ var t=gt('xb_theme');
 if(t===null){var ck=gt('night');t=ck==='1'?'night':(ck==='0'?'day':'system')}
 if(t==='system'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'night':'day'}
 if(t==='night'){document.documentElement.className+=' night'}
-else if(t!=='day'){document.documentElement.setAttribute('data-xb-theme',t)}})();
+else if(t!=='day'){document.documentElement.setAttribute('data-xb-theme',t);
+/* 主题块已拆到 tokens-themes.css（20261019）：回访用户是暗色主题时这里同步 link 注入，
+   否则 defer 的 dark-mode.js 晚于首绘 → 先闪一帧默认亮色。night 不需要（令牌在 tokens.css）。 */
+var l=document.createElement('link');l.id='xb-theme-css';l.rel='stylesheet';
+l.href='/design/tokens-themes.css?v=2026101901';document.documentElement.appendChild(l)}})();
 /* 列表密度防跳动：首绘前同步挂 density-compact（紧凑档），刷新不跳变 */
 (function(){var m=document.cookie.match(/(?:^|;\s*)density=([^;]*)/);if(m&&decodeURIComponent(m[1])==='compact'){document.documentElement.className+=' density-compact';}})();
 /* 字号档位 + 列表标题行数防跳变（20261009）：cookie xb_fs（''/s/l/xl）、xb_tlines（''/2），
@@ -111,7 +115,7 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <meta content="线报酷" property="og:site_name"/>
 <meta content="summary" name="twitter:card"/>
 <script type="application/ld+json">[{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"}]},{"@context":"https://schema.org","@type":"CollectionPage","name":"赚客吧","url":"/category-zuankeba/","isPartOf":{"@type":"WebSite","name":"线报酷","url":"/"},"inLanguage":"zh-CN"}]</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷 10 月中旬更新汇总：开放 API 上线、关注与推送升级、全站提速与若干修复","url":"/gonggao/7230010.html"},{"@type":"ListItem","position":2,"name":"都说现在赚钱难，那么现在钱比以前更值钱了吗？","url":"/zuankeba/7247903.html"},{"@type":"ListItem","position":3,"name":"有些商家真会玩","url":"/zuankeba/7247872.html"},{"@type":"ListItem","position":4,"name":"pura80pro 能降回4.3吗？","url":"/zuankeba/7247624.html"},{"@type":"ListItem","position":5,"name":"现在安卓机是不是都是空中激活了","url":"/zuankeba/7247622.html"},{"@type":"ListItem","position":6,"name":"请问京东卖plus开卡礼给外地会不会黑？","url":"/zuankeba/7247396.html"},{"@type":"ListItem","position":7,"name":"duo外网的情况，真假自辨","url":"/zuankeba/7247344.html"},{"@type":"ListItem","position":8,"name":"昨天抢到的苹果duo，被砍单了","url":"/zuankeba/7246879.html"},{"@type":"ListItem","position":9,"name":"平安好车主199买360电费，礼包10选1，每人两份","url":"/zuankeba/7246763.html"},{"@type":"ListItem","position":10,"name":"Zfb搜立减金","url":"/zuankeba/7246717.html"},{"@type":"ListItem","position":11,"name":"昨天移动app预约了下duo，今天疯狂给我打电话，要加3000块","url":"/zuankeba/7246677.html"},{"@type":"ListItem","position":12,"name":"速度 直接领ysf 2r","url":"/zuankeba/7246572.html"},{"@type":"ListItem","position":13,"name":"来个鸡汤，人追求梦想还是值得的","url":"/zuankeba/7246537.html"},{"@type":"ListItem","position":14,"name":"小加油站在哪里能看挂牌价","url":"/zuankeba/7246378.html"},{"@type":"ListItem","position":15,"name":"建行生活报名防身","url":"/zuankeba/7246303.html"},{"@type":"ListItem","position":16,"name":"京东挂了","url":"/zuankeba/7246267.html"},{"@type":"ListItem","position":17,"name":"平安的支付会员的云闪付10-5怎么用","url":"/zuankeba/7246079.html"},{"@type":"ListItem","position":18,"name":"小米17pro  16+512的有没有肉","url":"/zuankeba/7245868.html"},{"@type":"ListItem","position":19,"name":"京东~黑色星期五~黑眼圈社区点赞0.88超市卡","url":"/zuankeba/7245858.html"},{"@type":"ListItem","position":20,"name":"前几天的科尔沁牛肉干","url":"/zuankeba/7245804.html"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷 10 月中旬更新汇总：开放 API 上线、关注与推送升级、全站提速与若干修复","url":"/gonggao/7230010.html"},{"@type":"ListItem","position":2,"name":"山东建行暖气费减了100","url":"/zuankeba/7251213.html"},{"@type":"ListItem","position":3,"name":"抖音陈伯，福袋500个平板","url":"/zuankeba/7250993.html"},{"@type":"ListItem","position":4,"name":"10.20京东拍卖","url":"/zuankeba/7250860.html"},{"@type":"ListItem","position":5,"name":"支付宝工行转","url":"/zuankeba/7250813.html"},{"@type":"ListItem","position":6,"name":"光大阳光值抽奖今天还是小水","url":"/zuankeba/7250736.html"},{"@type":"ListItem","position":7,"name":"超市卡","url":"/zuankeba/7250698.html"},{"@type":"ListItem","position":8,"name":"支付宝大毛","url":"/zuankeba/7250673.html"},{"@type":"ListItem","position":9,"name":"老人说牛肉有毒","url":"/zuankeba/7250469.html"},{"@type":"ListItem","position":10,"name":"自媒体钱难赚啊","url":"/zuankeba/7250468.html"},{"@type":"ListItem","position":11,"name":"移动那话费口令，哪里能提前看到啊","url":"/zuankeba/7250204.html"},{"@type":"ListItem","position":12,"name":"京东一分买2元支付券","url":"/zuankeba/7250134.html"},{"@type":"ListItem","position":13,"name":"你们看看这种代抢肖战演唱会票，是不是骗局，老婆已经充了4500","url":"/zuankeba/7249941.html"},{"@type":"ListItem","position":14,"name":"建行缴费1000-50","url":"/zuankeba/7249933.html"},{"@type":"ListItem","position":15,"name":"撸苹果送的150卷用法","url":"/zuankeba/7249899.html"},{"@type":"ListItem","position":16,"name":"外面的小心，别被骗了，新号要搞波大的，随时跑路。","url":"/zuankeba/7249702.html"},{"@type":"ListItem","position":17,"name":"OPPO电池只要29.9元","url":"/zuankeba/7249697.html"},{"@type":"ListItem","position":18,"name":"现在有能破壳WiFi密码的软件吗","url":"/zuankeba/7249656.html"},{"@type":"ListItem","position":19,"name":"咸鱼要网络身份认证","url":"/zuankeba/7249654.html"},{"@type":"ListItem","position":20,"name":"有在深圳福田的老哥吗，2000能租到2房一厅吗","url":"/zuankeba/7249623.html"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"}]}</script>
 <link href="/favicon.ico" rel="shortcut icon"/>
 <link href="/rss.php" rel="alternate" title="线报酷 RSS 订阅" type="application/rss+xml"/>
@@ -175,14 +179,14 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 })();
 </script>
 <!-- 图标体系（20261005）：Lucide v1.52.0（ISC）+ simple-icons（CC0）共 34 枚线性 SVG symbol，内联于 body 开头（xb-icon-sprite），iconfont 字体退役，本页零字体请求 -->
-<link href="/design/tokens.css?v=20261016182210" rel="stylesheet"/>
-<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261019230000" rel="stylesheet"/>
+<link href="/design/tokens.css?v=20261019235000" rel="stylesheet"/>
+<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261020002100" rel="stylesheet"/>
 <!-- 20261016 带宽优化：fancybox.css（24KB）不再直出，随 vendor/fancybox.js 同批懒注入（footer.php xbLazyFancybox.load） -->
 <!-- 20261015：jQuery/zblogphp 改 defer——zblogphp.js 顶层为纯定义 IIFE（0 处解析期 DOM 访问），
      全站模板内联脚本扫描确认无解析期顶级 $() 调用（唯一 tool.php 的 $ 为 ready 包裹）；
      defer 保序执行，head 内 dark-mode/c_html_js_add 及 footer 全部 defer 链依赖顺序不变。 -->
 <script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-jq.min.js?v=20261017010000"></script><script defer="" src="/zb_system/script/zblogphp.js?v=5e8d86eb"></script>
-<script defer="" src="/zb_users/theme/xianbao_theme/script/dark-mode.min.js?v=20261015210000"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/dark-mode.min.js?v=20261019235100"></script>
 <!-- 20261014：改 defer（c_html_js_add 内部全部为 $(function(){}) ready 包裹 + 一处 fuiPrismLoad 自判 readyState，
      无解析期 DOM 操作；defer 执行晚于 head 同步的 jquery/zblogphp，依赖顺序不变，解除解析期阻塞） -->
 <script defer="" src="/zb_system/script/c_html_js_add.php"></script>
@@ -383,7 +387,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
 </div>
 <div class="search-hot hidden" id="hs-hot">
 <p class="search-hot-title">热门搜索</p>
-<div class="search-hot-list" id="hs-hotlist"><a class="search-hot-chip" href="" rel="nofollow">京豆</a><a class="search-hot-chip" href="" rel="nofollow">猫粮</a><a class="search-hot-chip" href="" rel="nofollow">猫砂</a><a class="search-hot-chip" href="" rel="nofollow">霍曼</a><a class="search-hot-chip" href="" rel="nofollow">爱肯拿</a><a class="search-hot-chip" href="" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="" rel="nofollow">高德</a><a class="search-hot-chip" href="" rel="nofollow">渴望</a><a class="search-hot-chip" href="" rel="nofollow">云包场</a><a class="search-hot-chip" href="" rel="nofollow">饿了么</a></div>
+<div class="search-hot-list" id="hs-hotlist"><a class="search-hot-chip" href="" rel="nofollow">猫粮</a><a class="search-hot-chip" href="" rel="nofollow">京豆</a><a class="search-hot-chip" href="" rel="nofollow">猫砂</a><a class="search-hot-chip" href="" rel="nofollow">霍曼</a><a class="search-hot-chip" href="" rel="nofollow">爱肯拿</a><a class="search-hot-chip" href="" rel="nofollow">高德</a><a class="search-hot-chip" href="" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="" rel="nofollow">渴望</a><a class="search-hot-chip" href="" rel="nofollow">云包场</a><a class="search-hot-chip" href="" rel="nofollow">饿了么</a></div>
 </div>
 <div class="fp-scope"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-info"></use></svg><span>提交后在「赚客吧」分类内搜索</span></div>
 </div>
@@ -414,7 +418,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
 </div>
 <div class="fp-hot" id="fp-hot">
 <p class="search-hot-title">热门搜索</p>
-<div class="search-hot-list"><a class="search-hot-chip" href="" rel="nofollow">京豆</a><a class="search-hot-chip" href="" rel="nofollow">猫粮</a><a class="search-hot-chip" href="" rel="nofollow">猫砂</a><a class="search-hot-chip" href="" rel="nofollow">霍曼</a><a class="search-hot-chip" href="" rel="nofollow">爱肯拿</a><a class="search-hot-chip" href="" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="" rel="nofollow">高德</a><a class="search-hot-chip" href="" rel="nofollow">渴望</a><a class="search-hot-chip" href="" rel="nofollow">云包场</a><a class="search-hot-chip" href="" rel="nofollow">饿了么</a></div>
+<div class="search-hot-list"><a class="search-hot-chip" href="" rel="nofollow">猫粮</a><a class="search-hot-chip" href="" rel="nofollow">京豆</a><a class="search-hot-chip" href="" rel="nofollow">猫砂</a><a class="search-hot-chip" href="" rel="nofollow">霍曼</a><a class="search-hot-chip" href="" rel="nofollow">爱肯拿</a><a class="search-hot-chip" href="" rel="nofollow">高德</a><a class="search-hot-chip" href="" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="" rel="nofollow">渴望</a><a class="search-hot-chip" href="" rel="nofollow">云包场</a><a class="search-hot-chip" href="" rel="nofollow">饿了么</a></div>
 </div>
 <p class="fp-note"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-info"></use></svg>价格区间仅对带价格的微博 / 好单 / 值得买内容生效。</p>
 </form>
@@ -468,7 +472,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
   var q = document.getElementById('q');
   var ul = document.querySelector('ul.new-post');
   if (!q || !ul) return;
-  var LITE_URL = '/search-lite.json?v=1792408024';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
+  var LITE_URL = '/search-lite.json?v=1792446716';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
   function escapeHtml(s){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
