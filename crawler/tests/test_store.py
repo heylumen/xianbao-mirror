@@ -12,8 +12,6 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
 from crawler.core.store.dedup import (
     content_sha256,
     hamming_distance,

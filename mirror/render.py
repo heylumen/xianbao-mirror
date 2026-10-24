@@ -25,6 +25,7 @@ mirror/render.py — 基于 Playwright 无头浏览器的「状态化增量」�
 浏览器：默认自动下载的 chromium；可用环境变量覆盖（见文件末尾说明）。
 """
 
+import contextlib
 import os
 import re
 import sys
@@ -385,11 +386,11 @@ STEALTH_JS = r"""
 # 刻意只在「桌面 Chrome / Windows」这一形态内轮换相近的小版本（124/125/126），
 # 不引入移动端或异类浏览器 —— 否则源站可能返回不同版式，反而影响渲染结果。
 USER_AGENT_POOL = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
     "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
     "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
 ]
 USER_AGENT = random.choice(USER_AGENT_POOL)
@@ -2665,7 +2666,8 @@ def build_hub(out_dir: Path):
     cat = "zuankeba"
     template = out_dir / f"category-{cat}" / "index.html"
     if not template.exists():
-        return _build_legacy_hub(out_dir)
+        _build_legacy_hub(out_dir)
+        return
     by_cat = _local_articles_by_cat(out_dir)
     # 首页聚合全部 5 个分类的最新文章，按文章 ID 降序
     all_items = []
@@ -2757,14 +2759,10 @@ def render_page_ex(page, url: str, path: str, raw_docs: dict, state=None):
     else:
         # 文章页需等待 AJAX 评论注入（Z-BlogPHP）
         if path.rstrip("/").endswith(".html"):
-            try:
+            with contextlib.suppress(Exception):
                 page.wait_for_load_state("networkidle", timeout=4000)
-            except Exception:
-                pass
-            try:
+            with contextlib.suppress(Exception):
                 page.wait_for_timeout(1500)
-            except Exception:
-                pass
             # 触发懒加载：源站图片用 IntersectionObserver + 滚动懒加载，占位符
             # <img src="/plus/api/image.php"> 需滚动进入视口后才被 JS 替换为
             # image.php?imgurl=<真实CDN>。不滚动则永远停在占位符，镜像后图片 404。
@@ -2777,7 +2775,7 @@ def render_page_ex(page, url: str, path: str, raw_docs: dict, state=None):
             # （600 页/轮 ≈ 20 分钟）；默认 0 保持滚动，待 CI 灰度验证图片无损后再
             # 改默认值。
             if not SKIP_LAZY_SCROLL:
-                try:
+                with contextlib.suppress(Exception):
                     page.evaluate(
                         "() => new Promise(res => {"
                         "  let y = 0; const step = 800;"
@@ -2790,12 +2788,8 @@ def render_page_ex(page, url: str, path: str, raw_docs: dict, state=None):
                         "  tick();"
                         "})"
                     )
-                except Exception:
-                    pass
-                try:
+                with contextlib.suppress(Exception):
                     page.wait_for_timeout(1500)
-                except Exception:
-                    pass
         try:
             dom = page.evaluate("document.documentElement.outerHTML")
         except Exception as e:
@@ -2881,10 +2875,8 @@ def main():
                     return
                 ctype = response.headers.get("content-type", "")
                 if response.request.resource_type == "document":
-                    try:
+                    with contextlib.suppress(Exception):
                         raw_docs[local] = body.decode("utf-8", errors="replace")
-                    except Exception:
-                        pass
                     return
                 # 资源：已存在则跳过重复下载（减少源站压力）
                 if (OUT_DIR / local).exists():
@@ -3238,19 +3230,15 @@ def fill_missing(state=None, raw_url_map=None, since=None):
             new_text = rewrite_text_asset(body.decode("utf-8", "replace"), absu)
             # 内容未变则不落盘：避免每次运行都产生无意义 diff / 触发部署
             if outp.exists():
-                try:
+                with contextlib.suppress(Exception):
                     if outp.read_text(encoding="utf-8", errors="replace") == new_text:
                         continue
-                except Exception:
-                    pass
             outp.write_text(new_text, encoding="utf-8")
         else:
             if outp.exists():
-                try:
+                with contextlib.suppress(Exception):
                     if outp.read_bytes() == body:
                         continue
-                except Exception:
-                    pass
             outp.write_bytes(body)
         count += 1
     if count:
@@ -3262,8 +3250,6 @@ def fill_missing(state=None, raw_url_map=None, since=None):
 
 def strip_injection_scripts(raw_saved=None, since=None):
     """剥离 document.write/writeln 注入型脚本标签（注入内容已烘焙进 DOM）。"""
-    if raw_saved is None:
-        raw_saved = set()
     js_files = glob.glob(str(OUT_DIR / "**" / "*.js"), recursive=True)
     injection_basenames = set()
     for jf in js_files:
@@ -3296,8 +3282,8 @@ def strip_injection_scripts(raw_saved=None, since=None):
             except OSError:
                 continue
         try:
-            soup = BeautifulSoup(open(hf, encoding="utf-8", errors="replace").read(),
-                                 "html.parser")
+            with open(hf, encoding="utf-8", errors="replace") as fh:
+                soup = BeautifulSoup(fh.read(), "html.parser")
         except Exception:
             continue
         changed = False
@@ -3316,7 +3302,8 @@ def strip_injection_scripts(raw_saved=None, since=None):
                     changed = True
         if changed:
             try:
-                open(hf, "w", encoding="utf-8").write(str(soup))
+                with open(hf, "w", encoding="utf-8") as fh:
+                    fh.write(str(soup))
             except Exception as e:
                 print(f"::warning:: 重写 {hf} 失败: {e}", file=sys.stderr)
     print(f"==> 已剥离注入型 <script> 标签 {removed} 个")
@@ -3344,8 +3331,8 @@ def strip_analytics_scripts(since=None):
             except OSError:
                 continue
         try:
-            soup = BeautifulSoup(open(hf, encoding="utf-8", errors="replace").read(),
-                                 "html.parser")
+            with open(hf, encoding="utf-8", errors="replace") as fh:
+                soup = BeautifulSoup(fh.read(), "html.parser")
         except Exception:
             continue
         changed = False
@@ -3358,7 +3345,8 @@ def strip_analytics_scripts(since=None):
                 changed = True
         if changed:
             try:
-                open(hf, "w", encoding="utf-8").write(str(soup))
+                with open(hf, "w", encoding="utf-8") as fh:
+                    fh.write(str(soup))
             except Exception as e:
                 print(f"::warning:: 重写 {hf} 失败: {e}", file=sys.stderr)
     if removed:
@@ -3455,10 +3443,8 @@ def _resolve_dir_file_conflict(parent: Path):
         p = Path(*parent.parts[:i])
         if p.is_file():
             moved = p.with_name(p.name + ".conflict-" + hashlib.md5(str(p).encode()).hexdigest()[:8])
-            try:
+            with contextlib.suppress(OSError):
                 p.rename(moved)
-            except OSError:
-                pass
             break
 
 
@@ -3478,7 +3464,6 @@ def localize_images(out_dir: Path, *, force: bool = False) -> dict:
     """
     out_dir = Path(out_dir)
     remote_re = re.compile(r"^https?://", re.I)
-    illegal = re.compile(r'[\\:*?"<>|]')
 
     # 注：图片 URL 的规范化由模块级 `_normalize_img_url` 负责（见 _proxy_abs_url 之后），
     # 它会把站内相对懒加载占位符（/plus/api/image.php?imgurl=<真实CDN>）转成绝对 URL，

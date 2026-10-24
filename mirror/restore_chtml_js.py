@@ -3,7 +3,7 @@
 规则：在 dark-mode.js 标签之后插回（与源站原始顺序一致）；无 dark-mode 标签的页面
 插到 zblogphp.js 之后；都没有则跳过并计数。幂等：已存在则跳过。字节级操作。
 """
-import re, sys, time
+import re, time
 from pathlib import Path
 
 ROOT = Path(r"D:\Github\1255104520xfxx2022\xianbao-mirror\xianbao")

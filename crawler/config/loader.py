@@ -16,12 +16,9 @@ from pathlib import Path
 from typing import Any, Mapping, get_type_hints
 
 from .schema import (
-    AntiCrawlConfig,
     Config,
     ConfigError,
     GlobalConfig,
-    RateLimitConfig,
-    RetryConfig,
     SiteConfig,
 )
 
