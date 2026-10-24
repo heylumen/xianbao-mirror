@@ -1235,8 +1235,8 @@ def test_fix_new_theme_header_search_and_theme():
     assert form.select_one("input[name=kp]") is None
     assert form.select_one("input[name=mip]") is None
     btn = soup.find(id="xbThemeBtn")
-    assert "switchNightMode" in btn["onclick"]
-    assert soup.find(id="xbThemeMenu") is None
+    assert "xbThemeMenuToggle" in btn["onclick"]
+    assert soup.find(id="xbThemeMenu") is not None, "主题菜单应保留（源站同款）"
     assert soup.find("script", id="xianbao-hs-tools") is not None
     assert soup.find("script", id="xianbao-nav2-tools") is not None
 
@@ -1271,3 +1271,25 @@ def test_prune_nav_keeps_nav2_list_but_prunes_items():
     assert nav2 is not None, "#nav2-list 不应被删除"
     assert [a.get("href") for a in nav2.select("a")] == ["/", "/category-zuankeba/"]
     assert soup.find("ul", id="other") is None
+
+
+def test_fix_new_theme_header_restores_theme_menu():
+    """回归：主题菜单被历史版本误删后，应从 mirror/theme-menu.html 恢复
+    （源站同款 16 套主题 + 字号 + 行数设置）。"""
+    soup = BeautifulSoup('<html><body><a id="xbThemeBtn"></a></body></html>', "html.parser")
+    render._fix_new_theme_header(soup)
+    menu = soup.find(id="xbThemeMenu")
+    assert menu is not None, "应恢复主题菜单"
+    assert len(menu.select(".xb-tm-opt")) >= 16
+    assert soup.find(id="xbThemeBtn")["onclick"].startswith("xbThemeMenuToggle")
+
+
+def test_fix_new_theme_header_strips_pwa():
+    """回归：镜像无 /pwa-sw.js，注册必 404 → 移除 pwa-reg.js 与 manifest 引用。"""
+    html = ('<html><head><link rel="manifest" href="/manifest.json"></head><body>'
+            '<script src="/zb_users/theme/xianbao_theme/script/pwa-reg.js?v=1"></script>'
+            '<a id="xbThemeBtn"></a></body></html>')
+    soup = BeautifulSoup(html, "html.parser")
+    render._fix_new_theme_header(soup)
+    assert "pwa-reg.js" not in str(soup)
+    assert not [l for l in soup.find_all("link") if "manifest" in (l.get("rel") or [])]

@@ -2516,17 +2516,33 @@ def _fix_new_theme_header(soup) -> None:
         )
         soup.body.append(sc)
 
-    # ---------- 3) 主题按钮：简化为直接切换 ----------
+    # ---------- 3) 主题按钮：恢复源站同款多主题菜单 ----------
+    # 源站菜单（16 套配色 + 字号 + 列表行数）由 dark-mode.min.js 处理，逻辑已在
+    # 镜像脚本中；此前误删菜单并改为单键切换，导致「和源站不一样」。
     btn = soup.find(id="xbThemeBtn")
     if btn is not None:
-        btn["onclick"] = "switchNightMode();return false;"
-        btn["title"] = "浅色 / 暗色切换"
-        btn["aria-label"] = "浅色 / 暗色切换"
-        btn.attrs.pop("aria-haspopup", None)
-        btn.attrs.pop("aria-expanded", None)
-    menu = soup.find(id="xbThemeMenu")
-    if menu is not None:
-        menu.decompose()
+        btn["onclick"] = "xbThemeMenuToggle(event);return false;"
+        btn["title"] = "选择主题"
+        btn["aria-label"] = "选择主题"
+        btn["aria-haspopup"] = "true"
+        if soup.find(id="xbThemeMenu") is None:
+            try:
+                tpl = (Path(__file__).resolve().parent / "theme-menu.html").read_text(
+                    encoding="utf-8")
+                tpl_soup = BeautifulSoup(tpl, "html.parser")
+                menu = tpl_soup.find(id="xbThemeMenu")
+                if menu is not None:
+                    btn.insert_after(menu)
+            except OSError:
+                pass
+
+    # ---------- 4) PWA：镜像没有 /pwa-sw.js，注册必然 404 ----------
+    # 同时移除 manifest（无 SW 不可安装，且图标集不全，浏览器取图标会 404）。
+    for s in soup.find_all("script", src=re.compile(r"pwa-reg\.js")):
+        s.decompose()
+    for l in soup.find_all("link"):
+        if "manifest" in (l.get("rel") or []):
+            l.decompose()
 
 
 def _prune_new_theme_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
