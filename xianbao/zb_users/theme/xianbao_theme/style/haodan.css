@@ -1,5 +1,6 @@
+/* 好单页样式:橙红价格色(#f94f08/#e53e34 等)为电商语义色,按 zinc 纪律保留在促销语境,不作中性化收编 */
  body {
-     background-color: #f2f2f4;
+     background-color: var(--bg);
  }
  .tip-off {
      min-height: 700px;
@@ -16,7 +17,7 @@
      height: 50px;
      font-size: 15px;
      /*width: 1280px;*/
-     background: #fff;
+     background: var(--surface);
      border-radius: 10px;
     margin-top: -30px;
     padding: 0px 10px 0px 20px;
@@ -26,18 +27,19 @@
 .tip-daohang{
     margin-top: 40px;
 }
- 
+
  .tip-nav span {
      padding: 6.5px 18px;
      border-radius: 16px;
      cursor: pointer;
  }
  .tip-nav span:hover {
-     color: #f7365f;
+     color: var(--text);
  }
  .tip-nav span.active {
-     background: linear-gradient(90deg, #ff6e67, #f7365f);
-     color: #fff;
+     background: var(--primary);
+     color: var(--on-primary);
+     font-weight: 500;
  }
  .tipoff-box {
      margin-top: 10px;
@@ -324,19 +326,20 @@
     display: inline-block;
     font-size: 13px;
     line-height: 22px;
-    color: #9fa0aa;
+    color: var(--text-2);
     padding: 0 12px;
     border-radius: 11px;
-    background-color: #f6f7f8;
+    background-color: var(--surface-2);
     margin-left: 6px;
     margin-right: 6px;
     margin-top: 6px;
     cursor: pointer;
 }
-.sort-row span:hover {color: #ff8100;}
+.sort-row span:hover {color: var(--text);}
 .sort-row span.active{
-    color: #ff8100;
-    background-color: #fff4ed;
+    color: var(--on-primary);
+    background-color: var(--primary);
+    font-weight: 500;
 }
 
 @media (min-width: 1250px) {
@@ -433,3 +436,43 @@
          white-space: nowrap;
      }
  }
+
+/*======== 频道页导航 · 方案 D 单行重构（2026-10-05，仅测试站）========*/
+/* 作用域 .xb-navd：好单/微博/值得买 diy-weibo 卡。裸 .tip-nav/.sort-row 旧规则保留给好单特惠购页(tip-off) */
+.tip-daohang{margin-top:10px}
+/* 上间隙=navstrip 的 margin-bottom 16（塌陷取大），下间隙对齐 16 保持上下对称（原 .mb 10px 偏小） */
+.xb-navd{margin-bottom:16px}
+.xb-navd .d-bar{display:flex;align-items:stretch}
+.xb-navd .d-tabs{flex:1;min-width:0;border-bottom:1px solid var(--border);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none}
+.xb-navd .d-tabs::-webkit-scrollbar{display:none}
+.xb-navd .d-tabs.can-r{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 26px),rgba(0,0,0,.25) 98%,transparent);mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 26px),rgba(0,0,0,.25) 98%,transparent)}
+.xb-navd .tip-nav{display:flex;align-items:stretch;height:54px;width:auto;margin:0;padding:0 4px 0 16px;background:transparent;border-radius:0;font-size:14px;gap:20px;overflow:visible}
+.xb-navd .tip-nav span{flex:none;display:flex;align-items:center;position:relative;margin:0;padding:0 1px;border-radius:0;color:var(--text-2);cursor:pointer;white-space:nowrap}
+.xb-navd .tip-nav span:hover{color:var(--text)}
+.xb-navd .tip-nav span.active{background:transparent;color:var(--text);font-weight:600}
+.xb-navd .tip-nav span.active::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:1px;background:var(--primary)}
+.xb-navd .d-side{display:flex;align-items:center;padding:0 14px 0 10px;border-bottom:1px solid var(--border)}
+.xb-navd .d-drop{position:relative}
+.xb-navd .d-btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:var(--radius-pill);border:1px solid var(--border-strong);background:var(--surface);color:var(--text-2);font-size:13px;line-height:1;cursor:pointer;white-space:nowrap}
+.xb-navd .d-btn:hover{color:var(--text);border-color:var(--text-3)}
+.xb-navd .d-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);display:none;flex:none}
+.xb-navd .d-btn.filtered{color:var(--text);border-color:var(--primary);font-weight:500}
+.xb-navd .d-btn.filtered .d-dot{display:block}
+.xb-navd .d-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;transition:transform .2s}
+.xb-navd .d-drop.open .d-btn svg{transform:rotate(180deg)}
+.xb-navd .d-panel{display:none;position:absolute;top:calc(100% + 10px);right:0;width:400px;max-width:calc(100vw - 32px);width:min(400px,calc(100vw - 32px));padding:14px 16px 16px;border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow-ring-lg);z-index:40;text-align:left}
+.xb-navd .d-drop.open .d-panel{display:block;animation:xbDropIn .18s cubic-bezier(.2,.6,.3,1)}
+@keyframes xbDropIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.xb-navd .d-p-hd{font-size:12px;color:var(--text-2);margin:0 0 10px}
+/* 面板内来源 chips：包裹布局（覆盖旧 sort-row 横滑规则） */
+.xb-navd .sort-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;width:auto;padding:0;overflow:visible}
+.xb-navd .sort-row span{display:inline-flex;align-items:center;font-size:13px;line-height:22px;color:var(--text-2);padding:4px 13px;border-radius:var(--radius-pill);border:1px solid var(--border-strong);background:transparent;margin:0;cursor:pointer;white-space:nowrap}
+.xb-navd .sort-row span:hover{color:var(--text);border-color:var(--text-3)}
+.xb-navd .sort-row span.active{color:var(--on-primary);border-color:var(--primary);background:var(--primary);font-weight:500}
+@media screen and (max-width:1100px){
+.xb-navd .tip-nav{height:50px;gap:16px;padding:0 2px 0 12px}
+.xb-navd .d-side{padding:0 10px 0 6px}
+.xb-navd .d-btn{height:32px;padding:0 10px;font-size:12.5px}
+.xb-navd .d-btn .d-cur{max-width:9em;overflow:hidden;text-overflow:ellipsis}
+.xb-navd .d-btn .d-pre{display:none}
+}

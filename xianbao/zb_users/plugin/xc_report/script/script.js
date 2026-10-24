@@ -192,7 +192,7 @@ function(e, t) {
 		t([r.shade ? '<div class="' + l.SHADE + '" id="' + l.SHADE + a + '" times="' + a + '" style="' + ("z-index:" + (s - 1) + "; ") + '"></div>': "", '<div class="' + l[0] + (" xc_report-" + o.type[r.type]) + (0 != r.type && 2 != r.type || r.shade ? "": " xc_report-border") + " " + (r.skin || "") + '" id="' + l[0] + a + '" type="' + o.type[r.type] + '" times="' + a + '" showtime="' + r.time + '" conType="' + (e ? "object": "string") + '" style="z-index: ' + s + "; width:" + r.area[0] + ";height:" + r.area[1] + ";position:" + (r.fixed ? "fixed;": "absolute;") + '">' + (e && 2 != r.type ? "": u) + '<div id="' + (r.id || "") + '" class="xc_report-content' + (0 == r.type && r.icon !== -1 ? " xc_report-padding": "") + (3 == r.type ? " xc_report-loading" + r.icon: "") + '">' + (0 == r.type && r.icon !== -1 ? '<i class="xc_report-ico xc_report-ico' + r.icon + '"></i>': "") + (1 == r.type && e ? "": r.content || "") + '</div><span class="xc_report-setwin">' +
 		function() {
 			var e = c ? '<a class="xc_report-min" href="javascript:;"><cite></cite></a><a class="xc_report-ico xc_report-max" href="javascript:;"></a>': "";
-			return r.closeBtn && (e += '<a class="xc_report-ico ' + l[7] + " " + l[7] + (r.title ? r.closeBtn: 4 == r.type ? "1": "2") + '" href="javascript:;"></a>'),
+			return r.closeBtn && (e += '<span class="xc_report-ico ' + l[7] + " " + l[7] + (r.title ? r.closeBtn: 4 == r.type ? "1": "2") + '" ></span>'),
 			e
 		} () + "</span>" + (r.btn ?
 		function() {
@@ -944,13 +944,13 @@ window.xc_report_heights = function()
 
 
 
-window.xc_report_reportbut = function(id)
+window.xc_report_reportbut = function(id,type="article")
 {
 	var index = xc_report.msg('Loading.....', { icon: 16 ,shade: 0.01 ,time:false});
     $.ajax({
         type:'POST',
-        url:ajaxurl+'xc_report_gethtml',
-        data:{'id':id},
+        url:bloghost+'zb_users/plugin/xc_report/ajax.php',
+        data:{'id':id,'type':type,'url':window.location.href,'act':'xc_report_gethtml'},
         dataType:'json',
         success:function(res){
             xc_report.close(index);
@@ -966,7 +966,7 @@ window.xc_report_reportbut = function(id)
 						var index = xc_report.msg('Loading.....', { icon: 16 ,shade: 0.01 ,time:false});
 						$.ajax({
 							type:'POST',
-							url:ajaxurl+'xc_report_pstdata',
+							url:bloghost+'zb_users/plugin/xc_report/ajax.php',
 							data:$('#xc_report_form').serialize(),
 							dataType:'json',
 							success:function(res){
@@ -974,8 +974,8 @@ window.xc_report_reportbut = function(id)
 								if(res.code == 0){
 									$.ajax({
 										type:'POST',
-										url:ajaxurl+'xc_report_pstemail',
-										data:{'id':id},
+										url:bloghost+'zb_users/plugin/xc_report/ajax.php',
+										data:{'id':id,'act':'xc_report_pstemail'},
 										dataType:'json',
 										success:function(res){},
 										error:function(){},

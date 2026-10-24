@@ -227,3 +227,24 @@ html.night body { background-color: #232931 !important; }
    Fancybox 短暂移除，绑定类的规则会失效一瞬间，反而引发抖动。 */
 html { overflow-y: scroll !important; }
 body { margin-right: 0 !important; }
+
+/* ==================== 2026-10 新主题布局适配 ==================== */
+/* 源站新主题用 flex 给主栏预留 424px 宽度放右侧栏；镜像站统一移除侧栏
+   （aside#sidebar，见 render.py）后，主栏如果不占满，右侧会出现大片空白。
+   搜索页（body.xianbao-list）与文章页（body 无该类）都要覆盖。 */
+body.xianbao-list .main-col,
+.main-col,
+#mainbox {
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+}
+
+/* 文章页自建导航的图标（2026-10 起 iconfont 字体不再随主题提供，改用内联 SVG） */
+.xianbao-article-nav .dark-mode .xb-ic,
+.xianbao-article-nav .search-button .xb-ic {
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    vertical-align: middle;
+    flex: none;
+}

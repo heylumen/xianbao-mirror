@@ -1151,3 +1151,62 @@ def test_resolve_dir_file_conflict_renames_blocking_file(tmp_path):
     assert len(renamed) == 1, f"应有一个改名避让文件，实际: {renamed}"
     assert renamed[0].read_text() == "i am a stray file, not a dir"
 
+
+
+def test_extract_article_meta_new_theme_comment_count(tmp_path):
+    """回归（2026-10 源站改版）：评论数节点从 .head-info span.comment
+    迁到 #comment .comment-list .title .xb-cmtn（如「5 条」）。
+    只认旧选择器会让改版后所有新文章评论数恒为 0（列表徽章/搜索索引同时失真）。"""
+    cat = tmp_path / "zuankeba"
+    cat.mkdir(parents=True)
+    p = cat / "7000001.html"
+    p.write_text(
+        '<html><head><title>测试-线报酷</title></head><body>'
+        '<div class="head-info"><span class="author">a</span>'
+        '<time datetime="2026-10-24">2026年10月24日 02:00</time></div>'
+        '<div class="content">正文</div>'
+        '<div class="post-comment" id="comment"><div class="comment-list">'
+        '<div class="title">评论列表<span class="xb-cmtn">5 条</span></div>'
+        '<div class="ul">评论内容</div></div></div>'
+        '</body></html>', encoding="utf-8")
+    meta = render._extract_article_meta(p)
+    assert meta["comments"] == 5, f"新版评论数应解析为 5，实际 {meta['comments']}"
+    assert meta["time"].startswith("2026年10月24日")
+
+
+def test_extract_article_meta_legacy_comment_count(tmp_path):
+    """回归：存量旧主题文章仍用 .head-info span.comment，必须继续兼容。"""
+    cat = tmp_path / "zuankeba"
+    cat.mkdir(parents=True)
+    p = cat / "6000001.html"
+    p.write_text(
+        '<html><head><title>旧文-线报酷</title></head><body>'
+        '<div class="head-info"><span class="comment"><i class="iconfont"></i> 12</span>'
+        '<time>2026年06月01日 10:00</time></div>'
+        '<div class="content">旧正文</div></body></html>', encoding="utf-8")
+    meta = render._extract_article_meta(p)
+    assert meta["comments"] == 12
+
+
+def test_strip_common_js_injects_compat_shim():
+    """回归（2026-10 源站改版）：新版主题脚本调用 common.js 的全局函数
+    （isWebapp/huanyuanurl），而 common.js 被整体剥离 → 必须补最小 shim。"""
+    html = ('<html><head><script src="/zb_users/theme/x/xianbao_theme/script/common.js?v=1">'
+            '</script></head><body>hi</body></html>')
+    out = render.strip_common_js(html)
+    assert "common.js" not in out, "common.js 引用应被删除"
+    assert "xianbao-common-shim" in out, "应注入兼容 shim"
+    assert "isWebapp" in out and "huanyuanurl" in out
+    # 幂等：重复调用不重复注入
+    assert render.strip_common_js(out).count("xianbao-common-shim") == 1
+
+
+def test_ensure_dynamic_stubs_creates_vote_endpoint(tmp_path):
+    """回归（2026-10 源站改版）：新版主题每页请求 /plus/json/status_vote.php，
+    镜像需提供无副作用静态桩（code:0 让前端保持静态数据），避免全站 404。"""
+    render.ensure_dynamic_stubs(tmp_path)
+    stub = tmp_path / "plus" / "json" / "status_vote.php"
+    assert stub.exists()
+    import json as _json
+    data = _json.loads(stub.read_text(encoding="utf-8"))
+    assert data.get("code") == 0

@@ -1,11 +1,23 @@
 @charset "utf-8";
+/*==============================================================
+   线报酷前台主题 · shadcn Zinc 设计语言（2026-10-04 主题重构）
+   规则：换值不换名 —— 组件只引用令牌；亮色=zinc，暗色=zinc-dark(html.night)。
+   纪律：界面只留黑与灰；语义色只进徽章/危险提示；链接悬停只用 zinc 灰阶。
+   令牌单一来源：/design/tokens.css（本文件不再内置 :root/html.night 变量块，
+   2026-10-04 起由 header.php 在本文件之前挂载）。
+   ===============================================================*/
+/* 主题切换冻结：换肤瞬间禁用一切过渡 */
+html.theme-switching,html.theme-switching *,html.theme-switching *::before,html.theme-switching *::after{transition:none!important}
+/* 列表密度·紧凑档（只换行几何令牌，亮暗共用）；--row-h 同步跟着改
+   （= 行高占位实测值：紧凑档 6px 内边距×2 + 21px 行盒 + 1px 边线 = 34px） */
+html.density-compact{--row-pad-y:6px;--row-gap:8px;--row-h:34px}
 /*==========reset=========*/
 html{font-size:100%;overflow-y:scroll;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;text-rendering:optimizelegibility}
-*,:after,:before{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
+*,:after,:before{box-sizing:border-box}
 article,aside,blockquote,body,button,code,dd,details,dl,dt,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hr,html,input,legend,li,menu,nav,ol,p,pre,section,td,textarea,th,ul{margin:0;padding:0}
 article,aside,details,figcaption,figure,footer,header,menu,nav,section{display:block}
 audio,canvas,video{display:inline-block}
-body,button,input,select,textarea{font:400 14px/1.8 PingFang SC,Lantinghei SC,Microsoft Yahei,Hiragino Sans GB,Microsoft Sans Serif,WenQuanYi Micro Hei,sans}
+body,button,input,select,textarea{font:400 14px/1.7 ui-sans-serif,system-ui,-apple-system,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
 button::-moz-focus-inner,input::-moz-focus-inner{padding:0;border:0}
 table{border-collapse:collapse;border-spacing:0}
 fieldset,img{border:0}
@@ -15,17 +27,30 @@ a{text-decoration:none}
 a:hover{text-decoration:none}
 small{font-size:.9em}
 input,textarea,button{outline:0}
-h1,h2,h3,h4,h5,h6{font-family:PingFang SC,Verdana,Helvetica Neue,Microsoft Yahei,Hiragino Sans GB,Microsoft Sans Serif,WenQuanYi Micro Hei,sans-serif;font-size:100%;font-weight:600;color:#000;line-height:1.35}
+h1,h2,h3,h4,h5,h6{font-family:inherit;font-size:100%;font-weight:600;color:var(--text);line-height:1.4}
 code,pre,pre tt{font-family:Courier,'Courier New',monospace}
-pre{background:#f8f8f8;border:1px solid #ddd;padding:1em 1.5em;display:block;-webkit-overflow-scrolling:touch}
-hr{border:none;border-bottom:1px solid #cfcfcf;margin-bottom:.8em;}
+pre{background:var(--surface-3);box-shadow:var(--shadow-ring);border-radius:var(--radius-control);padding:1em 1.5em;display:block;-webkit-overflow-scrolling:touch}
+hr{border:none;border-bottom:1px solid var(--border);margin-bottom:.8em}
 img{max-width:100%}
-/*==========global color=========*/
-html{color:#333;background:#f1f1f1}
-a{color:#555;}
-a:hover{color:#0084ff}
-::selection{background:#0084ff;color:#fff}
-::-moz-selection{background:#0084ff;color:#fff}
+/*==========global=========*/
+html{color:var(--text);background:var(--bg)}
+html.night{color:var(--text);background:var(--bg)}
+a{color:var(--link)}
+a:hover{color:var(--link-hover);text-decoration:underline;text-underline-offset:3px}
+::selection{background:var(--primary);color:var(--on-primary)}
+::-moz-selection{background:var(--primary);color:var(--on-primary)}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+/* 内联线性图标（面包屑小房子等） */
+.ic{width:16px;height:16px;flex:none;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round}
+/* 面包屑等链接内图标与文字间距 */
+.mianbaoxie a .ic{margin-right:5px}
+/*==========空态提示（无数据/被用户规则拦截）==========*/
+.xb-empty{display:flex;flex-direction:column;align-items:center;gap:7px;padding:30px 16px;text-align:center;color:var(--text-3)}
+.xb-empty .ic{width:34px;height:34px;color:var(--border-strong);margin-bottom:2px}
+.xb-empty b{font-size:13px;font-weight:500;color:var(--text-2);line-height:1.5}
+.xb-empty .sub{font-size:12px;color:var(--text-3);line-height:1.6;max-width:30em}
+.xb-empty .sub a{color:var(--text-2);text-decoration:underline;text-underline-offset:2px}
+.xb-empty .sub a:hover{color:var(--text)}
 /*==========public class=========*/
 .clearfix:after{content:".";display:block;height:0;clear:both;visibility:hidden}
 .clear{clear:both}
@@ -37,466 +62,1520 @@ a:hover{color:#0084ff}
 .mb{margin-bottom:20px}
 .mt{margin-top:20px}
 .ml{margin-left:20px}
-.mr{margin-right:20px}
-.br{-moz-border-radius:2px;-webkit-border-radius:2px;border-radius:2px}
-.sb{box-shadow:0 1px 2px rgba(26,26,26,.08);background:#fff}
-.nav-sb{box-shadow: 0 3px 14px 0 rgba(199,209,215,.4);background:#fff}
-.container{max-width:1250px;margin:0 auto;}
+.br{border-radius:var(--radius-control)}
+.sb{background:var(--surface);box-shadow:var(--shadow-ring-sm);border-radius:var(--radius-card)}
+.nav-sb{background:var(--surface);box-shadow:var(--shadow-ring-lg)}
+.container{max-width:1280px;margin:0 auto}
 .fixed{position:fixed}
 .absolute{position:absolute}
-.noselect,.pinglunshunxu{-webkit-touch-callout: none;-webkit-user-select: none;-khtml-user-select: none;-moz-user-select: none;-ms-user-select: none;user-select: none; }
-.transition{-webkit-transition:all ease .4s;-moz-transition:all ease .4s;-ms-transition:all ease .4s;-o-transition:all ease .4s;transition:all ease .4s}
-/*单行文本溢出省略*/
+.noselect,.pinglunshunxu{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.transition{transition:all ease .4s}
 .ellipsis{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/*两行文本溢出省略*/
-.multi-ellipsis{position:relative;line-height:1.4em!important;height:2.8em!important;overflow:hidden}
-.multi-ellipsis:after{content:"";font-weight:700;position:absolute;bottom:0;right:0;padding-left:20px;background:-webkit-linear-gradient(left,transparent,#fff 62%);background:-o-linear-gradient(right,transparent,#fff 62%);background:-moz-linear-gradient(right,transparent,#fff 62%);background:linear-gradient(to right,transparent,#fff 62%)}
-/*hover时提升按钮颜色明度*/
-.brightness:hover{-webkit-filter:brightness(1.2);filter:brightness(1.2);-webkit-transition:all ease .4s;-moz-transition:all ease .4s;-ms-transition:all ease .4s;-o-transition:all ease .4s;transition:all ease .4s}
-/*修改不同视口下公共类属性的值*/
-@media screen and (max-width:1100px){
-.mb{margin-bottom:10px}
-.mt{margin-top:10px}
-}
-/*不同视口下对html的显隐*/
+.brightness:hover{filter:brightness(1.08);transition:all ease .4s}
 .show{display:block !important}
-@media screen and (max-width:1100px){.hidden-sm-md-lg{display:none!important}}
+/*---------- 通用徽章 ----------*/
+.badge{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:var(--radius-badge);font-size:12px;line-height:1;background:var(--surface-2);color:var(--text-2);white-space:nowrap}
+.article-list .title .badge{padding:3px 8px;line-height:1;background:var(--surface-2);border-radius:var(--radius-badge)}
+.article-list .title .red{background:var(--danger-bg);color:var(--danger-text);font-weight:500}
+.article-list .badge-cat{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:var(--radius-badge);font-size:11px;line-height:1;background:var(--surface-2);color:var(--text-2);white-space:nowrap;flex:none}
+/*不同视口下对html的显隐*/
 @media screen and (max-width:768px){.hidden-sm{display:none!important}}
-@media screen and (min-width:769px) and (max-width:992px){.hidden-md{display:none!important}.container{max-width: 650px;}}
-@media screen and (min-width:993px) and (max-width:1100px){.hidden-lg{display:none!important;}.container{max-width: 650px;}}
+@media screen and (min-width:769px) and (max-width:992px){.hidden-md{display:none!important}.container{max-width:650px}}
+@media screen and (min-width:993px) and (max-width:1100px){.hidden-lg{display:none!important}.container{max-width:650px}}
 @media screen and (min-width:1101px){.hidden-xl{display:none!important}}
 @media screen and (min-width:993px){.hidden-m{display:none!important}}
-@media screen and (min-width: 1099px) and (max-width: 1248px){.pc-nav li a {padding: 0 3.5px !important;}}
+@media screen and (min-width:1101px) and (max-width:1248px){.pc-nav li a{padding:0 6px}}
 /*你懂的*/
-.fuck-ie{position:fixed;z-index:1;left:0;right:0;top:0;bottom:0;background:#fff;z-index:99}
-.fuck-ie .tips{position:absolute;width:700px;height:100px;color:#c57602;border: 1px solid #fe9219;text-align:center;line-height:100px;left:50%;top:50%;margin-left:-350px;font-size:16px;margin-top:-50px;background:#fffedc;z-index:999}
-/*animate.css*/
-@-webkit-keyframes fadeInUpMenu{from{opacity:0;visibility:hidden;-webkit-transform:translate3d(0,20px,0);transform:translate3d(0,20px,0)}
-to{opacity:1;visibility:visible;-webkit-transform:none;transform:none}
-}
-@keyframes fadeInUpMenu{from{opacity:0;visibility:hidden;-webkit-transform:translate3d(0,20px,0);transform:translate3d(0,20px,0)}
-to{visibility:visible;opacity:1;-webkit-transform:none;transform:none}
-}
-.fadeInUpMenu{-webkit-animation-name:fadeInUpMenu;animation-name:fadeInUpMenu}
-.animated-fast{-webkit-animation-duration:.5s;animation-duration:.5s;-webkit-animation-fill-mode:both;animation-fill-mode:both}
+/*下拉菜单入场动画*/
+@keyframes fadeInUpMenu{from{opacity:0;visibility:hidden;transform:translate3d(0,20px,0)}to{opacity:1;visibility:visible;transform:none}}
+.fadeInUpMenu{animation-name:fadeInUpMenu}
+.animated-fast{animation-duration:.5s;animation-fill-mode:both}
 /*========header========*/
-.header{height:60px;font-size:100%;width:100%;position:relative;z-index: 99;margin-bottom: 10px;}
-.h-wrap{height:60px;position:relative}
-.logo-area{padding-top:6px;padding-right:10px;max-width: 180px;}
-.logo-area .img{width:90%}
-.pc-nav{max-width:80%;height:60px;}
-.pc-nav li{float:left}
-.pc-nav li a{height:60px;line-height:60px;padding:0 20px;font-size:16px;display:block}
-.pc-nav li a:after{content:"\e69b";font-family:iconfont!important;font-size:16px;font-style:normal;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-.pc-nav .sub-nav a:after{content:"\e642";font-family:iconfont!important;font-size:16px;font-style:normal;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-.pc-nav .sub-nav:before{content:"";height:15px;width:15px;background-color:#fff;-webkit-transform:rotate(-45deg);-moz-transform:rotate(-45deg);-ms-transform:rotate(-45deg);-o-transform:rotate(-45deg);transform:rotate(-45deg);border-left:0;border-bottom:0;position:absolute;top:-8px;left:44px;border-top:1px solid #eee;border-right:1px solid #eee}
-.pc-nav .sub-nav .sub-nav:before{content:"";height:15px;width:15px;background-color:#fff;-webkit-transform:rotate(-45deg);-moz-transform:rotate(-45deg);-ms-transform:rotate(-45deg);-o-transform:rotate(-45deg);transform:rotate(-45deg);border-left:0;border-bottom:0;position:absolute;top:32px;left:-8px;border-top:1px solid #eee;border-left:1px solid #eee;border-right:none}
-.pc-nav .sub-nav a:hover{color:#0084ff}
-.pc-nav li a:only-child::after{content:""}
-.pc-nav .active{color:#0084ff}
-.dropdown-nav{position:absolute;top:44px;left:0;z-index:1000;display:none;float:left;margin:0;padding:0;background-color:#323841;list-style:none}
-.dropdown-nav .active a,.dropdown-nav .active a:hover,.dropdown-nav li a:hover{background-color:#0084ff;color:#fff}
-.pc-nav{font-size:14px;}
-.pc-nav li{position:relative;list-style:none;display:block;float:left}
-.pc-nav li a{text-transform:none;line-height:60px;height:60px;padding:0 8.5px;display:block}
-.pc-nav li a i.fa{padding-right:3px;position:relative;top:0}
-.pc-nav li .sub-nav{text-align:left;position:absolute;top:60px;left:-17px;visibility:hidden;opacity:0;background:#fff;border: 1px solid #eaeeef;}
-.pc-nav li .sub-nav li{float:none;height:40px;min-height:40px}
-.pc-nav li .sub-nav li a{line-height:40px;height:40px;padding:0 35px;color:#1a1a1a;white-space:nowrap;min-width:110px}
-.pc-nav li .sub-nav li a i.iconfont{padding-right:3px}
-.pc-nav li .sub-nav li a:hover{background:0 0}
-.pc-nav .active a,.pc-nav .active a:focus{color:#0084ff}
-.pc-nav li>ul>li a.current-menu-item{background:0 0}
-.pc-nav li.current-menu-ancestor a,.pc-nav li.current-menu-item a,.pc-nav li.current-post-ancestor a,.pc-nav li:hover a{position:relative}
-.pc-nav li .icons{margin-right:5px;font-size:17px;top:1px;position:relative}
-.pc-nav .nav-ul>li:hover>.sub-nav{display:block;padding:20px 0;opacity:1}
-.nav-ul>li,.nav-ul>li>li{float:left}
-.pc-nav .nav-ul li ul li:hover>.sub-nav{display:block;padding:20px 0}
-.pc-nav li ul li .sub-nav{top:-20px;left:100%}
-.pc-nav li ul.sub-nav li>a.menu-th3:after{content:".";display:inline-block;width:0;height:0;margin-left:2px;vertical-align:middle;border-left:4px solid;border-bottom:4px solid transparent;border-top:4px solid transparent;position:relative;left:5px;overflow:hidden}
-.pc-nav .has-child>a:after{content:".";display:inline-block;width:0;height:0;margin-left:2px;vertical-align:middle;border-top:4px solid;border-right:4px solid transparent;border-left:4px solid transparent;position:relative;left:5px;overflow:hidden}
-.m-nav-btn,.nav-sousuo,span.toggle-btn{display:none}
-#search-area{position:absolute;bottom:-84px;right:0;z-index:2;width:28%;background:rgba(255,255,255,1)}
-.header .login{width:50px;height:60px;line-height:60px;text-align: center;margin-right:-15px;}
-.header .login a{display:block;color:#333;}
-.header .login i.iconfont{font-size:24px;}
-.search-button{cursor:pointer;width:55px;height:60px;line-height:60px;display:block;text-align:center}
-.search-button i.iconfont{font-size:24px}
-.searchform{width:100%}
-.s-input{width:78%;border:none;background:0 0;font-weight:400;padding:1.2em;color:#333}
-.s-button{width:20%;border:none;cursor:pointer;height:60px;line-height:60px;background-color:#0084ff;color:#fff;border-top-left-radius:0!important;border-bottom-left-radius:0!important}
+/* 顶栏实底 + 无 blur：sticky+backdrop-filter 滚动重采样不及时会在 logo 周围留下"时有时无"的模糊残影（Chromium 合成器伪影，移动端 20261005 已先关），全端统一实底 */
+/* 20261011：顶栏取消吸顶（不再随页面滚动停留在屏幕顶部），回归普通文档流 */
+.header{width:100%;position:relative;z-index:99;margin-bottom:16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.h-wrap{height:60px;position:relative;display:flex;align-items:center}
+.logo-area{padding:0 16px 0 0;max-width:220px;display:flex;align-items:center}
+.logo-text{display:inline-flex;align-items:center;gap:8px}
+.logo-name{font-size:17px;font-weight:700;color:var(--text);white-space:nowrap}
+/* 图片 logo（newlogo.png，蓝色星标+字标，亮暗背景通用，夜间不做反色）。
+   PNG 自带透明边（有效墨水 307x79 / 366x120，高度占比 66%），44px 视觉约 29px */
+.logo-area .logo-img{height:44px;width:auto;display:block}
+.logo-area .logo-name{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+@media screen and (max-width:1100px){.logo-area .logo-img{height:30px}}
+/*-- PC 主导航 --*/
+.pc-nav{height:60px;font-size:14px;display:flex;align-items:center;min-width:0}
+.pc-nav .nav-ul{display:flex;align-items:center}
+.pc-nav li{position:relative;list-style:none;display:flex;align-items:center}
+.pc-nav li>a{display:inline-flex;align-items:center;gap:3px;height:34px;padding:0 11px;border-radius:var(--radius-control);font-size:14px;color:var(--text-2);white-space:nowrap;transition:background .15s,color .15s}
+.pc-nav li>a:hover{background:var(--surface-2);color:var(--text);text-decoration:none}
+.pc-nav .active>a,.pc-nav li.current-menu-item>a{background:var(--surface-2);color:var(--text);font-weight:500}
+.pc-nav li .toggle-btn{display:inline-flex;align-items:center;justify-content:center;width:14px;height:34px;color:var(--text-3);cursor:pointer;transition:transform .15s}
+.pc-nav li .toggle-btn .xb-ic{font-size:12px}
+.pc-nav .nav-ul>li:hover .toggle-btn .xb-ic{transform:rotate(180deg)}
+.pc-nav li a:after{content:""}
+/*-- 下拉面板（白卡 + 环阴影 + 透明桥 + 关闭延迟） --*/
+.pc-nav .sub-nav{position:absolute;top:calc(100% + 6px);left:0;z-index:1000;min-width:160px;padding:6px;background:var(--surface);border-radius:var(--radius-card);box-shadow:var(--shadow-ring-lg);visibility:hidden;opacity:0;transform:translateY(4px);transition:opacity .15s ease,transform .15s ease,visibility 0s linear .22s;animation:none}
+.pc-nav .sub-nav::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px}
+.pc-nav li:hover>.sub-nav{visibility:visible;opacity:1;transform:none;transition-delay:0s}
+.pc-nav .sub-nav .sub-nav{top:-6px;left:calc(100% + 8px)}
+/* 子菜单内隐藏折叠箭头（避免悬停时出现悬浮 ^ 杂讯）；有三级菜单的父项（has-sub）保留并右对齐 */
+.pc-nav .sub-nav .toggle-btn{display:none!important}
+.pc-nav .sub-nav li.has-sub>a{padding-right:8px}
+.pc-nav .sub-nav li.has-sub .toggle-btn{display:inline-flex!important;margin-left:auto;color:var(--text-3)}
+/* 三级父项箭头恒指右侧（icon-down 基础朝下，-90° 转向右，指示子菜单向右展开）；
+   (0,4,2) 高于顶层 hover 翻转规则 (0,3,2)，悬停父级菜单时不会被 180° 翻成朝上 */
+.pc-nav .sub-nav li.has-sub .toggle-btn .xb-ic{transform:rotate(-90deg)}
+.pc-nav .sub-nav li.has-sub:hover .toggle-btn{color:var(--text)}
+.pc-nav .sub-nav li a{gap:6px}
+.pc-nav .sub-nav li{display:block;float:none;height:auto;min-height:0}
+.pc-nav .sub-nav li a{display:flex;align-items:center;height:32px;padding:0 10px;border-radius:7px;font-size:13px;color:var(--text-2);white-space:nowrap;min-width:110px}
+.pc-nav .sub-nav li a:hover{background:var(--surface-2);color:var(--text);text-decoration:none}
+.pc-nav .sub-nav .active a{background:var(--surface-2);color:var(--text)}
+.pc-nav .sub-nav li a .xb-ic{padding-right:3px}
+/*-- 右侧动作区 --*/
+/*========搜索面板：热词 + 高级筛选入口========*/
+#search-area{position:absolute;top:calc(100% + 8px);right:0;z-index:90;width:400px;background:var(--surface);border-radius:var(--radius-card);box-shadow:var(--shadow-ring-lg);padding:16px}
+.search-hot{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.search-hot-title{font-size:12px;color:var(--text-3);margin-bottom:8px}
+/* 历史搜索（20261018）：标题行 flex 让「清空」贴右；禁 UA 外观（铁律 6） */
+.search-hot-title{display:flex;align-items:center;justify-content:space-between}
+.search-hot-clear{border:0;-webkit-appearance:none;appearance:none;background:transparent;padding:0;font-size:12px;color:var(--text-3);cursor:pointer;line-height:1.4}
+.search-hot-clear:hover{color:var(--text)}
+.search-hot-list{display:flex;flex-wrap:wrap;gap:8px}
+.search-hot-chip{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:var(--radius-badge);background:var(--surface-2);color:var(--text-2);font-size:13px}
+.search-hot-chip:hover{color:var(--link-hover);text-decoration:none;background:var(--surface-2)}
+@media (max-width:768px){
+#search-area{position:fixed;left:8px;right:8px;top:58px;width:auto;z-index:99;padding:12px}
+}
+/* 搜索面板打开时锁背景滚动（20261023）：遮罩只挡点击不挡滚动，背景列表一滑就把顶栏关闭键带出屏幕；
+   类由 navigation.js 开合时挂/摘（≤1100px 才生效，桌面用行一搜索条不开此面板） */
+@media (max-width:1100px){
+html.xb-splock,html.xb-splock body{overflow:hidden}
+}
+/* mnav C2（20261005 桌面同步）：登录链接全端统一为 surface-2 灰胶囊（icon+文字，游客=登录/登录后=我的）。
+   flex-shrink:0 必须带：桌面 .h-wrap 行内 h-search basis 较大触发收缩相时 .login 会被压窄 3px，
+   胶囊内"登录/我的"两字即换行竖排（实测 82→79） */
+.header .login{width:auto;height:auto;line-height:normal;text-align:center;display:flex;align-items:center;flex-shrink:0;margin-right:2px}
+/* flex 容器下 float 失效：首个图标 margin-left:auto 把右侧动作区推到容器右缘 */
+.h-wrap>.login{margin-left:auto}
+.header .login a{display:inline-flex;align-items:center;gap:7px;width:auto;height:34px;padding:0 16px;border-radius:var(--radius-pill);background:var(--surface-2);color:var(--text);font-size:13.5px;font-weight:500;line-height:1;white-space:nowrap}
+.header .login a em{font-style:normal}
+.header .login .xb-ic{font-size:16px;line-height:1}
+.header .login a:hover{background:var(--surface-hover);color:var(--text)}
+/* 顶栏登录态：登录后图标变绿+右上角绿点（缓存页面由 meta.php 独立请求服务端纠偏，20261005） */
+.header .login a.xb-login--in{color:var(--text)}
+.header .login a.xb-login--in .xb-uic{position:relative;display:inline-flex;line-height:1}
+.header .login a.xb-login--in .xb-uic .xb-ic{color:var(--success)}
+.header .login a.xb-login--in .xb-uic::after{content:'';position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 2px var(--surface-2)}
+/* mnav C2（20261005）：夜间键与登录统一为 surface-2 灰胶囊；20261006 多主题化后按钮=「主题」菜单触发键，
+   月亮图标恒显（不再日/夜换装，dk-sun 元素已从 markup 移除，下两条 dk-sun 规则为惰性），文字为静态「主题」 */
+.header .dark-mode{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 15px;border-radius:var(--radius-pill);background:var(--surface-2);color:var(--text);font-size:13.5px;font-weight:500;line-height:1;white-space:nowrap;cursor:pointer;flex:none}
+.header .dark-mode .xb-ic{font-size:16px;line-height:1}
+.header .dark-mode svg.dk-sun{display:none;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+html.night .header .dark-mode svg.dk-sun{display:inline-block}
+/* 20261006：月亮恒显（多主题触发键不再日/夜换装，原 html.night 隐藏月亮规则已删） */
+.header .dark-mode:hover{background:var(--surface-hover);color:var(--text)}
+@media (max-width:350px){.header .dark-mode .dk-lt{display:none}.header .dark-mode{padding:0 13px}}
+.search-button{cursor:pointer;width:36px;height:36px;line-height:36px;display:block;text-align:center;color:var(--text-2)}
+.search-button .xb-ic{font-size:20px;line-height:36px}
+.search-button:hover{color:var(--text)}
+/* 夜间键 hover 已随胶囊化自带（同登录），从组内摘出，仅搜索键保留灰底 hover */
+.search-button:hover{background:var(--surface-2);border-radius:var(--radius-control)}
+/* 顶栏图标按钮排除全局 a:hover 下划线（L38）——按钮 hover 只变底色（20261005） */
+.header .login a:hover,.header a.dark-mode:hover,.header a.search-button:hover,.h-wrap .login a:hover,.h-wrap a.dark-mode:hover,.h-wrap a.search-button:hover{text-decoration:none}
+/* 顶栏右侧动作区：统一 32px 高度与间距 */
+.header .login{margin-right:6px}
+@media screen and (min-width:1101px){
+/* mnav C2：夜间键已是灰胶囊（基础区），桌面只补间距；搜索键保持 32px ghost（方案 D 下桌面隐藏） */
+.header .dark-mode{margin-left:6px}
+.header .search-button{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;margin-left:6px;border-radius:var(--radius-control)}
+.header .search-button .xb-ic{font-size:18px;line-height:1}
+}
 .mask-hidden{position:fixed;z-index:3;left:0;right:0;top:0;bottom:0;opacity:0;background:#000;visibility:hidden}
 .mask-show{visibility:visible;opacity:.4}
-/*==手机端导航*/
-.nav2-ul {list-style-type:none;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-wrap:nowrap;-ms-flex-wrap:nowrap;flex-wrap:nowrap;-webkit-box-pack:justify;-webkit-justify-content:space-between;-ms-flex-pack:justify;justify-content:space-between;padding:0;overflow:auto;margin-bottom:10px;margin-top: -10px;}
-.nav2-ul::-webkit-scrollbar {display:none;}
-.nav2-ul li {-webkit-box-flex:1;-webkit-flex:1 0 auto;-ms-flex:1 0 auto;flex:1 0 auto;color:#444;padding:4px 10px;}
-.nav2-ul-li a {color:red !important;}
-
-
-/*========主内容区域======*/
-#mainbox{width:66.15%}
-#content{min-height: 67.7vh;}
-/*--推送开关--*/
-.tuisongswitch {border-radius: 20px;border: 1px solid #0084ff;text-align: center;padding: 0 1em;color: #0084ff;cursor: pointer;height: 25px;background-color:#ffffff;margin-right:10px;}
-.tuisongswitch:hover {color:#fff;background-color:#0084ff;}
-/*--最新文章+文章列表[多页面共用]--*/
-.article-list{width:100%;padding:10px 15px 7px 15px;position:relative;border-bottom: 1px dashed #e8e8e8;}
-.article-list:hover{background: #f7f7f7;}
-.article-list:nth-last-child(1){border-bottom: none;padding-bottom:10px;}
-.article-list .istop{color:#f33;padding:0 5px;border:1px solid #f33;border-radius:4px;font-size:14px;vertical-align:middle;display:inline-block;margin-right:5px;line-height: 1.5em;float: right;}
-.article-list .title{font-size:15px;font-weight:400;margin-left: 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:relative;line-height:1.5em;}
-.article-list .title a{display: block;overflow: hidden; text-overflow: ellipsis;white-space: nowrap;}
-.article-list a:visited{color: #afafaf;}
-.article-list a.visited {color: #afafaf !important;}
-.article-list .title .badge{padding: 3px 7px;line-height: 1;background-color: #f5f5f5;border-radius: 10px;float: right;}
-.article-list .title .red{color: red;}
-.article-list em{font-style: normal;color: red;font-weight: bold;}
-.article-list .com .icon-comment{margin-right:5px}
-.article-list .figure img{height:20px;}
-.article-list .figure{float: left;height: 20px;width: 20px;margin-right: 10px;background-size: 20px 20px;}
-.article-list .cg1{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/1.png);}
-.article-list .cg2,.article-list .cg26,.article-list .cg29{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/2.png);}
-.article-list .cg3{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/3.png);}
-.article-list .cg4{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/4.png);}
-.article-list .cg5{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/5.png);}
-.article-list .cg6{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/6.png);}
-.article-list .cg7{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/7.png);}
-.article-list .cg8{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/8.png);}
-.article-list .cg9{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/9.png);}
-.article-list .cg10{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/10.png);}
-.article-list .cg10-tb{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/10-tb.png?v1);}
-.article-list .cg10-jd{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/10-jd.png);}
-.article-list .cg10-tb_jd{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/10-tb_jd.png);}
-.article-list .cg10-pdd{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/10-pdd.png);}
-.article-list .cg10-tuan{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/10-tuan.png);}
-.article-list .cg10-other{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/10-other.png?v1);}
-.article-list .cg11{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/11.png);}
-.article-list .cg12{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/12.png);}
-.article-list .cg13{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/13.png?v=0910);}
-.article-list .cg14{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/14.png);}
-.article-list .cg15{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/15.png);}
-.article-list .cg16{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/16.png);}
-.article-list .cg17{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/17.png);}
-.article-list .cg18{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/18.png);}
-.article-list .cg19{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/19.png?9);}
-.article-list .cg20{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/20.png);}
-.article-list .cg22{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/22.png);}
-.article-list .cg23{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/23.png);}
-.article-list .cg24{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/24.png);}
-.article-list .cg25{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/25.png);}
-.article-list .cg27{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/27.png);}
-.article-list .cg28{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/28.png);}
-.article-list .cg30{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/30.png?30);}
-.article-list .cg31{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/31.png);}
-.article-list .cgwx{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/wx.png);}
-.article-list .cgsmzdm{background-image: url(/zb_users/theme/xianbao_theme/image/cateicon/smzdm.png);}
+/*==手机端分类横滑导航（nav2，仅移动端显示）==*/
+/* mnav C2（20261005）：汉堡抽屉下线后，nav2 是 ≤1100px 唯一导航入口，显示范围从 ≤768px 扩到 ≤1100px
+   （≥1101px 由 .hidden-xl 与本规则共同隐藏，桌面走 navstrip 频道排） */
+@media screen and (min-width:1101px){.nav2-wrap{display:none!important}}
+.nav2-ul{list-style-type:none;display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:6px;padding:6px 8px 6px 14px;overflow:auto;margin:0;scrollbar-width:none;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent 100%);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent 100%)}
+.nav2-ul::-webkit-scrollbar{display:none}
+.nav2-ul li{flex:1 0 auto;color:var(--text-2)}
+/* a 用 flex（非 inline-flex）：inline 元素落在 li 基线上会多出下降空隙，chips 与右侧 ▼ 钮错位 */
+.nav2-ul li a{display:flex;align-items:center;height:30px;padding:0 12px;border-radius:var(--radius-pill);background:var(--surface-2);color:var(--text-2);font-size:12.5px;white-space:nowrap}
+.nav2-ul li a:hover{color:var(--text);text-decoration:none}
+/* 当前分类 chip 激活态（服务端标 .nav2-ul-li；zinc 规范=黑底白字，夜间令牌自动反白） */
+.nav2-ul li.nav2-ul-li a{background:var(--primary);color:var(--on-primary);font-weight:500}
+.nav2-ul li.nav2-ul-li a:hover{color:var(--on-primary)}
+/*==手机端分类导航展开按钮==*/
+.nav2-wrap{display:flex;align-items:center;position:relative}
+.nav2-wrap .nav2-ul{margin:0}
+.nav2-toggle{flex:0 0 auto;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;background:transparent;color:var(--text-2);line-height:1;padding:0 12px 0 4px;-webkit-tap-highlight-color:transparent;position:relative}
+.nav2-toggle .xb-ic{display:flex;align-items:center;justify-content:center;width:28px;height:28px;font-size:14px;font-weight:700;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:50%;transition:transform .25s ease,background-color .2s ease,color .2s ease}
+.nav2-toggle:active .xb-ic{transform:scale(.88)}
+.nav2-toggle.expanded .xb-ic{transform:rotate(180deg)}
+/*==分类展开面板：分组宫格（2026-10-05 方案 A，header.php 服务端直出，navigation.js 仅管开合）==*/
+.nav2-panel{display:none;margin:0 0 10px;padding:2px 14px 14px;background:var(--surface);border-radius:var(--radius-card);box-shadow:var(--shadow-ring-lg);overflow:hidden}
+.nav2-panel.open{display:block;animation:nav2PanelIn .22s ease}
+@keyframes nav2PanelIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.nav2-gt{display:flex;align-items:center;gap:8px;margin:13px 0 8px;font-size:11.5px;color:var(--text-3);letter-spacing:.08em}
+.nav2-panel .nav2-gt:first-child{margin-top:10px}
+.nav2-gt::after{content:"";flex:1;height:1px;background:var(--border)}
+.nav2-chips{display:flex;flex-wrap:wrap;gap:8px}
+.nav2-chips a{display:inline-flex;align-items:center;height:34px;padding:0 15px;border-radius:var(--radius-pill);border:1px solid var(--border-strong);background:var(--surface);color:var(--text-2);font-size:13.5px;white-space:nowrap;text-decoration:none}
+.nav2-chips a:hover{color:var(--text);border-color:var(--text-3);text-decoration:none}
+/* 面板当前项：主色实底（比旧浅灰底更强） */
+.nav2-chips a.nav2-on{background:var(--primary);border-color:var(--primary);color:var(--on-primary);font-weight:500}
+/*========主内容区域：flex 双栏 + 侧栏吸顶========*/
+#content{min-height:67.7vh}
+/* 主列包装：快速筛选卡 + 列表卡 纵向排列 */
+.main-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:16px}
+@media screen and (min-width:1101px){
+#content.clearfix,#content>.clearfix{display:flex;flex-wrap:wrap;align-items:flex-start;gap:0 24px}
+/* flex 模式下 .clearfix::after(".") 伪元素会成为 flex 项（宽约 4.5px），且 #content 的
+   24px 列 gap 会把它和侧栏隔开，侧栏因此距容器右缘 28.5px、与顶栏右侧图标错位；
+   flex 布局本身不需要清浮动，桌面宽度下直接去掉（≤1100px 浮动布局仍依赖它） */
+#content.clearfix::after,#content>.clearfix::after,.h-wrap.clearfix::after{content:none}
+#mainbox{flex:1 1 0%;min-width:0;width:auto;float:none}
+/* 侧栏滚动跟随（方案 B2，20261005：原生 position:sticky 替换 theia）。
+   theia 用 scroll 事件驱动 fixed/absolute 切换模拟吸附，滚动中读布局+写 transform
+   恒滞后一帧，侧栏高于视口时进入/退出钉住有跳变，表现为"一抖一抖"；
+   原生 sticky 由合成器直接驱动，零滚动监听。JS 在 main.js 按侧栏高度算 top：
+   矮侧栏=恒吸顶（top=顶栏+16）；高侧栏 top 为负，向下滚底部先钉（"下钉"）、
+   回滚自然跟随上移（"上追"）。≤1100px 下方块把 #sidebar 覆盖回 static。 */
+#sidebar{width:400px;flex:none;float:none;position:-webkit-sticky;position:sticky;top:16px}
+/* 侧栏钉住投影（is-pinned）已移除：上下滚动无阴影动画（20261004 晚） */
+#content .flink{flex:0 0 100%}
+/* 榜单独立页（rank-hot.php）无双栏：listbox 独占一行，避免被上面的 flex 挤到 tabs 同排变窄块 */
+#content.clearfix>.listbox.rank{flex:1 1 100%;min-width:0}
+}
+/*--最新文章+文章列表[多页面共用]：行=标题居左 分类/评论/时间居右--*/
+/* 容器归零 padding（20261005 用户指认：.new-post 不要 padding），行距完全交给 .article-list 行自身 */
+.new-post{padding:0}
+/* 20261015 多页秒开：列表行 content-visibility:auto——离屏行跳过布局/渲染（100 行列表
+   首屏只实渲染 ~15 行）；contain-intrinsic-size 兜底滚动条稳定（渲染后浏览器以实际尺寸覆盖）。
+   20261016 修正占位高：原写死 46px 比实高大 6px/行，100 行列表文档总高虚高约 600px，
+   行进入视口后逐行被修正回真实高度 → 首绘后文档持续变矮、滚动条跳动（真机实测 6402→5902px）。
+   实测（1440px 视口，强制全部渲染后逐行量）：默认档恒 40px（9px 内边距×2 + 21px 行盒 + 1px 边线）；
+   紧凑档 34px；微博/好单/值得买等两行标题白名单页绝大多数行仍单行（41px，仅长标题少数 64px），
+   故统一按单行 40px 占位、紧凑档按 --row-h 令牌跟随，避免占位虚高造成的二次重排。 */
+.article-list{display:flex;align-items:center;gap:var(--row-gap);width:100%;padding:var(--row-pad-y) 20px;position:relative;border-bottom:1px dashed var(--row-border,var(--border));content-visibility:auto;contain-intrinsic-size:auto var(--row-h,40px)}
+.article-list:hover{background:var(--surface-3)}
+/* 最后一行保留下边线（设计稿：末行与加载区分隔线由行边框提供） */
+.article-list .title{flex:1;display:flex;align-items:center;gap:var(--row-gap);min-width:0;font-size:14px;font-weight:400;margin-left:0;overflow:hidden;position:relative;line-height:1.5}
+/* 列表标题墨色：--text-body（zinc-700）替代 zinc-950，避免过黑；夜间走令牌自动反白 */
+.article-list .title a{flex:1 1 auto;min-width:0;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-body);text-decoration:none}
+.article-list .title a:hover{color:var(--link-hover)}
+/* 列表标题行数：全站一律单行省略（上条 nowrap）；仅微博(10)/好单(30)/值得买(19) 分类页
+   主列表由 post-cat.php 给 listbox 挂 xb-t2 放开两行 clamp（20261005 用户指定三个白名单页） */
+.listbox.xb-t2 .article-list .title a{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal}
+/* 已读链接浅色（20261005 四轮：用户要求再浅一号，zinc-300 #d4d4d8；夜间 #52525b 视觉再淡一档）；整行透明度取消，行内图标/徽章保持满透明度 */
+/* 20261006：令牌化为 --text-read（多主题下随主题换值，见 /design/tokens.css） */
+.article-list a:visited{color:var(--text-read)}
+.article-list a.visited{color:var(--text-read)!important}
+.article-list a:hover{text-decoration:none}
+.article-list .title .badge,.article-list .badge-cat,.article-list .istop{flex:none;order:0}
+.article-list .title a{order:1}
+.article-list .istop{order:2;display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;background:var(--primary);color:var(--on-primary);font-size:11px;font-weight:500;line-height:1}
+/* 分类勋章：主列表/侧栏不展示（分类区分改由行首小图标承担；猜你喜欢已在 JS 端不输出） */
+.article-list .badge-cat{order:3}
+.listbox .article-list .badge-cat{display:none}
+.article-list .title .badge{order:4}
+.article-list .title time.badge{order:5}
+.article-list .title .com{color:var(--text-3)}
+.article-list .com .icon-comment{margin-right:2px}
+/* 分类小图标（对齐正式站）：行首 20px 图标，按 cg{分类ID} 映射 image/cateicon/；
+   注入位置：服务端模板 post-multi.php + JS 行渲染（listtimechuli opts.figure），
+   排行榜板块不注入（用户要求排行榜无图标）。badge-cat 主列表继续隐藏 */
+.article-list .figure{flex:none;width:20px;height:20px;background-size:20px 20px;background-repeat:no-repeat;background-position:center}
+.article-list .figure img{display:none}
+.article-list .cg1{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/1.webp)}
+.article-list .cg2,.article-list .cg26,.article-list .cg29{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/2.webp)}
+.article-list .cg3{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/3.webp)}
+.article-list .cg4{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/4.webp)}
+.article-list .cg5{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/5.webp)}
+.article-list .cg6{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/6.webp)}
+.article-list .cg7{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/7.webp)}
+.article-list .cg8{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/8.webp)}
+.article-list .cg9{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/9.webp)}
+.article-list .cg10{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/10.webp)}
+.article-list .cg10-tb{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/10-tb.webp)}
+.article-list .cg10-jd{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/10-jd.webp)}
+.article-list .cg10-tb_jd{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/10-tb_jd.webp)}
+.article-list .cg10-pdd{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/10-pdd.webp)}
+.article-list .cg10-tuan{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/10-tuan.webp)}
+.article-list .cg10-other{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/10-other.webp)}
+.article-list .cg11{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/11.webp)}
+.article-list .cg12{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/12.webp)}
+.article-list .cg13{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/13.webp)}
+.article-list .cg14{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/14.webp)}
+.article-list .cg16{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/16.webp)}
+.article-list .cg17{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/17.webp)}
+.article-list .cg18{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/18.webp)}
+.article-list .cg19{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/19.webp)}
+.article-list .cg20{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/20.webp)}
+.article-list .cg22{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/22.webp)}
+.article-list .cg23{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/23.webp)}
+.article-list .cg24{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/24.webp)}
+.article-list .cg25{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/25.webp)}
+.article-list .cg27{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/27.webp)}
+.article-list .cg28{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/28.webp)}
+.article-list .cg30{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/30.webp)}
+.article-list .cg31{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/31.webp)}
+.article-list .cg32{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/32.webp)}
+.article-list .cgwx{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/wx.webp)}
+.article-list .cgfa{background-image:url(/zb_users/theme/xianbao_theme/image/cateicon/fa.webp)}
+.article-list .istop:only-child{margin-left:auto}
+.article-list em{font-style:normal;color:var(--danger-text);font-weight:bold}
+.article-list .title .badge.com,.article-list .title .badge.rmb{background:transparent;padding:3px 0;color:var(--text-3)}
 .celan .guanzhu .article-list .com{display:none}
-.listbox .newer{background: #f5fbff;}
-.listbox .newest{background: #e8f6ff;}
+/* 热帖页列表：末行边线由卡片描边提供，去除行边框避免底部双横线 */
+.listbox .retie-post .article-list:last-child{border-bottom:none}
+/* 榜单页：通栏宽度（与其他页面 主列表+侧栏 合计等宽）；时段条+列表融为一张卡 */
+#content.rank-page-wrap #mainbox{flex:1 1 100%;width:auto}
+#mainbox .listbox.rank{background:transparent;box-shadow:none;margin:0;border-radius:0}
+/* 推送批次底色（20261005 重新定档；同日五轮：.newest 换 logo 主色 #14a3ef 淡染（用户要求与 logo 呼应，
+   夜间深底加浓至 .14 保持可辨），并删除文末重复的 .newer 旧段——
+   旧段声明在 .newest 之后，同特异性后者胜，曾把白天最新批的淡染覆盖成次新灰底致两档无法分辨；
+   同日六轮：.newer 白天由 --surface-2 #f4f4f5 再浅一档至 #f7f7f8（用户要求；不再浅到 #fafafa，
+   20261004 教训：该档与白底几乎不可见），夜间保持 surface-2；
+   同日七轮：.newest 白天蓝染 .12→.08（用户反馈"淡蓝还是太蓝了一些"），夜间 .14 不变；
+   同日八轮：最新/次新白天再各浅一档——.newest .08→.06、.newer #f7f7f8→#f9f9fa（用户要求），夜间均不变）：
+   .newest=最新一批（logo 蓝淡染="刚到达"），.newer=更早批次（浅灰底，下一批到达后不丢底色） */
+/* 20261013 令牌化：两条底色改走 --tint-newer/--tint-newest（值定义在 /design/tokens.css 各主题块）。
+   起因：.newer 亮色档此前是【不透明】#f9f9fa，而夜间档写在 html.night 选择器上——用户若选了
+   其它暗色主题（日落/深灰/dracula/tokyo/one-dark… 挂 html[data-xb-theme] 不挂 .night）或页面加载
+   瞬间未挂主题类，该行就吃到不透明近白底，在深色画布上就是一条刺眼白条（用户报告"轮询新文章还是白底"）。
+   令牌化后默认档即半透明淡染，任何主题/任何时刻叠在深色卡片上都自然变暗，且换主题只需改令牌值。 */
+.listbox .newer{background:var(--tint-newer)}
+.listbox .newest{background:var(--tint-newest)}
 /*========TAB栏======*/
-.tabs span,.zuankebatabs span,.rank-tabs span[data-tabs]{margin-right:15px;cursor:pointer;}
-.tabs .active,.tabs .active a,.zuankebatabs .active,.rank-tabs .active{color: #0084ff;}
-.guanzhu-prompt{font-size:14px;cursor:pointer;line-height: 24px}
+.tabs span,.zuankebatabs span,.rank-tabs span[data-tabs]{margin-right:2px;cursor:pointer;display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:7px;font-size:12.5px;color:var(--text-2);white-space:nowrap;transition:background .15s,color .15s,box-shadow .15s}
+.tabs span:hover,.zuankebatabs span:hover,.rank-tabs span[data-tabs]:hover{color:var(--text)}
+.tabs .active,.tabs .active a,.zuankebatabs .active,.rank-tabs .active,.tabs span.active,.rank-tabs span.active{color:var(--text);font-weight:500;background:var(--surface);box-shadow:var(--shadow-ring-sm)}
 /*========侧边栏======*/
-#sidebar{width:32.25%}
-/*--首页友情链接--*/ 
-.flink{margin-bottom:20px;padding:1.2em}
-.flink .c-title{font-size:16px;border-bottom:1px solid #eee;padding-bottom:.5em;margin-top:-.5em;position:relative}
-.flink .iconfont{color:#333}
-.flink a.iconfont:hover{color:#0084ff}
-.flink .rule{font-size:14px;font-weight:400;padding-left:2em;color:#999}
-.flink .f-list li{float:left;padding-right:2em}
-.flink .f-list li a{font-size:14px}
-/*--面包屑--*/ 
-.mianbaoxie{font-size: 16px;padding: 10px 15px;background: #fff;border-bottom: 1px solid #eee;}
-.article-mbx{overflow: hidden;text-overflow: ellipsis;white-space: nowrap;}
-/*--文章详情页--*/
-.art-main{padding:2em 3em}
-.art-main .art-title{font-size:28px}
-.art-main .head-info{color:#999;padding-top:5px}
-.art-main .head-info .report a{color:#999;}
-.art-main .head-info i.iconfont{padding-right:2px}
-.art-main .head-info .category,.art-main .head-info .author,.art-main .head-info .comment,.art-main .head-info .time,.art-main .head-info .report{padding-right:0.3em}
-.art-main .art-content{position:relative;font-size:16px;width:100%;word-break:break-all}
-.art-content a,.art-fujia a{color:#0084ff}
-.art-content h1,.art-content h2,.art-content h3,.art-content h4,.art-content h5,.art-content h6{margin:10px 0}
-.art-content h1{font-size:1.8em}
-.art-content h2{font-size:1.6em}
-.art-content h3{font-size:1.4em}
-.art-content h4{font-size:1.2em}
-.art-content h5{font-size:1em}
-.art-content h6{font-size:0.8em}
-.art-content blockquote{color:#666;font-weight:400;border-left:4px solid #0084ff;padding:.5em 1em;background-color:#f9f9f9}
-.art-content img{max-width:450px;height:auto;cursor:pointer;margin-top:10px;}
-.art-content table {border-collapse:collapse;empty-cells:show;border-spacing:0;width:100%;}
-.art-content table tr.firstRow{font-weight:bold;background-color:#f8f8f8;text-align:left}
-.art-content table th,.art-content table td{padding:.3em .5em;margin:0;vertical-align:top;border:1px solid #ddd}
-.art-content blockquote,.art-content dl,.art-content form,.art-content hr,.art-content ol,.art-content p,.art-content pre,.art-content table,.art-content ul{font-weight:400;margin:0.5rem 0}
+/*宽度由「主内容区域」的 flex 布局段控制（≥1101px 360px 吸顶；≤1100px 100% 堆叠）*/
+/* 卡头：标题行 + 底部横线（对齐设计稿 card-hd） */
+#sidebar .side-hd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border)}
+#sidebar .side-hd b{font-size:15px;font-weight:600;color:var(--text)}
+#sidebar .side-hd .sub{font-size:12px;color:var(--text-3)}
+#sidebar .side-ft{border-top:none;padding:4px 0 8px;text-align:center}
+#sidebar .side-ft a{font-size:12.5px;color:var(--text-2)}
+#sidebar .side-ft a:hover{color:var(--link-hover)}
+/* tab 分段轨道：等分一行、灰轨道、激活白钮（设计稿 seg 规格） */
+#sidebar .mianbaoxie.tabs{display:flex;align-items:center;flex-wrap:nowrap;background:var(--surface-2);border-radius:10px;margin:12px;border-bottom:none;padding:3px}
+#sidebar .mianbaoxie.tabs span{flex:1 1 0;min-width:0;justify-content:center;height:28px;padding:0 4px;font-size:12px;margin-right:0;background:transparent;border-bottom:none}
+/* 激活 tab 白底（压过上面的透明底） */
+#sidebar .mianbaoxie.tabs span.active{background:var(--surface);color:var(--text);font-weight:500}
+#sidebar .bangdan,#sidebar .guanzhu{padding:0 0 4px}
+#sidebar .article-list{padding:10px 16px}
+/*--首页友情链接--*/
+.flink{margin-bottom:20px;padding:0 0 8px}
+.flink .c-title{font-size:15px;font-weight:600;border-bottom:1px solid var(--border);padding:14px 20px;margin:0}
+.flink .xb-ic{color:var(--text-2);margin-right:3px}
+.flink .rule{font-size:12px;font-weight:400;padding-left:1em;color:var(--text-3)}
+.flink .f-list{padding:14px 20px;display:flex;flex-wrap:wrap;gap:8px}
+.flink .f-list li{float:none;padding:0}
+.flink .f-list li a{display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:var(--radius-badge);font-size:13px;color:var(--text-2);background:var(--surface-2)}
+.flink .f-list li a:hover{color:var(--link-hover);text-decoration:none}
+/* 友链条目内联彩色收编：后台模块内容里可能写死 style="color:#ea0000" 等，zinc 规范页脚统一灰阶 */
+.flink .f-list li a[style]{color:var(--text-2)!important}
+.flink .f-list li a[style]:hover{color:var(--link-hover)!important}
+/*--面包屑/卡片头--*/
+/* 面包屑/卡片头：刷新倒计时与「开启推送」按钮按设计稿不展示 */
+.mianbaoxie .shuatime{display:none!important}
+/* 卡头推送按钮（20261005）：去旧版 2px 下坠与监控中垂直对齐；桌面端靠右与监控中成组 */
+.mianbaoxie{font-size:14px;padding:14px 20px;background:transparent;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-radius:0}
+/* overflow 改 visible：卡头 .xb-monitor 的状态气泡探出下边缘，hidden 会把它裁掉
+   （.mianbaoxie 全局 flex 后原清浮动/裁剪用途已消失；截断类 .cur 自带 ellipsis 不受影响） */
+.article-mbx{overflow:visible}
+.article-mbx a{color:var(--text-2)}
+.article-mbx a:hover{color:var(--link-hover)}
+/* 面包屑中间级（子分类/平台，纯文字无链接，20261005） */
+.article-mbx .mid{color:var(--text-2)}
+.article-mbx .xb-ic{font-size:12px;color:var(--text-3)}
+.article-mbx .tishi{color:var(--text-2)}
+.mianbaoxie .pull-right{margin-left:auto;font-size:12px;color:var(--text-3);white-space:nowrap}
+/* 卡头标题式样（设计稿：标题加粗 + 弱化副标） */
+.mianbaoxie .mbx-title{font-size:15px;font-weight:600;color:var(--text)}
+.mianbaoxie .sub{font-size:12px;color:var(--text-3)}
+/* 排行榜行首名次序号已取消（20261005）：侧栏排行卡+榜单独立页统一服务端输出行首分类图标（figure cg{cateid}） */
+/* 关注行隐藏分类/评论徽章（ES 行无真实评论数据）；排行卡评论数放开显示，服务端仅 >0 时输出 */
+.rank-list .article-list .badge-cat,
+.guanzhu .article-list .badge-cat,.guanzhu .article-list .badge.com{display:none}
+.mianbaoxie .sub{font-size:12px;color:var(--text-3);white-space:nowrap}
+/* meta.php 注入的筛选按钮推到卡头右缘 */
+/*--文章详情页：面包屑+正文 = 文章卡；抓取块/评论区/猜你喜欢 各自独立成卡--*/
+article.art-main{background:var(--surface);box-shadow:var(--shadow-ring-sm);border-radius:var(--radius-card);padding:0}
+#mainbox.article-box{background:transparent;box-shadow:none;border-radius:0}
+article.art-main>.mianbaoxie{padding:16px 24px 14px;font-size:13px;border-bottom:1px solid var(--border);margin:0}
+/* 间距统一（20261005 用户指认"头部元素外内边距不统一"）：卡内横向统一 24px，卡缘竖向 16px，
+   区块间竖向 12px；举报不再推最右，随左侧信息组排（原 margin-left:auto 删除） */
+article.art-main .art-head{padding:16px 24px 0;margin-bottom:0}
+.art-main .art-title{font-size:22px;line-height:1.45}
+.art-main .head-info{color:var(--text-3);padding-top:10px;display:flex;align-items:center;flex-wrap:wrap;gap:14px;font-size:13px}
+.art-main .head-info .report a{color:var(--text-3)}
+.art-main .head-info .report a:hover{color:var(--danger-text)}
+.art-main .head-info .author a{color:var(--text-2)}
+.art-main .head-info .xb-ic{padding-right:2px}
+.art-main .head-info .category,.art-main .head-info .author,.art-main .head-info .comment,.art-main .head-info .time,.art-main .head-info .report{padding-right:0}
+.art-main .art-content{position:relative;font-size:15px;line-height:1.9;width:auto;word-break:break-all;margin:12px 24px 0;padding:4px 0 24px}
+.art-content a,.art-fujia a{color:var(--link-ext);text-decoration:underline;text-decoration-color:currentColor;text-underline-offset:3px}
+.art-content a:hover,.art-fujia a:hover{color:var(--link-ext-hover);text-decoration-color:currentColor}
+.art-content h1,.art-content h2,.art-content h3,.art-content h4,.art-content h5,.art-content h6{margin:14px 0 10px}
+.art-content h1{font-size:1.5em}.art-content h2{font-size:1.35em}.art-content h3{font-size:1.2em}
+.art-content h4{font-size:1.1em}.art-content h5{font-size:1em}.art-content h6{font-size:.9em}
+.art-content blockquote{color:var(--text-2);border-left:3px solid var(--border-strong);padding:.5em 1em;background:var(--surface-3);border-radius:0 8px 8px 0}
+.art-content img{max-width:450px;height:auto;cursor:pointer;margin-top:10px;border-radius:8px}
+.art-content table{border-collapse:collapse;empty-cells:show;border-spacing:0;width:100%}
+.art-content table tr.firstRow{font-weight:bold;background:var(--surface-3);text-align:left}
+.art-content table th,.art-content table td{padding:.3em .5em;margin:0;vertical-align:top;border:1px solid var(--border)}
+.art-content blockquote,.art-content dl,.art-content form,.art-content hr,.art-content ol,.art-content p,.art-content pre,.art-content table,.art-content ul{font-weight:400;margin:.6rem 0}
 .art-content blockquote p,.art-content ul p{margin-bottom:0}
 .art-content li{margin-left:1.2em}
-.art-content hr{border:none;margin-top:1.5rem;margin-bottom:1.5rem;border-top:1px solid #eee;height:1px;background:0 0}
-.art-content b,.art-content strong{font-weight:700;}
-.art-content .art-copyright {font-size:14px;background: #f8f8f8;padding: 1em 1.5em;margin-top:1.5em;}
-.art-content .tip{background-color: #ddeeff;color: #0084ff;font-size: 14px;text-align: center;line-height: 35px;margin-bottom: 15px;border: 1px solid #97cdff;}
-.art-content .tip a{color: #0084ff;}
-.art-content .guanlian{width: 100%;margin: 20px 0 20px 0;padding: 12px 15px 15px;font-size: 14px;color: #888;line-height: 22px;border: 1px solid rgba(68,68,68,.1);background: rgba(143,143,143,.1);border-radius: 3px;overflow: hidden;}
-.art-content .guanlian .g-biaoti{font-size: 16px;margin: 3px 0 18px 0;color: #484848;padding: 0 0 10px 0;border-bottom: 1px solid rgba(68,68,68,.1);}
-.art-content .guanlian .d-biaoti{font-size: 16px;margin: 3px 0 10px 0;color: #484848;padding: 0 0 10px 0;border-bottom: 1px solid rgba(68,68,68,.1);}
-.art-content .guanlian .d-neirong{margin-left: 80px;}
-.art-content .guanlian .d-tupian img{float:left;width:60px;}
-.art-content .imgreader a,.art-content .tishi a,.comment-list .tishi a{color:#185a97}
-/*--文章详情页 适配用户中心--*/
-.art-content .mochu_us_shoucang{margin-top:25px;margin-bottom:0px;}
-.art-content .mochu-us-colluser{margin: 5px 5px;background-color: #fff;}
-.art-content .mochu-us-zan,.mochu-us-coll,.mochu-us-shang,.mochu-us-zhua,.mochu-us-bianji,.mochu-us-copy{border-radius: 18px !important;border: 1px solid #0084ff !important;text-align: center !important;padding: .2em 1em !important;color: #0084ff !important;cursor: pointer !important;height: 35px !important;}
-.art-content .mochu-us-buttonhover {color:#fff !important;background-color:#0084ff}
-.art-content .mochu-us-shang-div>p,.mochu-us-shang-div>button {color:#0084ff}
-.art-content .mochu-us-shang-div-span {background-color:#0084ff}
-.art-content .mochu-us-shangbuttons {border:1px solid #0084ff}
-.art-content .mochu_us_login_user_us {background-color:transparent}
-.art-content .mochu_us_login_user_ul li {border:0!important}
-#mochu_us_logincelan .mochu_us_login_footerdiv a {margin:5px!important;background-color:transparent!important;border:1px solid #e9e9e9!important}
-.art-content .mochu_us_login_user_ul {color:inherit!important}
-.art-content .mochu_us_pst {width:100%!important;margin:0 0 20px 0!important;padding:12px 15px 15px!important;font-size:14px!important;color:#888!important;line-height:22px!important;border:1px solid rgba(68,68,68,.1)!important;background:rgba(143,143,143,.1)!important;border-radius:3px!important;overflow:hidden!important}
-.art-content .mochu_us_pst h2 {font-size:19px!important;margin:0 0 10px 0!important;color:#034eff!important;padding:0 0 5px 0!important;border-bottom:1px solid rgba(68,68,68,.1)!important}
-.art-content .mochu_us_pst p {line-height:2!important;font-size:15px!important;padding:0!important;color:#555444!important}
-.art-content .mochu_us_tip_span a,.art-content .mochu_us_tip_span span {color:#034eff!important}
-.art-content .mochu_us_xiazai {margin:0 0 20px 0!important;border:1px solid rgba(68,68,68,.1)!important;background:rgba(143,143,143,.1)!important;padding:15px!important}
-.art-content .mochu_us_xiazai_lf {background-image:url(../image/xz.svg)!important}
-.art-content .mochu-us-shang-div-span,.mochu_us_xiazai_lr a {border-radius:3px!important;background-color:#034eff!important;}
-.art-content .mochu-us-shang-div button,.mochu-us-shang-div p {color:#555444!important}
-.art-content button.mochu-us-shangbuttons {color:#034eff!important;border:1px solid #034eff!important}
-.art-content .imgreader,.comment-list .imgreader,.art-content .tishi,.comment-list .tishi{background-color:#f7f7f7;display:block;font-size:15px;border:1px solid rgba(68,68,68,.1);margin:5px 0px;padding:10px;color:#185a97;border-radius: 5px;}
-.art-content .copy{cursor:pointer;background-color: #daedf7;display: block;font-size: 15px;border: 1px solid #c4e2e1;margin: 5px 0px;padding: 10px;color: #4889b2;border-radius: 5px;}
+.art-content hr{border:none;margin-top:1.5rem;margin-bottom:1.5rem;border-top:1px solid var(--border);height:1px;background:0 0}
+.art-content b,.art-content strong{font-weight:600}
+.art-content .art-copyright{font-size:13px;background:var(--surface-3);border-radius:10px;padding:14px 16px;margin:20px 0 0;color:var(--text-2);line-height:1.8}
+.art-content .art-copyright .addr,.art-content .art-copyright .copyright{color:var(--text-2)}
+.art-content .tip{background:var(--surface-2);color:var(--text-2);font-size:14px;text-align:center;line-height:35px;margin-bottom:15px;border-radius:var(--radius-control)}
+.art-content .tip a{color:var(--text)}
+.art-content .guanlian{width:100%;margin:20px 0;padding:12px 15px 15px;font-size:14px;color:var(--text-2);line-height:22px;border:1px solid var(--border);background:var(--surface-3);border-radius:var(--radius-control);overflow:hidden}
+.art-content .guanlian .g-biaoti,.art-content .guanlian .d-biaoti{font-size:15px;margin:3px 0 10px;color:var(--text);padding:0 0 10px;border-bottom:1px solid var(--border)}
+.art-content .guanlian .d-neirong{margin-left:80px}
+.art-content .guanlian .d-tupian img{float:left;width:60px;border-radius:6px}
+.art-content .imgreader a,.art-content .tishi a,.comment-list .tishi a{color:var(--text-2)}
+/*========文章页分区卡：抓取块/评论区/猜你喜欢 各自独立成卡========*/
+#mainbox.article-box .art-fujia{background:var(--surface);box-shadow:var(--shadow-ring-sm);border-radius:var(--radius-card);margin:0 0 16px;padding:0}
+/* 抓取更新卡头（20261005）：对齐侧栏 side-hd——粗标题+灰色时间副标（main.js 拆分 upd-t/upd-sub） */
+#mainbox.article-box .art-fujia .mianbaoxie{padding:13px 24px 11px;border-bottom:1px solid var(--border);font-size:15px;font-weight:600;color:var(--text);background:transparent;border-radius:0}
+#mainbox.article-box .art-fujia .mianbaoxie p{display:flex;align-items:baseline;gap:8px;margin:0;flex-wrap:wrap}
+#mainbox.article-box .art-fujia .mianbaoxie .upd-sub{font-size:12px;font-weight:400;color:var(--text-3);font-variant-numeric:tabular-nums}
+#mainbox.article-box .art-fujia .art-fujia-content{padding:14px 24px 20px}
+#mainbox.article-box .post-comment{background:var(--surface);box-shadow:var(--shadow-ring-sm);border-radius:var(--radius-card);margin:0 0 16px;padding:0}
+#mainbox.article-box .post-comment>.mianbaoxie{padding:14px 24px 12px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text-3);background:transparent;border-radius:0}
+#mainbox.article-box .art-comment-content{padding:14px 24px 20px}
+#mainbox.article-box .xiangguan{background:var(--surface);box-shadow:var(--shadow-ring-sm);border-radius:var(--radius-card);margin:0;padding:0}
+#mainbox.article-box .xiangguan>.clearfix>.mianbaoxie{padding:14px 24px 12px;border-bottom:1px solid var(--border);font-size:13px;background:transparent;border-radius:0}
+#mainbox.article-box .xiangguan .article-list{padding-left:24px;padding-right:24px}
+/* 卡底去重：末行 border-bottom 会与卡片圆角底边叠出"最后的横线" */
+#mainbox.article-box .xiangguan .new-post li:last-child{border-bottom:none}
+/* 搜索页空结果提示 */
+.search-empty{padding:56px 20px;text-align:center;color:var(--text-3);font-size:13px}
+/* 工具页（tool 模板）：输入区/输出区与卡内文对齐 */
+#mainbox.article-box .xiamian{padding:0 24px 24px}
+#mainbox.article-box .xiamian .shuchu p{margin:4px 0;font-size:13.5px;color:var(--text-2)}
+/* 操作按钮图标 */
+#article-button .mochu-us-colluser .xb-ic{margin-right:5px;font-size:14px}
+/* 面包屑当前级 */
+.article-mbx .cur{color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:420px}
+@media (max-width:768px){.article-mbx .cur{max-width:52vw}}
+/*--文章详情页 适配用户中心（mochu_us 部件 zinc 化）--*/
+.art-content .mochu_us_shoucang{margin-top:20px;margin-bottom:0}
+.art-content .mochu-us-colluser{margin:0 6px 0 0;background:var(--surface)}
+#article-button{display:flex;justify-content:center;margin:20px 0 0;padding-top:20px;border-top:1px solid var(--border)}
+#article-button .mochu_us_shoucang{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0}
+.art-content .mochu-us-zan,.mochu-us-coll,.mochu-us-shang,.mochu-us-zhua,.mochu-us-bianji,.mochu-us-copy{border-radius:var(--radius-control)!important;box-shadow:var(--shadow-ring-strong)!important;border:none!important;text-align:center!important;padding:0 16px!important;color:var(--text-2)!important;cursor:pointer!important;height:36px!important;font-size:13px;background:var(--surface)!important;transition:box-shadow .15s,color .15s}
+.art-content .mochu-us-zan:hover,.mochu-us-coll:hover,.mochu-us-shang:hover,.mochu-us-zhua:hover,.mochu-us-bianji:hover,.mochu-us-copy:hover{color:var(--text)!important;box-shadow:var(--shadow-ring-pop)!important;text-decoration:none}
+/* 文章页收藏按钮已收藏态（.mochu-us-buttonhover）：文字恒为"收藏文章"，实底 primary 区分已收藏
+   （覆盖插件 mochu_us.css 的 EA6000 橙底；原与 hover 同款黑环已从上组选择器移出） */
+.art-content .mochu-us-coll.mochu-us-buttonhover{background:var(--primary)!important;color:var(--on-primary)!important;box-shadow:none!important;text-decoration:none}
+.art-content .mochu-us-coll.mochu-us-buttonhover:hover{background:var(--primary-hover)!important;color:var(--on-primary)!important;box-shadow:none!important}
+.art-content .mochu-us-shang-div>p,.mochu-us-shang-div>button{color:var(--text-2)}
+.art-content .mochu-us-shang-div-span{background:var(--primary)}
+.art-content .mochu-us-shangbuttons{box-shadow:var(--shadow-ring-strong)}
+.art-content .mochu_us_login_user_us{background:transparent}
+.art-content .mochu_us_login_user_ul li{border:0!important}
+#mochu_us_logincelan .mochu_us_login_footerdiv a{margin:5px!important;background:transparent!important;box-shadow:var(--shadow-ring-strong)!important;border:none!important}
+.art-content .mochu_us_login_user_ul{color:inherit!important}
+.art-content .mochu_us_pst{width:100%!important;margin:0 0 20px 0!important;padding:12px 15px 15px!important;font-size:14px!important;color:var(--text-2)!important;line-height:22px!important;border:1px solid var(--border)!important;background:var(--surface-3)!important;border-radius:var(--radius-control)!important;overflow:hidden!important}
+.art-content .mochu_us_pst h2{font-size:16px!important;margin:0 0 10px 0!important;color:var(--text)!important;padding:0 0 5px 0!important;border-bottom:1px solid var(--border)!important}
+.art-content .mochu_us_pst p{line-height:2!important;font-size:14px!important;padding:0!important;color:var(--text-2)!important}
+.art-content .mochu_us_tip_span a,.art-content .mochu_us_tip_span span{color:var(--text)!important}
+.art-content .mochu_us_xiazai{margin:0 0 20px 0!important;border:1px solid var(--border)!important;background:var(--surface-3)!important;padding:15px!important;border-radius:var(--radius-control)!important}
+.art-content .mochu_us_xiazai_lf{background-image:url(../image/xz.svg)!important}
+.art-content .mochu-us-shang-div-span,.mochu_us_xiazai_lr a{border-radius:6px!important;background:var(--primary)!important;color:var(--on-primary)!important}
+.art-content .mochu-us-shang-div button,.mochu-us-shang-div p{color:var(--text-2)!important}
+.art-content button.mochu-us-shangbuttons{color:var(--text-2)!important;box-shadow:var(--shadow-ring-strong)!important;border:none!important}
+.art-content .imgreader,.comment-list .imgreader,.art-content .tishi,.comment-list .tishi{background:var(--surface-3);display:block;font-size:14px;border:1px solid var(--border);margin:5px 0;padding:10px;color:var(--text-2);border-radius:var(--radius-control)}
+.art-content .copy{cursor:pointer;background:var(--surface-3);display:block;font-size:14px;border:1px solid var(--border);margin:5px 0;padding:10px;color:var(--text-2);border-radius:var(--radius-control)}
 /*--评论--*/
-.post-comment .emphasize{color:#f33}
-#commentbox .comment-list{border: 1px solid #eee;padding: 0.5em 1em 0.5em 1em;}
-#commentbox .comment-list .pagebar{list-style: none;border-top: 1px solid #ededed;}
-#commentbox .comment-list .li .clbody{margin-left:55px; word-wrap: break-word;}
-.no-comment{color:#999;text-align:center}
-.no-comment i.iconfont{font-size:60px;color:#ddd;display:block;margin-top:-20px;height:90px}
-#cancel-reply{color:#0084ff}
-#com-tishi{color:#3e80d2}
-#com-tishi img{max-width: 45px;max-height: 45px;border-radius: 100px;}
-#com-tishi .expression{max-width: 25px;max-height: 25px;border-radius: 0px;}
-#txaArticle{padding:10px;width:100%;border:1px solid #eee;background:#fff;-webkit-appearance:none}
-.compost .com-name {padding: 0 0 1em .2em;}
-.compost .com-bar {width: 100%;height: 50px;padding: 6px 10px;border: 1px solid #ededed;margin-top: -8px;}
-.compost .com-bar .btn{padding: 0 10px;border: 0;}
-.compost .com-bar .btn i.iconfont{color: #666;font-size: 20px;cursor:pointer;}
-.compost .com-bar .com-submit{border:none;cursor:pointer;line-height:35px;background-color:#0084ff;color:#fff;padding:0 15px}
-.compost .com-bar .smile{padding:12px;}
-.compost .com-bar .smile img{width:30px;height:30px;padding:2px;border:1px solid #f6f6f6;}
-.compost .com-bar .smile img:hover{border:1px solid #00ccff;}
-.compost .com-bar .smile .arrow{ width:6px; height:11px; overflow:hidden;position:absolute; left:-6px; top:85px}
-.compost .com-bar .smilebg{width:536px;position:absolute;z-index:999;display:none;background:#fff;border:solid #ddd 1px;border-radius:2px;box-shadow:0 0 10px #f1f1f1;margin:-76px 0 0 45px;line-height:20px;}
-.comment-list .title{font-size:18px;padding-bottom:0.2em}
-.comment-list .ul{list-style:none;border-top:1px solid #ededed}
-.comment-list .li{word-wrap:  break-word;white-space:  normal;padding:1em}
-.comment-list .li img{max-width:45px;max-height:45px;border-radius:100px;border:2px solid #fff;}
+.post-comment .emphasize{color:var(--danger-text)}
+#commentbox .comment-list{box-shadow:var(--shadow-ring);border-radius:var(--radius-control);padding:.5em 1em .5em 1em}
+#commentbox .comment-list .pagebar{list-style:none;border-top:1px solid var(--border)}
+#commentbox .comment-list .li .clbody{margin-left:55px;word-wrap:break-word}
+.no-comment{color:var(--text-3);text-align:center}
+/* SVG 化后 width:1em 固定盒不再随 text-align 居中，margin auto 恢复水平居中；高度回 1em（旧 90px 是 iconfont 行盒遗留）
+   20261005 用户指认信封太大：60px→40px，负上边距按 SVG 实盒重校（原 -20px 是 iconfont 行盒遗留） */
+.no-comment .xb-ic{font-size:40px;color:var(--border-strong);display:block;margin:-4px auto 2px}
+#cancel-reply{color:var(--text-2)}
+#com-tishi{color:var(--text-2)}
+#com-tishi img{max-width:45px;max-height:45px;border-radius:100px}
+#com-tishi .expression{max-width:25px;max-height:25px;border-radius:0}
+#txaArticle{padding:10px 12px;width:100%;border:none;background:var(--surface);box-shadow:var(--shadow-ring-strong);border-radius:var(--radius-control);font-size:13px;color:var(--text);-webkit-appearance:none}
+#txaArticle:focus{box-shadow:0 0 0 1px var(--focus-ring),0 0 0 4px var(--focus-halo)}
+.compost .com-name{padding:0 0 1em .1em;color:var(--text-2);font-size:13px}
+/* 20261005 用户指认表情/图片图标未垂直居中：浮动布局改 flex——float 的 .btn 贴 content 顶，
+   图标行盒(≈24px)小于 50px 槽位沉不下去；flex+align-items:center 全部子项垂直居中 */
+.compost .com-bar{display:flex;align-items:center;width:100%;height:50px;padding:6px 10px;border:none;box-shadow:var(--shadow-ring-strong);border-radius:var(--radius-control);margin-top:12px;background:var(--surface)}
+.compost .com-bar .btn{padding:0 10px;border:0}
+.compost .com-bar .btn .xb-ic{color:var(--text-2);font-size:20px;cursor:pointer}
+.compost .com-bar .com-submit{margin-left:auto;border:none;cursor:pointer;line-height:36px;height:36px;background:var(--primary);color:var(--on-primary);padding:0 16px;border-radius:var(--radius-control);font-size:13px}
+.compost .com-bar .smile{padding:12px}
+.compost .com-bar .smile img{width:30px;height:30px;padding:2px;border:1px solid var(--border);border-radius:6px}
+.compost .com-bar .smile img:hover{border-color:var(--border-strong)}
+.compost .com-bar .smile .arrow{width:6px;height:11px;overflow:hidden;position:absolute;left:-6px;top:85px}
+.compost .com-bar .smilebg{width:536px;position:absolute;z-index:999;display:none;background:var(--surface);border:none;border-radius:var(--radius-card);box-shadow:var(--shadow-ring-lg);margin:-76px 0 0 45px;line-height:20px}
+.comment-list .title{font-size:15px;padding-bottom:.4em;font-weight:600}
+.comment-list .ul{list-style:none;border-top:1px solid var(--border)}
+.comment-list .li{word-wrap:break-word;white-space:normal;padding:1em}
+.comment-list .li img{max-width:45px;max-height:45px;border-radius:100px}
 .comment-list .li .clbody{margin-left:40px}
 .comment-list .ul .ul{margin-left:3%}
 .comment-list .clbody .p{word-wrap:break-word}
-.comment-list .clbody .expression{width:25px;height:25px;}
-.comment-list .clbody .author,.comment-list .clbody .author a{color:#666}
-.comment-list .clbody .c-time{color:#999;font-size:12px;}
-.comment-list .clbody .c-ip{color:#999;font-size:12px;margin-left:8px}
-.comment-list .comment-at{color:#0084ff}
-.comment-list .reply-a{opacity:0.5}
-.comment-list reply-a:hover{opacity:1}
-.comment-list .level-mark {min-width: 8px;border-radius: 2px;font-size: 12px;line-height: 18px;padding: 0 5px;margin-left: 8px;color: #fff;cursor: pointer;}
-.comment-list .level-louzu{background-color: #1E9FFF;}
-.comment-list .level-tyhy{background-color: #75c4ff;}
-.comment-list .level-byhy{background-color: #34a8ff;}
-.comment-list .level-yjhy{background-color: #0078ff;}
-.comment-list .level-gly{background-color: #ff0000;}
-.comment-list .level-bwzz{background-color: #ffb800;}
-.comment-list .louzhutoux{background-image: url(/zb_users/theme/xianbao_theme/image/avatar/1.png);width: 30px;height: 30px;border-radius: 100px;border: 2px solid #fff;background-size: 26px 26px;float:left;}
-.comment-list .pingluntoux{background-image: url(/zb_users/theme/xianbao_theme/image/avatar/6.png);width: 30px;height: 30px;border-radius: 100px;border: 2px solid #fff;background-size: 26px 26px;float:left;}
-.art-comment-content .comment-list .cinfo{height: 25px;}
+.comment-list .clbody .expression{width:25px;height:25px}
+.comment-list .clbody .author,.comment-list .clbody .author a{color:var(--text);font-weight:500}
+/* 用户名 a 去静态下划线（20261005 用户指认）：抓取评论卡在 .art-fujia 内，L429 正文链接的蓝色下划线
+   不应作用到 /record/ 用户名链接（author/dianpingming/huifuming 三个由 service_ssr 包链的 span）；
+   hover 仍走全局变色，不再补下划线 */
+.comment-list .clbody .author a,.comment-list .clbody .dianpingming a,.comment-list .clbody .huifuming a{text-decoration:none}
+.comment-list .clbody .author:hover a{color:var(--link-hover)}
+.comment-list .clbody .c-time{color:var(--text-3);font-size:12px}
+.comment-list .clbody .c-ip{color:var(--text-3);font-size:12px;margin-left:8px}
+.comment-list .comment-at{color:var(--text-2);font-weight:500}
+.comment-list .reply-a{opacity:.6}
+.comment-list .reply-a:hover{opacity:1}
+.comment-list .level-mark{min-width:8px;border-radius:var(--radius-badge);font-size:11px;line-height:18px;padding:0 7px;margin-left:8px;cursor:pointer;background:var(--surface-2);color:var(--text-2)}
+.comment-list .level-louzu{background:var(--primary);color:var(--on-primary)}
+.comment-list .level-tyhy{background:var(--warning-bg);color:var(--warning-text)}
+.comment-list .level-byhy{background:var(--warning-bg);color:var(--warning-text)}
+.comment-list .level-yjhy{background:var(--primary);color:var(--on-primary)}
+.comment-list .level-gly{background:var(--danger);color:#fff}
+.comment-list .level-bwzz{background:var(--warning);color:var(--on-primary)}
+.comment-list .louzhutoux{background-image:url(/zb_users/theme/xianbao_theme/image/avatar/1.png);width:30px;height:30px;border-radius:100px;background-size:26px 26px;float:left}
+.comment-list .pingluntoux{background-image:url(/zb_users/theme/xianbao_theme/image/avatar/6.png);width:30px;height:30px;border-radius:100px;background-size:26px 26px;float:left}
+.art-comment-content .comment-list .cinfo{height:25px}
 /*链接转二维码处理*/
-.url-qr {cursor: pointer;margin: 0px 6px 0px 2px;font-size:25px;}
+.url-qr{cursor:pointer;margin:0 6px 0 2px;font-size:22px;color:var(--text-3)}
 /*--文章附加评论--*/
-.art-fujia-content,.art-comment-content{padding: 2em;}
-.art-fujia .kuangxian{border: 1px solid #eee;padding: 0.5em 1em 0.5em 1em !important;}
-.art-fujia #comment p{margin-bottom: 0px !important;}
-.art-fujia-content img{cursor:pointer;}
-.art-fujia-content .showlouzhu,.art-fujia-content .pinglunshunxu{font-size: 13px;border-radius: 20px;border: 1px solid #999;text-align: center;padding: 0em 1em;color: #999;cursor: pointer;margin-right: 10px;margin-top: 3px;}
-.art-fujia-content .showlouzhu-hover,.art-fujia-content .pinglunshunxu-hover{border: 1px solid #0084ff;background-color: #0084ff;color: #fff;}
-.art-fujia-content .comment-list .c-time{margin-left:10px;}
-.art-fujia-content .comment-list .cinfo{min-height: 30px;}
-.art-fujia-content .comment-list .huifushijian,.art-fujia-content .comment-list .dianpingshijian{font-size: 12px;margin-left: 10px;}
-.art-fujia-content .comment-list .c-yingyong,.art-fujia-content .comment-list .c-dianping{margin-top: 5px;background: #F9F9F9;color: #989898;}
-.art-fujia-content .comment-list .c-yingyong a,.art-fujia-content .comment-list .c-dianping a{color: #989898;}
-.art-fujia-content .cinfo .author a:hover,.art-fujia-content .comment-list .c-yingyong a:hover,.art-fujia-content .comment-list .c-dianping a:hover{color: #0084ff;}
-.art-fujia .hide{display: none;}
-/*适配相关文章 */
-.xiangguan .new-post .com{display:none;}
+.art-fujia-content,.art-comment-content{padding:20px 24px}
+.art-fujia .kuangxian{box-shadow:var(--shadow-ring);border-radius:var(--radius-control);padding:.5em 1em!important}
+.art-fujia #comment p{margin-bottom:0!important}
+.art-fujia-content img{cursor:pointer}
+.art-fujia-content .showlouzhu,.art-fujia-content .pinglunshunxu{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 12px;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:var(--surface);box-shadow:none;color:var(--text-2);font-size:12px;cursor:pointer;margin:0 0 0 8px}
+.art-fujia-content .showlouzhu:hover,.art-fujia-content .pinglunshunxu:hover{color:var(--text);border-color:var(--text-3);box-shadow:none}
+.art-fujia-content .showlouzhu-hover,.art-fujia-content .pinglunshunxu-hover{background:var(--primary);border-color:var(--primary);color:var(--on-primary);box-shadow:none}
+/* 激活态悬浮：背景加深、文字保持反白（否则上面的 :hover 规则把文字改回深色 → 深底深字） */
+.art-fujia-content .showlouzhu-hover:hover,.art-fujia-content .pinglunshunxu-hover:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:var(--on-primary);box-shadow:none}
+.art-fujia-content .comment-list .c-time{margin-left:10px}
+.art-fujia-content .comment-list .cinfo{min-height:30px}
+.art-fujia-content .comment-list .huifushijian,.art-fujia-content .comment-list .dianpingshijian{font-size:12px;margin-left:10px}
+.art-fujia-content .comment-list .c-yingyong,.art-fujia-content .comment-list .c-dianping{margin-top:5px;background:var(--surface-3);color:var(--text-3);border-radius:var(--radius-control)}
+.art-fujia-content .comment-list .c-yingyong a,.art-fujia-content .comment-list .c-dianping a{color:var(--text-3)}
+.art-fujia-content .cinfo .author a:hover,.art-fujia-content .comment-list .c-yingyong a:hover,.art-fujia-content .comment-list .c-dianping a:hover{color:var(--link-hover)}
+.art-fujia .hide{display:none}
+/* ============ 抓取评论列表 · 方案 D 紧凑行（20261005） ============ */
+/* 首字头像 chip + 楼层号 + 楼主徽章 + 图片评论 72px 缩略；DOM 归一在 main.js */
+.art-fujia-content #comment.kuangxian{padding:0!important}
+.art-fujia-content .comment-list .title{display:flex;align-items:center;gap:8px;padding:13px 18px 11px;border-bottom:1px solid var(--border)}
+.art-fujia-content .comment-list .title .fr{float:none;margin:0}
+.art-fujia-content .comment-list .xb-cmtpills{display:inline-flex;gap:8px;margin-left:auto}
+.art-fujia-content .comment-list .xb-cmtn{font-size:12px;font-weight:400;color:var(--text-3);font-variant-numeric:tabular-nums}
+.art-fujia-content .comment-list .ul{border-top:none}
+.art-fujia-content .comment-list .ul:last-child .li{border-bottom:none}
+.art-fujia-content .comment-list .li{display:flex;align-items:flex-start;gap:10px;padding:10px 18px;border-bottom:1px solid var(--border)}
+.art-fujia-content .comment-list .li:hover{background:var(--surface-2)}
+/* 行悬浮加深后，嵌套回复盒（surface-3）会与行底糊住 → 悬浮时回复盒反白勾边浮出；图片评论行的回复盒独占一行 */
+.art-fujia-content .comment-list .li:hover .c-dianping,.art-fujia-content .comment-list .li:hover .c-yingyong{background:var(--surface);box-shadow:var(--shadow-ring-sm)}
+.art-fujia-content .comment-list .c-neirong.xb-cmtthumbs .c-dianping,.art-fujia-content .comment-list .c-neirong.xb-cmtthumbs .c-yingyong{flex-basis:100%}
+/* 头像：兔子占位图改首字 chip（JS 填字；楼主 primary 实底） */
+.art-fujia-content .comment-list .pingluntoux,.art-fujia-content .comment-list .louzhutoux{float:none;flex:none;width:22px;height:22px;margin-top:4px;background-image:none;background-color:var(--surface-2);color:var(--text-2);border-radius:50%;font-size:10.5px;font-weight:600;line-height:1;display:inline-flex;align-items:center;justify-content:center;overflow:hidden}
+.art-fujia-content .comment-list .pingluntoux.lzav,.art-fujia-content .comment-list .louzhutoux.lzav{background-color:var(--primary);color:var(--on-primary)}
+.art-fujia-content .comment-list .li .clbody{margin-left:0;min-width:0;flex:1}
+/* .cinfo 自带 clearfix → ::after 在 flex 容器里会变成多余 flex 项（同 #content 踩坑），必须消掉 */
+.art-fujia-content .comment-list .cinfo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:0}
+.art-fujia-content .comment-list .cinfo::after{content:none}
+.art-fujia-content .comment-list .clbody .author,.art-fujia-content .comment-list .clbody .author a{font-size:13px}
+.art-fujia-content .comment-list .c-time{margin-left:0;font-size:11.5px;font-variant-numeric:tabular-nums}
+.art-fujia-content .comment-list .c-ip{font-size:11.5px;display:inline-flex;align-items:center;gap:3px}
+.art-fujia-content .comment-list .c-ip::before{content:"";width:9px;height:9px;background:currentColor;opacity:.55;flex:none;
+ -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2'%3E%3Cpath d='M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.6'/%3E%3C/svg%3E") no-repeat center/contain;
+ mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2'%3E%3Cpath d='M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z'/%3E%3Ccircle cx='12' cy='10' r='2.6'/%3E%3C/svg%3E") no-repeat center/contain}
+.art-fujia-content .comment-list .cmt-fl{margin-left:auto;color:var(--text-3);font-size:11px;font-variant-numeric:tabular-nums;flex:none}
+.art-fujia-content .comment-list .c-neirong{margin-top:2px;font-size:13.5px;color:var(--text-body);word-break:break-word}
+.art-fujia-content .comment-list .c-neirong.xb-cmtthumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.art-fujia-content .comment-list .c-neirong.xb-cmtthumbs img{width:72px;height:72px;object-fit:cover;max-width:none;max-height:none;border-radius:var(--radius-sm);border:1px solid var(--border)}
+/*适配相关文章*/
+.xiangguan .new-post .com{display:none}
 /*--分页--*/
-.pagebar{text-align:center;border-top: 1px solid #eee;}
-.pagebar .nav-links{padding: 10px 15px 20px 15px;background: #fff;}
-.pagebar .nav-links a,.pagebar .nav-links label{border: 1px solid #ebebeb;}
-.page-numbers{padding:0 1em;line-height:34px;text-align:center;margin:0 0 0 5px;display:inline-block;background-color:#0084ff;color:#fff}
-.pagebar .nav-links label{padding:0 12px;line-height:34px;text-align:center;margin:0 0 0 5px;display:inline-block;}
-.pagebar .nav-links label input{border: 1px solid #ebebeb;}
-.page-numbers,.pagebar .nav-links label{margin-top:10px}
-a.page-numbers{background:#fff;color:#1a1a1a}
-a.page-numbers:hover{background-color:#0084ff;color:#fff}
-.pagination{cursor:pointer;text-align:center;border-top: 1px solid #eee;padding:8px;}
+.pagebar{text-align:center;border-top:none}
+.pagebar .nav-links{padding:14px 20px 20px;background:transparent}
+.pagebar-tip{text-align:center;padding:14px 20px;color:var(--text-3);font-size:13px}
+.pagebar .nav-links a,.pagebar .nav-links label{box-shadow:var(--shadow-ring-strong);border:none}
+.page-numbers{padding:0 12px;line-height:32px;height:32px;text-align:center;margin:10px 0 0 6px;display:inline-block;background:var(--surface);color:var(--text-2);border-radius:var(--radius-control);font-size:13px}
+.pagebar .nav-links label{padding:0;margin:10px 0 0 8px;line-height:32px;height:32px;text-align:center;display:inline-flex;align-items:center;gap:6px;color:var(--text-3);font-size:13px;box-shadow:none;background:transparent}
+.pagebar .nav-links label input{box-shadow:var(--shadow-ring-strong);border:none;border-radius:6px;color:var(--text);background:var(--surface);height:32px;width:52px;text-align:center;font-size:13px}
+a.page-numbers{background:var(--surface);color:var(--text-2)}
+a.page-numbers:hover{background:var(--surface-2);color:var(--text);text-decoration:none}
+.page-numbers.current{background:var(--primary);color:var(--on-primary);font-weight:500}
+.pagination{cursor:pointer;text-align:center;border-top:1px solid var(--border);padding:8px;color:var(--text-3);font-size:13px}
+/* 加载按钮条/加载中/最后一页提示：末行下边线已作分隔线，去 border-top 防双横线（页码被 IAS 隐藏后） */
+.pagination.xb-loadbtns,.pagination.loading,.pagination.end{border-top:none}
+/*--无限加载双按钮（list.js 注入）--*/
+.xb-loadbtns a{display:inline-block;padding:0 18px;margin:0 6px;height:36px;line-height:36px;border-radius:var(--radius-control);font-size:13px;font-weight:500;text-decoration:none;background:var(--surface);color:var(--text-2);box-shadow:var(--shadow-ring-strong);transition:box-shadow .15s,color .15s}
+.xb-loadbtns a.xb-btn-manual{color:var(--text-2)}
+.xb-loadbtns a:hover{color:var(--text);box-shadow:var(--shadow-ring-pop);text-decoration:none}
 /*========广告位======*/
 .ad a{display:block;line-height:0}
-.ad img{width:100%;display:block;}
+.ad img{width:100%;display:block}
 /*========footer======*/
-.footer{width:100%;background:#252d38;color:#888b98}
-.footer .main{padding:0 1em}
-.footer .intro{margin-bottom:.5em}
-.footer small{color:#6e6f7d}
-.footer small .icp{padding-left:1em;}
-.footer a{color:#6e6f7d}
-.footer a:hover{color:#888b98}
-.footer .title{font-size:18px;padding-bottom:1em}
-.f-about,.f-contact,.f-qr{display:inline-block}
-.f-about{width:46%;padding:3% 0}
-.f-contact{width:40%;padding:3% 10%}
-.f-contact i.iconfont{padding-right:5px}
-.f-qr{width:120px;padding:3% 0}
-.f-qr .img{width:100px;height:100px}
+.footer{width:100%;background:var(--surface-3);border-top:1px solid var(--border);color:var(--text-2)}
+.footer .main{max-width:1280px;margin:0 auto;padding:36px 24px 8px;display:grid;grid-template-columns:minmax(320px,1.5fr) 150px 210px 170px;gap:24px 48px}
+.footer .intro{margin-bottom:.6em;font-size:13px;max-width:460px}
+.footer small{color:var(--text-3);font-size:12px;display:block;padding-bottom:20px}
+/* 备案号独立成行 */
+.footer small .icp{display:block;padding-left:0;margin-top:4px}
+.footer a{color:var(--text-2)}
+.footer a:hover{color:var(--link-hover);text-decoration:none}
+.footer .title{font-size:14px;font-weight:600;padding-bottom:1em;color:var(--text)}
+.f-about,.f-contact,.f-nav,.f-qr{display:block;padding:0 0 24px;width:auto}
+.f-nav a{display:block;font-size:13px;padding:3px 0}
+.f-contact p{font-size:13px}
+.f-contact .xb-ic{padding-right:5px;color:var(--text-3)}
+.f-qr .img{width:120px;height:120px;border-radius:10px;box-shadow:var(--shadow-ring)}
 /*--贴边工具栏--*/
-.toolbar{bottom:80px;position:fixed;right:0;margin-right:15px;cursor:pointer;z-index:50;}
+.toolbar{bottom:80px;position:fixed;right:0;margin-right:30px;cursor:pointer;z-index:50}
 #totop{display:none}
-.toolbar i.iconfont{color:#666;font-size:18px}
-.toolbar .btn{display:block;padding:12px;margin-bottom:5px;width:auto;height:auto;line-height:18px;vertical-align:middle;text-align:center}
-#qr:hover,.btn.qq:hover,.toolbar .btn:hover{background-color:#0084ff}
-#qr:hover a,.btn.qq:hover a,.toolbar .btn:hover i{color:#fff}
+.toolbar .xb-ic{color:var(--text-2);font-size:18px}
+.toolbar .btn{display:block;padding:12px;margin-bottom:8px;width:auto;height:auto;line-height:18px;vertical-align:middle;text-align:center;background:var(--surface);box-shadow:var(--shadow-ring-sm);border-radius:10px}
+#qr:hover,.btn.qq:hover,.toolbar .btn:hover{background:var(--surface)}
+#qr:hover a,.btn.qq:hover a,.toolbar .btn:hover i{color:var(--text)}
+.toolbar .btn:hover{box-shadow:var(--shadow-ring-pop)}
 #qr #qr-img{position:absolute;display:none}
 #qr-img{left:-200px;bottom:5px;max-width:180px;padding:8px}
-/*==========responsive==========*/
+/*========responsive：<=1100px 统一断点块========*/
 @media screen and (max-width:1100px){
-#sidebar{width:100%;}
+/* svh：地址栏收展不影响 vh 值，修复移动端上下滑动时内容跳动 */
+#content{min-height:66vh;min-height:66svh}
+.mb{margin-bottom:10px}
+.mt{margin-top:10px}
+.hidden-sm-md-lg{display:none!important}
+/* 移动端去掉顶栏 backdrop-filter：它会把 fixed 抽屉的包含块变成 header，height:100% 被压成 header 高度 */
+.header{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--surface)}
+/* 移动端顶栏全出血：去圆角与下边距，避免顶部圆角露出页面底色 */
+.header{border-radius:0;margin-bottom:0}
+/* nav2 与后续内容留出间距（无二级筛选页时内容贴太近） */
+.nav2-wrap{margin-bottom:10px}
+/* 移动端高分屏行线用标准 --border（2026-10-05 二轮：随行线降档整体浅一档，不再加深到 --border-strong；移动端不启用更浅的 --row-border 以保高分屏可辨） */
+.article-list{border-bottom-color:var(--border)}
+/* 末行下边线恢复（20261005 用户指认"这些元素的下边框线还需要"）：原在此去掉 .listbox/.rank/.rank-list/.guanzhu/.xb-favblock
+   末行下边线的规则已删除——卡片是 shadow-ring 无实体边框，末行线即列表收口线，与桌面口径一致 */
+#sidebar{width:100%;position:static}
 .h-wrap,.header{height:50px}
-.logo-area{position:absolute;top:50%;left:50%;-webkit-transform:translate(-50%,-50%);-moz-transform:translate(-50%,-50%);-o-transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);padding:8px 0 0 0}
-.logo-area .img{width:80pt}
-.m-nav-btn{display:block;height:0}
+/* mnav C2（20261005）：logo 文档流最左 + 加大 38px（PNG 含透明边，视觉约 25px）；
+   20261005 用户二次指认仍太靠左：左内边距 7px→20px——newlogo.png 字形墨迹距 img 盒左缘
+   29/120，38px 高时≈9.2px，字形视觉左缘≈29px；≤350px 窄屏回退 7px 防溢出（见下方媒体块） */
+.logo-area{position:static;transform:none;padding:0 0 0 20px;margin:0}
+.logo-area .img{height:26px}
+.logo-area .logo-img{height:38px}
 .pc-nav{margin-right:0}
-.responsive-nav{width:55%;height:100%;position:fixed;left:0;top:0;bottom:0;background-color:rgba(0,0,0,.92);overflow-x:hidden;overflow-y:auto;z-index:9;display:none}
+.responsive-nav{width:55%;height:100%;position:fixed;left:0;top:0;bottom:0;background-color:rgba(9,9,11,.98);overflow-x:hidden;overflow-y:auto;z-index:9;display:none}
 .nav-sb{box-shadow:none}
 .m-nav{margin-top:70px;width:100%}
-.m-nav-btn i.iconfont{position:absolute;top:0;left:0;font-size:24px;cursor:pointer;width:50px;height:50px;line-height:50px;text-align:center}
-.m-nav-btn i.active{color:#fff;z-index:10}
 .nav-ul>li{line-height:38px;position:relative;width:100%;display:inherit;margin-right:0;text-align:left}
 .nav-ul>li:first-child{border-top:none}
-.nav-ul>li>a{height:50px;font-size:16px;display:block;text-indent:4vw;color:#fff;line-height:50px;border-bottom:1px solid rgba(255,255,255,.1)}
-.nav-ul>li>a i.fa{font-size:1em;padding-right:3px}
-.nav-ul .active a{color: #007aff;}
-span.toggle-btn{position:absolute;height:50px;width:50px;line-height:50px;color:#aaa;text-align:center;top:0;right:0;cursor:pointer;z-index:100;border-left:1px solid rgba(255,255,255,.1);display:block}
-span.toggle-btn i.iconfont{color:#eee;font-size:18px}
-.m-nav-btn .active:before{content:"\e646"}
+.nav-ul>li>a{height:50px;font-size:15px;display:block;text-indent:4vw;color:#fafafa;line-height:50px;border-bottom:1px solid rgba(255,255,255,.1);border-radius:0}
+.nav-ul>li>a:hover{background:transparent;color:#fff;text-decoration:none}
+/* 抽屉恒为深底：hover/visited 不得继承页面主题的 --link-hover（亮色模式 #52525b 在深底上近黑），
+   触屏点击后 hover 态粘住会把点过的项染黑；子菜单链接同样补防 */
+.responsive-nav a:hover,.responsive-nav a:visited,.m-nav .sub-nav a:hover,.m-nav .sub-nav a:visited{text-decoration:none}
+.m-nav .sub-nav>li>a:hover{color:#fff}
+.nav-ul .active a{color:#fff;font-weight:600}
+span.toggle-btn{position:absolute;height:50px;width:50px;line-height:50px;color:var(--text-3);text-align:center;top:0;right:0;cursor:pointer;z-index:100;display:block;text-indent:0}
+/* 抽屉展开态（20261005 方案 A 现状精修）：父项加粗、箭头旋转 180°、当前页子项绿点。
+   作用域限定抽屉态（m-nav 无 pc-nav 类），PC 端 hover 下拉不受影响 */
+.responsive-nav .m-nav:not(.pc-nav) .toggle-btn .xb-ic{transition:transform .25s var(--ease,ease)}
+.responsive-nav .m-nav:not(.pc-nav) .nav-ul li.open>a{color:#fff;font-weight:600}
+.responsive-nav .m-nav:not(.pc-nav) .nav-ul li.open .toggle-btn .xb-ic{transform:rotate(180deg);color:#e4e4e7}
+.responsive-nav .m-nav:not(.pc-nav) .nav-ul li>a:active{background:rgba(255,255,255,.06)}
+.responsive-nav .m-nav:not(.pc-nav) .sub-nav a.cur{color:#fff;font-weight:600}
+.responsive-nav .m-nav:not(.pc-nav) .sub-nav li{position:relative}
+.responsive-nav .m-nav:not(.pc-nav) .sub-nav a.cur::before{content:"";position:absolute;left:18px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--success)}
+span.toggle-btn .xb-ic{font-size:18px}
 .toggle-btn .active:before{content:"\e61f"}
-.m-nav .sub-nav{background-color:rgba(0,119,230,.8);text-align:left;position:relative;left:0;min-width:100%;z-index:10;font-size:14px;top:0;border-radius:0}
-.m-nav .sub-nav>li{position:relative;text-align:left;line-height:50px;float:left;width: 100%;border-bottom:1px solid rgba(255,255,255,.1)}
+.m-nav .sub-nav{background:transparent;text-align:left;position:relative;left:0;min-width:100%;z-index:10;font-size:14px;top:0;border-radius:0;visibility:visible;opacity:1;transform:none;display:none;padding:0}
+.m-nav .sub-nav>li{position:relative;text-align:left;line-height:50px;float:left;width:100%;border-bottom:1px solid rgba(255,255,255,.08)}
 .sub-nav li:last-child{border-bottom:0 solid transparent}
-.m-nav .sub-nav>li>a{text-indent:1.5em;color:#fff;display:block;height:50px;font-size:16px;text-indent:2em}
+.m-nav .sub-nav>li>a{text-indent:1.5em;color:#fafafa;display:block;height:50px;font-size:15px;text-indent:2em}
 .m-nav .sub-nav>li ul li>a{text-indent:3em}
-.breadcrumb,.breadcrumb2{padding:66px 0 5px 10px!important;color:#888}
-.header .login{position:absolute;top:0;right:50px;z-index:1;height:50px;width:50px;line-height: 50px;display:block;margin-right: 0px;}
-.search-button{position:absolute;top:0;right:0;z-index:1;height:50px;width:50px;display:block}
-.search-button i.iconfont{height:50px;width:50px;line-height:50px;text-align:center;display:block;font-size:24px}
-#search-area{left:0;width:96%;bottom:-70px}
+.breadcrumb{padding:56px 0 5px 10px!important;color:var(--text-3)}
+/* mnav C2（20261005）：右侧 = 夜间/搜索 ghost 槽位 + 登录灰胶囊贴右缘（原"菜单"图标位与抽屉一并下线）
+   登录灰胶囊：surface-2 无描边，游客=「登录」、登录后=绿图标+绿点+「我的」（绿点 ring 用胶囊底色） */
+/* mnav C2 二修（20261005）：右侧三键改 flex 流式排列。初版分别 absolute 锚定（dark right:80 /
+   search right:40 / login right:0），登录胶囊容器宽 104px，搜索槽 40px 在 375-390px 视口下
+   完全落在胶囊范围内（310-350 ⊂ 296-378），搜索键压在胶囊绿图标上——改为文档流内
+   order 重排（DOM=登录/夜间/搜索 → 视觉=夜间/搜索/登录），margin-left:auto 推组靠右 */
+.h-wrap.clearfix::after{content:none}
+.h-wrap>.login{margin-left:0}
+/* 两侧外边距对称（20261006 用户指认）：右侧留白对齐 logo 字形视觉左缘（左距20px+墨迹9.2≈29px） */
+.header .login{position:static;top:auto;right:auto;height:50px;width:auto;line-height:normal;display:flex;align-items:center;flex:none;order:3;margin-right:0;padding:0 29px 0 6px}
+.header .login a em{display:none}
+.search-button{position:static;top:auto;right:auto;height:50px;width:40px;display:block;flex:none;order:2}
+.search-button:hover{background:transparent}
+.search-button .xb-ic{width:22px;height:22px;display:block;margin:14px auto 0;font-size:22px}
+/* SVG 化校准：旧规则 height:50px;width:100% 是 iconfont 行盒（22px 字形在其中居中），
+   SVG 会把图形撑满整个盒（实测 40px）。改回 22px 定宽块 + margin auto，槽位 40×50 内 (50-22)/2=14px 垂直居中 */
+/* mnav C2 三修（20261005）：夜间键胶囊仅电脑端，手机端保持原 ghost 月亮图标位——
+   40px 槽位无底色无文字、不随 html.night 换装（月亮恒显），覆盖基础区胶囊与双态规则；
+   20261005 用户指认颜色：ghost 月亮降为 --text-2 与搜索键一致（原 var(--text) 纯黑过重，桌面胶囊仍 --text 不变） */
+.header .dark-mode{width:40px;height:50px;padding:0;gap:0;background:transparent;border-radius:0;order:1;margin-left:auto;color:var(--text-2)}
+.header .dark-mode .xb-ic{font-size:20px;line-height:50px}
+.header .dark-mode:hover{background:transparent;color:var(--text)}
+.header .dark-mode .dk-lt{display:none}
+html.night .header .dark-mode svg.dk-sun{display:none}
+html.night .header .dark-mode svg.dk-moon{display:inline-block}
+.dark-mode:hover{background:transparent}
+/* 手机端触屏点按不需要 hover/focus 反馈（20261006）：触屏没有悬停语义，
+   点按后 :hover 粘滞变色 + 系统点击高亮框都去掉 */
+.dark-mode,.search-button,.login a{-webkit-tap-highlight-color:transparent}
+.header .dark-mode:hover,.header .search-button:hover{color:var(--text-2);background:transparent;outline:none}
+.dark-mode:focus,.search-button:focus,.dark-mode:focus-visible,.search-button:focus-visible{outline:none}
+/* 搜索面板移动端样式已上移至面板段（fixed 全宽下拉卡） */
 #mainbox{width:100%}
-.article-list .title{font-size:14px;white-space:unset;line-height:1.6}
-.flink{padding:20px 15px 15px 15px;margin-bottom:10px}
+/* 移动端顶栏改实底 + 关闭 blur：backdrop-filter 在移动端滚动重绘会造成 logo/图标抖动 */
+.header{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}
+/* 移动端触控目标 ≥28px（20261010）：行高由 1.6(≈22px) 提到 28px，可点链接高度达标；
+   同时行内边距 9px→6px，使行视觉总高基本不变（28+12 ≈ 22.4+18），不改变列表疏密观感 */
+.article-list{padding:6px 16px}
+.article-list .title{font-size:14px;line-height:28px}
+/* 侧栏零散小链接同样补足 ≥28px 触控高度（20261010）：榜单「查看完整榜单 →」与「更多」 */
+.xb-rk-ftlink,#sidebar .side-hd .xb-gzmore,.page-hd .xb-gzmore{display:inline-flex;align-items:center;min-height:28px}
+/* 评论数徽章移动端不再隐藏（20261005，用户要求手机端右侧显示评论数，与 PC 一致；
+   服务端 post-multi.php 与轮询 listtimechuli 本就输出 .badge.com） */
+.flink{margin-bottom:10px}
 .f-about{width:100%}
-.f-contact{width:100%;padding:3% 0}
-.f-qr{width:100%}
-.art-main{padding:4vw}
+.f-nav{width:50%}
+.f-contact{width:100%;padding:0 0 20px}
+.f-qr{width:100%;float:none;text-align:left}
+.art-main{padding:0}
+article.art-main .art-head{padding:12px 16px 0}
+article.art-main .art-content{margin:12px 16px 0}
+/* 档案头 v3 移动端（20261005 二改）：横向统一 16px 固定（与面包屑/猜你喜欢行同档），升特异性压过文件尾 v3 基础规则 */
+article.art-main .xb-stband{margin:12px 16px 0}
+article.art-main .xb-artfoot{padding:10px 16px 12px}
+.xb-artfoot-btns{gap:8px;margin-bottom:7px}
+.xb-artfoot-btns #article-button,.xb-artfoot-btns #article-button .mochu_us_shoucang{gap:8px}
+.xb-st-verdict{height:28px;padding:0 11px;font-size:12px}
+.xb-st-btn{height:28px;padding:0 11px;font-size:12px}
+.xb-st-fb{flex-basis:100%;margin-left:0}
+.xb-qlink,.xb-artfoot-btns .mochu-us-colluser{height:32px!important;padding:0 11px!important;font-size:12.5px!important;gap:5px}
+.xb-qlink .xb-ic,.xb-artfoot-btns .mochu-us-colluser .xb-ic{font-size:14px}
+.art-main .art-content .art-copyright{margin-left:0;margin-right:0}
+.art-fujia .art-fujia-content,.art-comment-content{padding:14px 16px 16px}
+/* 猜你喜欢行 16px（20261005 用户指认"对不齐直线"）：原 4vw 被 L465 的 #mainbox 高特异性 24px 压制，
+   实渲染 24px 与排行榜行(16px)/面包屑卡(16px)三档边距互不对齐；用同特异性选择器+固定 16px 归齐 */
+#mainbox.article-box .xiangguan .article-list,.xiangguan .article-list{padding-left:16px;padding-right:16px}
+/* 猜你喜欢末行收口线恢复（与排行榜卡一致；桌面仍按 L466 去线防与卡底叠线） */
+#mainbox.article-box .xiangguan .new-post li:last-child{border-bottom:1px dashed var(--border)}
+/* 悬浮工具条改右下角 FAB 位（20261005 用户指认"图标看着重叠了"）：原 bottom:80px/right:30px 悬在列表中段，
+   回到顶部+历史抽屉钮正好压住排行榜行 💬评论/时间徽章；挪到角落仅极小概率擦边 */
+/* 20261008 再改：右下角贴手势条/曲边缘误触区，手机不好点（用户指认榜单页+docs 页）——
+   改右缘、钮列顶锚屏幕下三分之一（top:66.667%，用户二轮指认"不要放中间"）；docs 页 San_Docs
+   .floatbar（common.css v2.21）同右缘续列（本列 top:66.667%、floatbar top:calc(66.667% + 112px)，
+   间距 8px），两处偏移互锁勿单方面改；钮 48px 触控位 */
+.toolbar{top:66.667%;bottom:auto;margin-right:12px}
+.toolbar .btn{padding:15px}
+/* #totop 经 jQuery show() 带内联 display:block，容器 flex 压不过——图标改块级+auto 居中消基线行盒（钮高精确 48） */
+.toolbar .btn .xb-ic{display:block;margin:0 auto}
+#toolbar #xb-favbtn svg{display:block;margin:0 auto}
 .art-main .art-content{font-size:15px}
-.art-main .art-title{font-size:22px}
-.art-main h1,.art-main h2,.art-main h3{font-size:20px}
-.smilebg{max-width:298px;}
+.art-main .art-title{font-size:20px}
+.art-main h1,.art-main h2,.art-main h3{font-size:19px}
+.smilebg{max-width:298px}
 .compost .com-info li{width:100%;padding-right:0%}
 .compost .com-info li .verify{right:0}
-.footer .main{padding:1em}
-.mianbaoxie{font-size: 14px !important;padding: 5px 15px  !important;}
-.art-main img{max-width:85% !important;}
-.comment-list .li{padding:0.6em 0em 0.6em 0em;}
+.footer .main{display:block;padding:20px 16px 0}
+.mianbaoxie{font-size:13px!important;padding:12px 16px!important}
+/* 仅侧栏榜单小时条恢复紧凑内边距；页面上的 .mianbaoxie.tabs（如关注页面包屑行）仍用 12px 16px */
+#sidebar .mianbaoxie.tabs{padding:3px!important}
+.art-main img{max-width:85%!important}
+.comment-list .li{padding:.6em 0}
 
 }
 /*========赚客吧密码框====*/
-.zkb_password_box {padding-bottom: 20px;position: relative;-webkit-box-sizing: border-box;width: 100%;display: -webkit-box;display: -webkit-flex;}
-#zkb_password_input{display:block;-webkit-box-flex:1;flex:1;box-sizing:border-box;max-height:68px;padding:5px;height:40px;line-height:20px;font-size:16px;color:#333;border:1px solid #0084ff;-webkit-appearance:none;border-radius:0;}
-#zkb_password_btn{display:block;box-sizing:border-box;padding:0 25px;background:#0084ff;border:0;color:#FFF;font-size:16px;line-height:32px;-webkit-appearance:none;outline:0;border-radius:0;cursor:pointer;}
-
-
-.dark-mode{cursor:pointer;width:55px;height:60px;line-height:60px;display:block;text-align:center}
-/*暗夜模式*/
-@media only screen and (max-width:1100px) {
-.dark-mode{position:absolute;top:0;left:50px;height:50px;line-height:50px;}
-.night .nav2-ul-li a {color: red !important;}
-}
-.night a:hover{color:#0084ff}
-.night .pc-nav .active,.night .pc-nav .active a{color:#0084ff !important;}
-.dark-mode i.iconfont{font-size:24px}
-.dark-mode,.dark-mode:hover{color:#666;}
-.night{background:#232931!important;color:#edeef0!important;}
-/*字体颜色*/
-.night .art-content p,.night .guanlian .g-biaoti,.night .guanlian,.night .art-fujia-content .c-neirong,.night a,.night a.page-numbers,.night .pagebar .nav-links label,.night .cinfo .author,.night .art-content .tags,.night #mainbox .mianbaoxie,.night #article-button .mochu-us-colluser,.night .ptr--ptr .ptr--text,.night .ptr--ptr .ptr--icon,.night .m-nav-btn i.iconfont,.night .search-button,.night .header .login a,.night .message_content,.night .message_time,.night #aside_about .info,.night .s-input{color:#b4c2e1 !important;}
-.night h1,.night h2,.night h3,.night h4,.night h5,.night h6{color:#999;}
-.night .art-content h1,.night .art-content h2,.night .art-content h3,.night .art-content h4,.night .art-content h5,.night .art-content h6,.night .art-main .art-title,.night #qr:hover i,.night .btn.qq:hover i{color:#fff;}
-.night .art-main .head-info,.night .breadcrumb2,.article-list .content i.iconfont{color: #737a8a;}
-.night .comment-list .c-yingyong p,.night .comment-list .c-dianping p{color:#989898;}
-/*分页符号*/
-.night .page-numbers.current{background:none;box-shadow: 0 0 0 #232931;}
-/*
-/*模块的背景*/
-.night .sb,.night .mianbaoxie,.night .pagebar .nav-links{background:#2b333e !important}
-.night .mochu-us-colluser,.night .guanlian,.night .tip-nav,.night .sort-row .cate-btn{background-color: #2b333e !important;}
-/*背景色*/
-.night .art-content blockquote,.night .pagebar .nav-links label input  {background: #1e232b;}
-.night .footer,.night .header{background:#1e232b;box-shadow: 0 1px 3px rgba(255, 255, 255, 0);border-bottom: 1px solid #2c333c;}
-.night .art-copyright,.night .comment-list .c-yingyong,.night .comment-list .c-dianping,.night .page .prevStop,.night .page .nextStop{background:#232931 !important;}
-.night .comment-list .tishi{background:#1e232b;color: #b4c2e1;}
-.night .ias-trigger-next a,.night a.page-numbers,.night .pagebar .nav-links label,.night .pagebar .nav-links label input {background: #2b333e !important;color: #737a8a;border: 1px solid #3b434f;}
-.night .article-list:hover,.night a.page-numbers:hover{background: #36404d !important}
-.night #mainbox .page>div{border:1px solid #3b434f;background-color: #303b4b;color: #fff;}
-/*导航条*/
-.night .pc-nav li .sub-nav{background:#1e232b;border: 1px solid #39444f !important;box-shadow: 0 3px 14px 0 rgb(25 25 25 / 40%);}
-.night .pc-nav .sub-nav:before{content:"";height:15px;width:15px;background-color:#1e232b;-webkit-transform:rotate(-45deg);-moz-transform:rotate(-45deg);-ms-transform:rotate(-45deg);-o-transform:rotate(-45deg);transform:rotate(-45deg);border-left:0;border-bottom:0;position:absolute;top:-8px;left:44px;border-top:1px solid #39444f;border-right:1px solid #39444f}
-/*框线*/
-.night .art-content .kuangxian,.night .comment-list .ul,.night #commentbox .comment-list .pagebar,.night .art-content .message,.night .pagebar{border-top: 1px solid #39444f;}
-.night .c-title,.night .article-list,.night .mianbaoxie,.night .art-content .guanlian .g-biaoti{border-bottom: 1px solid #39444f !important;}
-.night #txaArticle,.night .compost .com-info li input,.night .art-content .imgreader,.night .art-content .tishi{background:#1e232b !important;color: #69748c;border: 1px solid #3b434f;}
-.night .smile img,.night .compost .com-bar,.night .art-fujia .kuangxian,.night #article-button .mochu-us-colluser,.night .guanlian,.night #reply,.night #commentbox .comment-list,.night .art-content .messages{border: 1px solid #39444f !important}
-/*
-/*时间勋章*/
-.night .badge{background: #565c69 !important;color: #d6d6d6;}
-/*最新文章*/
-.night .new-post .newer{background: #1e1e1e;}
-.night .new-post .newest{background: #141414;}
-/*推送按钮*/
-.night .tuisongswitch {border-radius: 20px;border: 1px solid #39444f;text-align: center;padding: 0em 1em;color: #b4c2e1;cursor: pointer;height: 25px;background-color:#404a58 !important;margin-right:10px;}
-.night .tuisongswitch:hover {background-color:#232932;}
-/*其他*/
-.night .comment-list .li img{border: 0px;}
-.night .smilebg{border: 0px;background: #2b3543;box-shadow: 0 0 0px #f1f1f1}
-.night .art-content .tip{background-color: #14385d;color: #0084ff;font-size: 14px;text-align: center;line-height: 35px;margin-bottom: 15px;border: 1px solid #154c7f;}
-.night .art-content .tip a{color: #0084ff;}
-.night .article-list .title a:visited{color: #6d7892 !important;}
-.night .new-post .top .title a:visited{color: #b4c2e1 !important;}
-
+.zkb_password_box{padding-bottom:20px;position:relative;box-sizing:border-box;width:100%;display:flex}
+#zkb_password_input{display:block;flex:1;box-sizing:border-box;max-height:68px;padding:5px;height:40px;line-height:20px;font-size:14px;color:var(--text);box-shadow:var(--shadow-ring-strong);-webkit-appearance:none;appearance:none;border:none;border-radius:var(--radius-control);background:var(--surface)}
+#zkb_password_btn{display:block;box-sizing:border-box;padding:0 25px;background:var(--primary);border:0;color:var(--on-primary);font-size:14px;line-height:40px;-webkit-appearance:none;appearance:none;outline:0;border-radius:var(--radius-control);cursor:pointer;margin-left:8px}
+/*========夜间模式：令牌已换值，此处只留令牌覆盖不到的第三方部件兜底========*/
+.night .article-list a:visited,.night .article-list a.visited{color:var(--text-read)!important}
+.night .logo-area .img{filter:invert(1) hue-rotate(180deg) brightness(1.05)}
+.night .article-list .title a:visited,.night .article-list .title a.visited{color:var(--text-read)!important}
+.night /* 热帖页列表：末行边线由卡片描边提供，去除行边框避免底部双横线 */
+.listbox .retie-post .article-list:last-child{border-bottom:none}
+/* 榜单页：通栏宽度（与其他页面 主列表+侧栏 合计等宽）；时段条+列表融为一张卡 */
+#content.rank-page-wrap #mainbox{flex:1 1 100%;width:auto}
+#mainbox .listbox.rank{background:transparent;box-shadow:none;margin:0;border-radius:0}
+.night .art-content .tip{background:var(--surface-2);color:var(--text-2);border:none}
+.night .art-content .tip a{color:var(--text)}
+.night .art-content a,.night .art-fujia a{color:var(--link-ext)}
+.night .art-content a:hover,.night .art-fujia a:hover{color:var(--link-ext-hover)}
+.night .art-content .imgreader a,.night .art-content .tishi a,.night .comment-list .tishi a{color:var(--text-2)}
+/*========无障碍增强==========*/
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:var(--radius-control)}
+@media (prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/*==========榜单页双列（rank-hot）==========*/
 @media screen and (min-width:1101px){
-.rank .article-list{width:50%;}
-.rank .article-list:nth-child(odd){float:left;}
-.rank .article-list:nth-child(even){float:right;}
-.rank .article-list:nth-last-child(2){border-bottom: none;padding-bottom: 10px;}
+/* minmax(0,1fr)：允许列宽收缩，防止长标题（nowrap）把列轨道撑出卡片外（1fr=minmax(auto,1fr) 不会收缩） */
+.rank .new-post{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.rank .article-list{width:auto;float:none}
+/* grid 按行填充：末行边线判定——末项必去；次末项仅当条数为偶数（即与末项同行）时去
+   （nth-last-child(2) 且 nth-child(odd)），奇数条数时次末项的边线是行分隔线必须保留 */
+.rank .article-list:last-child{border-bottom:none}
+.rank .article-list:nth-last-child(2):nth-child(odd){border-bottom:none}
+}
+/* 分类热帖页（单列、无分页）：末行下边线去除——.listbox :last-child 去线只在 ≤1100px 媒体块，热帖页无分页会悬空一条线 */
+.xb-catehot-page .article-list:last-child{border-bottom:none}
+/* 侧栏查看更多链接显隐：游客/列表不足 10 条时置 xb-fthide */
+.xb-fthide{display:none}
+.rank-tabs{overflow:auto;white-space:nowrap;-ms-overflow-style:none;overflow-y:hidden;padding:12px 20px 0}
+.rank-tabs::-webkit-scrollbar{display:none}
+/* quick 筛选框（xb-quick-filter）与漏斗按钮已随 20261005 搜索×筛选融合方案 A 下线，
+   移动端筛选入口统一为顶栏搜索键的融合面板（样式见文件尾部融合块） */
+/*==========关注页横排tabs（gz-tabs）/ 下拉手风琴（gz-drop）==========*/
+.gz-tabs{display:inline-block;vertical-align:middle;overflow:auto;white-space:nowrap;-ms-overflow-style:none;overflow-y:hidden;scrollbar-width:none}
+.gz-tabs::-webkit-scrollbar{display:none}
+.gz-tabs a{margin-right:2px;cursor:pointer;display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:7px;font-size:12.5px;color:var(--text-2)}
+.gz-tabs a:hover{color:var(--text);text-decoration:none}
+.gz-tabs a.active{color:var(--text);font-weight:500;background:var(--surface);box-shadow:var(--shadow-ring-sm)}
+/*==========页卡头（page-hd）：主列卡片标题行+通栏横线，对齐侧栏 side-hd 规格==========*/
+.page-hd{display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid var(--border)}
+.page-hd b{font-size:15px;font-weight:600;color:var(--text)}
+.page-hd .sub{font-size:12px;color:var(--text-3)}
+@media screen and (max-width:1100px){.page-hd{padding:12px 16px}}
+/* 关注页 tabs 底色修复：灰底胶囊轨道，激活白钮（与侧栏榜单条一致） */
+.mianbaoxie.tabs .gz-tabs{background:var(--surface-2);border-radius:10px;padding:3px}
+/*==========热帖页卡头（rt-hd）：微博/赚吧/豆瓣/值得买 hot 页标题行+横线，tab 条对齐侧栏榜单观感==========*/
+.mianbaoxie.zuankebatabs{display:block;padding:0!important}
+.mianbaoxie.zuankebatabs .rt-hd{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.mianbaoxie.zuankebatabs .rt-hd b{font-size:15px;font-weight:600;color:var(--text)}
+.mianbaoxie.zuankebatabs .rt-hd .sub{font-size:12px;color:var(--text-3)}
+.mianbaoxie.zuankebatabs .rt-tabs{display:flex;align-items:center;column-gap:2px;margin:12px;background:var(--surface-2);border-radius:10px;padding:3px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.mianbaoxie.zuankebatabs .rt-tabs::-webkit-scrollbar{display:none}
+.mianbaoxie.zuankebatabs .rt-tabs span{flex:0 0 auto;margin-right:2px;background:transparent}
+.mianbaoxie.zuankebatabs .rt-tabs span.active{background:var(--surface);color:var(--text);font-weight:500;box-shadow:var(--shadow-ring-sm)}
+/* 时段条容器去掉基础 .mianbaoxie 的下边线：对齐侧栏排行榜观感（rt-hd 自带分隔线，tab 条下不再画线） */
+.mianbaoxie.zuankebatabs{border-bottom:none}
+/* 关注位默认平铺：仅当一行真的放不下时，模板 gzFit 脚本才加 .gz-collapsed 折叠为下拉 */
+.mianbaoxie.tabs.gz-collapsed .gz-tabs{display:none}
+.mianbaoxie.tabs.gz-collapsed .gz-drop{display:inline-block}
+.gz-drop{position:relative;display:none;vertical-align:middle}
+.gz-drop-btn{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border:none;border-radius:7px;background:var(--surface-2);color:var(--text-2);font-size:12.5px;line-height:1;cursor:pointer}
+.gz-drop-btn .xb-ic{font-size:12px;color:var(--text-3);transition:transform .2s}
+.gz-drop.open .gz-drop-btn .xb-ic{transform:rotate(90deg)}
+.gz-drop-btn .gz-drop-cur{max-width:96px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.gz-drop-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:150px;padding:4px;border-radius:var(--radius-card);background:var(--surface);box-shadow:var(--shadow-ring-lg);z-index:30}
+.gz-drop.open .gz-drop-panel{display:block;animation:gzDropIn .18s ease}
+@keyframes gzDropIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.gz-drop-panel a{display:block;padding:8px 14px;font-size:13px;color:var(--text-2);white-space:nowrap;border-radius:7px}
+.gz-drop-panel a:hover{background:var(--surface-2);color:var(--text);text-decoration:none}
+.gz-drop-panel a.active{color:var(--text);background:var(--surface-2);font-weight:500}
+/*移动端关注页 tab 行：flex 弹性布局，tab 前、按钮跟随、倒计时占行尾*/
+@media (max-width:768px){
+.mianbaoxie.tabs{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;row-gap:2px}
+.mianbaoxie.tabs .gz-drop{margin-right:0}
+.mianbaoxie.tabs a.fr,.mianbaoxie.tabs .shuatime{float:none;margin:0}
+.mianbaoxie.tabs .gz-drop{order:0}
+/* 「筛选」按钮贴行尾；倒计时跟在其后（关注页倒计时 hidden-sm-md-lg 已隐藏，即为最右） */
+.mianbaoxie.tabs .shuatime{order:10;margin-left:0;font-size:12px;color:var(--text-3);white-space:nowrap}
+.pull-right{font-size:12px;color:var(--text-3);white-space:nowrap}
+}
+/*移动端榜单页时段条/赚吧热帖条：白卡 + 灰胶囊（inactive 灰底、active 白底描边），对齐侧栏榜单条观感*/
+@media (max-width:768px){
+.mianbaoxie.zuankebatabs{margin:0}
+.mianbaoxie.zuankebatabs .rt-hd{padding:12px 16px}
+.mianbaoxie.zuankebatabs .rt-tabs{margin:10px 10px 0}
+}
+.cache_time{margin-right:0!important}
+/*==========JS/ajax 渲染板块通用淡入（关注/排行/收藏等异步内容出现不突兀）==========*/
+/* 相关标签卡：48h 热度迷你曲线 */
+.xb-trend{position:relative;margin:0 16px 14px;border-top:1px solid var(--border);padding-top:10px}
+.xb-trend-svg{width:100%;height:40px;display:block}
+.xb-trend-line{fill:none;stroke:var(--success);stroke-width:1.5}
+.xb-trend-area{fill:var(--success);opacity:.12}
+/* 相关标签卡：全站标签热度（Scope=全部+各 own 标签 × 窗口=48小时/30天，服务端直出窗格，sidebar.js 切换） */
+.xb-tagheat{margin:12px 16px 0}
+.xb-tagheat-hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:12px;color:var(--text-3);margin-bottom:6px}
+.xb-tagheat-hd span{font-weight:600;color:var(--text-2)}
+.xb-tagheat-hd em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%}
+.xb-tagheat-tabs{display:inline-flex;gap:2px;background:var(--surface-2);border-radius:8px;padding:2px;max-width:100%;overflow-x:auto}
+.xb-tagheat-tabs span{padding:2px 8px;font-size:11.5px;line-height:1.6;color:var(--text-3);border-radius:6px;cursor:pointer;white-space:nowrap}
+.xb-tagheat-tabs span:hover{color:var(--text-2)}
+.xb-tagheat-tabs span.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow-ring)}
+.xb-tagheat-pane{display:none}
+.xb-tagheat-pane.on{display:block}
+.xb-tagheat-pane .xb-trend{margin:0 0 10px}
+.xb-tagheat-pane .xb-trend:last-child{margin-bottom:2px}
+.xb-trend-dot{fill:var(--success);stroke:var(--surface);stroke-width:1}
+.xb-tagheat-tip{position:absolute;z-index:9;pointer-events:none;background:var(--text);color:var(--surface);font-size:11px;line-height:1.4;padding:3px 7px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-100%)}
+/* 线报状态共治 v2（20261005 档案头：头部灰带内 白底胶囊结论+30px 投票钮+反馈计数）+ 列表灰标角标 */
+.xb-statusbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.xb-st-verdict{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 13px;border-radius:var(--radius-pill);background:var(--surface);box-shadow:var(--shadow-ring);font-size:12.5px;color:var(--text-2);white-space:nowrap}
+.xb-st-verdict .dot{width:8px;height:8px;border-radius:50%;background:var(--text-3);flex:none}
+.xb-st-verdict b{font-weight:600;font-variant-numeric:tabular-nums}
+.xb-st-verdict.ok{color:var(--success-text)}
+.xb-st-verdict.ok .dot{background:var(--success)}
+.xb-st-verdict.bad{color:var(--danger-text)}
+.xb-st-verdict.bad .dot{background:var(--danger)}
+.xb-st-verdict.gone{color:var(--warning-text)}
+.xb-st-verdict.gone .dot{background:var(--warning)}
+.xb-st-votes{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.xb-st-btn{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 13px;border-radius:var(--radius-pill);border:1px solid var(--border-strong);background:var(--surface);color:var(--text-2);font-size:12.5px;cursor:pointer}
+.xb-st-btn em{font-style:normal;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.xb-st-btn:hover{border-color:var(--text-3);color:var(--text)}
+.xb-st-btn.mine{background:var(--primary);border-color:var(--primary);color:var(--on-primary);font-weight:500}
+.xb-st-btn.mine em{color:var(--on-primary);opacity:.75}
+.xb-st-btn.lead.ok{background:rgba(16,185,129,.12);border-color:var(--success);color:var(--success-text)}
+.xb-st-btn.lead.bad{background:rgba(220,38,38,.10);border-color:var(--danger);color:var(--danger-text)}
+.xb-st-btn.lead.gone{background:rgba(245,158,11,.14);border-color:var(--warning);color:var(--warning-text)}
+.xb-st-btn.lead em{color:inherit;opacity:.8}
+.xb-st-fb{font-size:11.5px;color:var(--text-3);margin-left:auto}
+html.night .xb-st-btn.lead.ok{background:rgba(52,211,153,.16)}
+html.night .xb-st-btn.lead.bad{background:rgba(255,112,118,.16)}
+html.night .xb-st-btn.lead.gone{background:rgba(251,191,36,.16)}
+/* 失效/抢完行：仅删除线+小标签，标题保持正常未读色（20261011 用户指定：变灰仅作【已读】唯一标识，已读置灰走 a:visited / .visited） */
+li.article-list.xb-st-dead .title a{text-decoration:line-through}
+.xb-st-flag{display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:4px;background:var(--surface-2);color:var(--text-3);font-size:10.5px;line-height:1;flex:none;order:0}
+/* 热门题材火焰（发布热度透出：48h 内发布且标题命中热标签集合，服务端模板+轮询行 JS 双端注入） */
+.article-list .badge.xb-hot{display:inline-flex;align-items:center;justify-content:center;width:18px;height:16px;padding:0;border-radius:4px;background:var(--warning-bg);flex:none;order:3}
+.article-list .badge.xb-hot .xb-hot-ic{width:11px;height:11px;fill:var(--warning-text)}
+/* 收藏归组弹窗 */
+.xb-grouppick{padding:14px 16px}
+.xb-grouppick-hd{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px}
+.xb-grouppick-it{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:var(--text-2);cursor:pointer}
+.xb-grouppick-it input{accent-color:var(--primary)}
+.xb-grouppick-list{max-height:50vh;overflow-y:auto;overscroll-behavior:contain}
+.xb-grouppick-add{display:block;width:100%;margin-top:8px;padding:7px 0;border:1px dashed var(--border-strong);border-radius:var(--radius-control);background:transparent;color:var(--text-3);font-size:12.5px;cursor:pointer}
+.xb-grouppick-add:hover{color:var(--link);border-color:var(--link)}
+.xb-grouppick-ft{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.xb-grouppick-more{font-size:12px;color:var(--text-3)}
+.xb-grouppick-more:hover{color:var(--link-hover)}
+.xb-grouppick-ok{height:28px;padding:0 16px;border:none;border-radius:var(--radius-badge);background:var(--primary);color:var(--on-primary);font-size:12.5px;cursor:pointer}
+.xb-grouppick-ok:hover{background:var(--primary-hover)}
+
+/*==========mochu 第三方兼容层（zinc 二轮补）：前台可见的旧彩元素收编==========*/
+/* 评论区「请 登录 或 注册 后再发表评论」链接（旧橙 #ea6000 → zinc 文本/悬停） */
+.mochu_ping_pst{color:var(--text)!important}
+.mochu_ping_pst:hover{color:var(--link-hover)!important}
+/* 移动端底部登录条与弹层按钮（绿 #66b91e / 蓝 #4e91d1 → 黑/描边） */
+.mochu_us_foot_login{background-color:rgba(9,9,11,.72)!important;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.mochu_us_logpage,.mochu_us_logreg{background-color:var(--primary)!important;border-radius:var(--radius-control)!important}
+.mochu_us_login_page{border:1px solid var(--border)!important;border-radius:var(--radius-card)!important;box-shadow:0 8px 30px rgba(0,0,0,.12)!important}
+.mochu_us_login_page_title{border-bottom:1px solid var(--border)!important}
+.mochu_us_login_page_button button{background-color:var(--primary)!important;border-radius:var(--radius-control)!important}
+.mochu_us_login_page input{border-color:var(--border)!important}
+/* 弹层标题条（layui 深底保持，分隔线弱化） */
+.layui-layer-mochu .layui-layer-btn{border-top-color:var(--border)!important}
+/*==============================================================
+   用户功能扩展（xbstore.js，2026-10-04）：收藏星标 / 侧栏收藏块 / 浏览历史 / 相关标签
+   规则：仅引用 zinc 令牌，不引入新硬编码色
+   ===============================================================*/
+/*--收藏星标：行 hover 显示，已收藏常亮--*/
+.article-list .xb-fav{order:6;flex:none;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-left:-2px;border-radius:50%;color:var(--text-3);cursor:pointer;opacity:0;transition:opacity .15s,color .15s,background .15s}
+.article-list:hover .xb-fav,.article-list .xb-fav.on{opacity:1}
+.article-list .xb-fav:hover{background:var(--surface-2);color:var(--text)}
+.article-list .xb-fav svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round}
+.article-list .xb-fav.on{color:var(--warning-text)}
+.article-list .xb-fav.on svg{fill:currentColor}
+.article-list .xb-fav.xb-fav-loading{pointer-events:none;opacity:.4}
+#sidebar .article-list .xb-fav{display:none}
+/*--已读行：仅链接变浅色（a:visited --text-3）；整行透明度已取消（20261005 用户要求图标/徽章不降透明度）--*/
+/*--侧栏「我的收藏」块--*/
+/* 我的关注卡头"管理"入口（侧栏 side-hd 与主列 page-hd 共用） */
+#sidebar .side-hd .xb-gzmore,.page-hd .xb-gzmore{margin-left:auto;font-size:12.5px;color:var(--text-3)}
+#sidebar .side-hd .xb-gzmore:hover,.page-hd .xb-gzmore:hover{color:var(--link-hover)}
+/* 公告·新人指引卡（20261011）：右上角关闭按钮（关闭后按最新公告文章指纹重现） */
+#sidebar .xb-notice .side-hd b{font-size:calc(14.5px*var(--fscale))}
+.xb-notice-x{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border:none;border-radius:50%;background:transparent;color:var(--text-3);cursor:pointer;padding:0}
+.xb-notice-x svg{width:14px;height:14px;stroke:currentColor;fill:none}
+.xb-notice-x:hover{background:var(--surface-2);color:var(--text)}
+.xb-notice .xb-empty{min-height:88px}
+/* 收藏分组胶囊（侧栏收藏卡已移除 20261005，现服务双 tab 抽屉的分组行/管理弹窗） */
+.xb-favtab{flex:0 0 auto;padding:3px 10px;border-radius:999px;border:1px solid var(--border);font-size:12px;color:var(--text-3);cursor:pointer;white-space:nowrap}
+.xb-favtab:hover{border-color:var(--border-strong);color:var(--text)}
+.xb-favtab.active{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+/* 未登录空态登录引导（抽屉游客卡/关注卡共用） */
+.xb-favlogin{display:inline-block;margin-top:6px;padding:5px 18px;border-radius:999px;background:var(--primary);color:var(--on-primary);font-size:12.5px;line-height:1.4}
+.xb-favlogin:hover{background:var(--primary-hover);color:var(--on-primary)}
+/* 收藏分组胶囊 + 行管理"···" + 翻页 + 行管理弹窗（xbfavdrawer.js 消费）
+   踩坑：主题行布局用 order 排序（a=1/time.badge=5），按钮必须 order:6 否则被排到行首 */
+.xb-favtab-add{border-style:dashed;padding:3px 8px;color:var(--text-3)}
+.xb-favtab-add:hover{color:var(--link)}
+.xb-favmgr{flex:none;order:6;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:2px;padding:0;border:none;border-radius:6px;background:transparent;color:var(--text-3);opacity:.55;cursor:pointer;transition:opacity .15s,background .15s,color .15s}
+.xb-favmgr svg{width:14px;height:14px;fill:currentColor}
+.xb-favmgr:hover,.xb-favmgr:focus-visible{opacity:1;color:var(--text);background:var(--surface-3)}
+.xb-favpager{display:flex;align-items:center;justify-content:center;gap:12px;padding:6px 0 10px}
+.xb-favpg{width:26px;height:26px;padding:0;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text-2);font-size:14px;line-height:1;cursor:pointer}
+.xb-favpg:hover{border-color:var(--border-strong);color:var(--text)}
+.xb-favpgn{font-size:12px;color:var(--text-3);min-width:32px;text-align:center}
+/* 收藏行管理弹窗（layer type:1，皮肤复用 xb-grouppick-layer） */
+.xb-favpop{padding:14px 16px}
+.xb-favpop-t{font-size:13.5px;font-weight:600;color:var(--text);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:10px}
+.xb-favpop-sec{font-size:12px;color:var(--text-3);margin-bottom:8px}
+.xb-favpop-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.xb-favpop-chip{padding:4px 12px;border-radius:999px;border:1px solid var(--border);font-size:12.5px;color:var(--text-2);cursor:pointer}
+.xb-favpop-chip:hover{border-color:var(--border-strong);color:var(--text)}
+.xb-favpop-chip.on{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.xb-favpop-acts{display:flex;justify-content:flex-end;border-top:1px solid var(--border);padding-top:10px}
+.xb-favpop-del{height:28px;padding:0 14px;border:1px solid var(--danger);border-radius:999px;background:transparent;color:var(--danger);font-size:12.5px;cursor:pointer}
+.xb-favpop-del:hover,.xb-favpop-del.armed{background:var(--danger);color:#fff}
+/*--浏览历史抽屉（方案 D，20261005）：桌面右侧滑出 400px / ≤1100px 底部滑出 78dvh，
+   即时过滤搜索 + 行首分类图标（行沿用 .article-list 白拿 .cg 图标集）；
+   z-index 9998/9999：压过站内 UI（header 99/下拉 1000），让位 layer（19891014）--*/
+.xb-hmask{position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:9998;background:rgba(0,0,0,.32);opacity:0;visibility:hidden;transition:opacity var(--dur) var(--ease),visibility 0s linear var(--dur)}
+.xb-hmask.on{opacity:1;visibility:visible;transition:opacity var(--dur) var(--ease)}
+.xb-hdrawer{position:fixed;top:0;right:0;bottom:0;z-index:9999;width:400px;max-width:100vw;width:min(400px,100vw);display:flex;flex-direction:column;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow-pop);transform:translateX(100%);visibility:hidden;transition:transform var(--dur) var(--ease),visibility 0s linear var(--dur)}
+.xb-hdrawer.on{transform:none;visibility:visible;transition:transform var(--dur) var(--ease)}
+.xhd-hd{flex:none;padding:13px 16px 12px;border-bottom:1px solid var(--border)}
+.xhd-hdrow{display:flex;align-items:center;gap:8px}
+.xhd-t{font-size:15px;font-weight:600}
+.xhd-cnt{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.xhd-x{margin-left:auto;flex:none;width:28px;height:28px;border:none;border-radius:50%;background:transparent;color:var(--text-3);font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.xhd-x:hover{background:var(--surface-3);color:var(--text)}
+.xhd-search{display:flex;align-items:center;gap:7px;height:32px;margin-top:10px;padding:0 12px;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:var(--surface-2);cursor:text}
+.xhd-search:focus-within{border-color:var(--focus-ring);box-shadow:0 0 0 1px var(--focus-ring),0 0 0 4px var(--focus-halo)}
+.xhd-search svg{flex:none;width:13px;height:13px;stroke:var(--text-3);fill:none;stroke-width:2;stroke-linecap:round}
+.xhd-search input{flex:1;min-width:0;border:none;outline:none;background:transparent;color:var(--text);font:400 12.5px/1.4 var(--font)}
+.xhd-search input::placeholder{color:var(--text-3)}
+.xhd-bd{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
+.xhd-bd::-webkit-scrollbar{width:6px}
+.xhd-bd::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px}
+.xhd-bd::-webkit-scrollbar-track{background:transparent}
+.xhd-list{list-style:none;margin:0;padding:0}
+.xb-hdrawer .article-list{padding:var(--row-pad-y) 16px;gap:8px;align-items:center}
+.xb-hdrawer .article-list .title{font-size:13.5px;gap:8px;align-items:center}
+.xb-hdrawer .article-list time.badge{margin-left:auto}
+.xb-hdrawer .article-list .badge.com{margin-left:auto;order:4}
+.xb-hdrawer .article-list .badge.com ~ time.badge{margin-left:6px}
+.xb-hdrawer .xb-hdel{order:6;flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:none;margin-left:2px;border-radius:50%;background:transparent;color:var(--text-3);opacity:.45;cursor:pointer;transition:opacity .15s,color .15s,background .15s}
+.xb-hdrawer .article-list:hover .xb-hdel,.xb-hdrawer .xb-hdel:hover,.xb-hdrawer .xb-hdel:focus-visible{opacity:1}
+.xb-hdrawer .xb-hdel:hover{color:var(--danger-text);background:var(--danger-bg)}
+.xb-hdrawer .xb-hdel svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-linecap:round}
+.xhd-hit{color:var(--danger-text);font-weight:600}
+.xhd-empty{padding:44px 16px;text-align:center;color:var(--text-3);font-size:13px}
+.xhd-ft{flex:none;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border)}
+.xhd-clear{border:none;background:transparent;padding:2px 6px;border-radius:var(--radius-sm);font-size:13px;color:var(--danger-text);cursor:pointer}
+.xhd-clear.arm{background:var(--danger-bg);font-weight:600}
+.xhd-tip{font-size:12px;color:var(--text-3)}
+/* 浏览历史行本身就是"访问过的"，排除主列表的已读置灰（a:visited 灰字 + 点击 visited-row 整行半透明）（20261005） */
+.xb-hdrawer .article-list a:visited,.xb-hdrawer .article-list a.visited,.night .xb-hdrawer .article-list a:visited,.night .xb-hdrawer .article-list a.visited{color:var(--text-body)!important;text-decoration:none}
+.xb-hdrawer li.article-list.visited-row,.xb-hdrawer li.article-list.visited-row:hover{opacity:1}
+@media (max-width:1100px){
+  html.xhd-lock,html.xhd-lock body{overflow:hidden}
+  .xb-hdrawer{top:auto;left:0;right:0;bottom:0;width:100%;max-height:78vh;max-height:78dvh;border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;transform:translateY(100%)}
+  .xb-hdrawer.on{transform:none}
+  .xb-hdrawer::before{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);width:36px;height:4px;border-radius:2px;background:var(--border-strong)}
+  .xhd-hd{padding-top:18px}
+  .xb-hdrawer .xb-hdel{opacity:.55}
+}
+/*--文章相关标签（本文标签=实底，相关=描边胶囊）--*/
+.xb-tagblock .xb-tags{padding:12px 16px 14px}
+.xb-tags{display:flex;flex-wrap:wrap;gap:8px}
+.xb-tag{display:inline-flex;align-items:center;height:26px;padding:0 12px;border-radius:var(--radius-badge);font-size:12.5px;color:var(--text-2);text-decoration:none;background:var(--surface);box-shadow:var(--shadow-ring);transition:color .15s,box-shadow .15s}
+.xb-tag:hover{color:var(--text);text-decoration:none;box-shadow:var(--shadow-ring-pop)}
+.xb-tag.own{background:var(--primary);color:var(--on-primary);box-shadow:none}
+.xb-tag.own:hover{background:var(--primary-hover);color:var(--on-primary)}
+/*--顶栏密度切换按钮（对齐 .dark-mode 规格；移动端顶栏窄，隐藏、cookie 仍生效）--*/
+/*--悬浮工具栏抽屉按钮（xbfavdrawer.js：浏览历史+我的收藏 双 tab；SVG 需显式尺寸，否则撑爆按钮）--*/
+#xb-favbtn svg{width:18px;height:18px;color:var(--text-2)}
+#xb-favbtn:hover svg{color:var(--text)}
+
+/*--复刻抽屉：浏览历史+我的收藏 双 tab 预览（xbfavdrawer.js，20261005）。
+   抽屉壳复用 .xb-hdrawer 全套外观，此处只写差异：头部双 tab、收藏分组胶囊行、
+   两种模式的显隐切换（search/历史列表/收藏容器/底部区）--*/
+.xfd-tabs{display:flex;gap:4px;background:var(--surface-2);border-radius:999px;padding:3px}
+.xfd-tab{font-family:inherit;border:none;background:transparent;padding:4px 12px;border-radius:999px;font-size:13px;line-height:1.4;color:var(--text-3);cursor:pointer;white-space:nowrap}
+.xfd-tab:hover{color:var(--text)}
+.xfd-tab.on{background:var(--primary);color:var(--on-primary);font-weight:600}
+.xfd-chips{display:flex;gap:6px;align-items:center;overflow-x:auto;margin-top:10px;padding-bottom:2px;scrollbar-width:none}
+.xfd-chips::-webkit-scrollbar{display:none}
+.xfd-chips:empty{display:none}
+.xfd-favwrap{display:none}
+.xfd-fthist,.xfd-ftfav{display:flex;align-items:center;justify-content:space-between;flex:1;min-width:0}
+.xfd-favmore{font-size:12.5px;color:var(--text-3);white-space:nowrap}
+.xfd-favmore:hover{color:var(--text)}
+.xb-fdraw.mode-fav .xhd-search{display:none}
+.xb-fdraw.mode-fav .xfd-histlist{display:none}
+.xb-fdraw.mode-fav .xfd-favwrap{display:block}
+.xb-fdraw.mode-fav .xfd-fthist{display:none}
+.xb-fdraw.mode-hist .xfd-chips{display:none}
+.xb-fdraw.mode-hist .xfd-ftfav{display:none}
+.xb-fdraw.xfd-favguest .xfd-chips,.xb-fdraw.xfd-favguest .xfd-ftfav{display:none}
+.xb-fdraw .article-list:hover .xb-favmgr{opacity:1}
+.xb-fdraw .xhd-empty.xfd-guest{padding:0}
+.xb-fdraw .xhd-empty.xfd-guest .xb-empty{padding:40px 24px}
+
+/* ============ 侧栏服务端直出补充（20261004520000） ============ */
+
+/* 榜单页移动端：主栏脱浮占满整行——浮动收缩宽度会被 nowrap 标题的 max-content
+   撑爆视口（横向错版）；榜单行无分页概念，无需保留末行分隔线 */
+@media screen and (max-width:1100px){
+#content.rank-page-wrap #mainbox{width:100%;float:none;min-width:0}
 }
 
-.rank-tabs{overflow: auto;
-    white-space: nowrap;
-    -ms-overflow-style: none;
-    overflow-y: hidden;
+/* ============ 轮询监控指示（20261004560000） ============ */
+/* 绿点+「监控中」：worker 轮询页卡头服务端渲染（meta.php 无轮询页自动移除）；
+   点击/悬浮弹出状态气泡（将在 X 秒后刷新/成功获取新文章/未获取到新文章） */
+.xb-monitor{position:relative;display:none;align-items:center;gap:5px;margin-right:10px;cursor:pointer;-webkit-user-select:none;user-select:none;color:var(--text-3);font-size:12px;white-space:nowrap}
+.xb-monitor.on{display:inline-flex}
+/* 卡头 flex 容器内排到最右（标题/副标/筛选之后），气泡锚定其右缘向左展开 */
+.mianbaoxie .xb-monitor,.page-hd .xb-monitor{order:3;margin-left:10px;margin-right:0}
+.xb-monitor-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex:none;animation:xbMonitorPulse 1.6s ease-out infinite}
+@keyframes xbMonitorPulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,.45)}70%{box-shadow:0 0 0 6px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+.xb-monitor em{font-style:normal}
+/* 特异性须压过关注页卡头 .tabs span（0,1,1）的 inline-flex/height:28px，否则气泡恒显示关不掉 */
+.xb-monitor .xb-monitor-tip{display:none;position:absolute;right:0;top:calc(100% + 6px);z-index:30;height:auto;margin-right:0;padding:6px 10px;border-radius:8px;background:var(--surface);box-shadow:var(--shadow-ring-pop);color:var(--text);font-size:12px;white-space:nowrap}
+.xb-monitor.open .xb-monitor-tip{display:block}
+@media (hover:hover){.xb-monitor:hover .xb-monitor-tip{display:block}}
+
+/* ============ 文章页档案头 v3（20261005 定稿二轮：头部状态带 + 按钮并入版权通栏） ============ */
+/* 状态带：.xb-stband 即 #xb-statusbar-root 槽位本体（xbstore.js 注入 .xb-statusbar），JS 未到/为空时整带隐藏 */
+.xb-stband{margin:12px 24px 0;padding:10px 12px;background:var(--surface-2);border-radius:var(--radius-lg)}
+.xb-stband:empty{display:none}
+/* 版权通栏：按钮行（查看原文+收藏/复制/重新抓取/编辑，34px 图标+文字描边胶囊同款）+ 版权小字，一条浅灰带收纳 */
+article.art-main .art-content{padding-bottom:14px}
+.xb-artfoot{border-top:1px solid var(--border);background:var(--surface-3);padding:10px 24px 12px;border-radius:0 0 var(--radius-card) var(--radius-card)}
+.xb-artfoot-btns{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:0 0 9px}
+.xb-artfoot-btns #article-button{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:0;padding:0;border-top:none;justify-content:flex-start}
+.xb-artfoot-btns #article-button .mochu_us_shoucang{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin:0}
+/* 20261004 深夜修延续：#article-button 全局规则自带 margin-top:20px+padding-top:20px+border-top，条内必须归零 */
+.xb-qlink{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 15px;border-radius:var(--radius-pill);border:1px solid var(--border-strong);background:var(--surface);color:var(--text-body);font-size:13px;text-decoration:none;white-space:nowrap;cursor:pointer}
+.xb-qlink .xb-ic{font-size:15px;color:var(--text-2)}
+.xb-qlink:hover{border-color:var(--text-3);color:var(--text)}
+.xb-artfoot-btns .mochu-us-colluser{display:inline-flex!important;align-items:center;gap:6px;height:34px!important;padding:0 15px!important;margin:0!important;border:1px solid var(--border-strong)!important;border-radius:var(--radius-pill)!important;background:var(--surface)!important;color:var(--text-body)!important;font-size:13px!important;cursor:pointer;box-shadow:none!important;white-space:nowrap}
+.xb-artfoot-btns .mochu-us-colluser .xb-ic{margin:0!important;font-size:15px;color:var(--text-2)}
+.xb-artfoot-btns .mochu-us-colluser:hover{border-color:var(--text-3)!important;color:var(--text)!important;box-shadow:none!important;text-decoration:none}
+.xb-artfoot-btns .mochu-us-bianji a{display:inline-flex;align-items:center;gap:6px;color:inherit;text-decoration:none}
+/* 收藏已选态：绿字浅绿底（"已收藏"），再点取消 */
+.xb-artfoot-btns .mochu-us-coll.mochu-us-buttonhover{border-color:rgba(16,185,129,.45)!important;background:rgba(16,185,129,.12)!important;color:var(--success-text)!important;box-shadow:none!important}
+.xb-artfoot-btns .mochu-us-coll.mochu-us-buttonhover:hover{border-color:rgba(16,185,129,.6)!important;color:var(--success-text)!important}
+html.night .xb-artfoot-btns .mochu-us-coll.mochu-us-buttonhover{background:rgba(52,211,153,.16)!important}
+/* 问答说明独行（豆瓣问答等） */
+.xb-artfoot-note{flex-basis:100%;margin:0;font-size:12px;color:var(--text-2);line-height:1.7}
+.xb-artfoot-note strong{color:var(--text-2);font-weight:500;margin-right:4px}
+.xb-artmeta-copy{padding:0;color:var(--text-3);font-size:11.5px;line-height:1.75}
+/* 头部 meta 行：抓取评论数+本站评论数 */
+.head-info .cmt{font-size:12.5px;color:var(--text-3)}
+.head-info .cmt .icon-comment{margin-right:2px}
+
+/* 顶部导航均布（≥1101px）：导航占满 logo 与右侧动作区之间，板块均匀分布 */
+@media screen and (min-width:1101px){
+  .h-wrap .responsive-nav{flex:1;min-width:0}
+  .h-wrap .pc-nav{flex:1;min-width:0;float:none}
+  .pc-nav .nav-ul{flex:1;justify-content:space-evenly}
+  .pc-nav li>a{padding:0 12px}
 }
-.rank-tabs::-webkit-scrollbar {display:none;}
 
+@media screen and (min-width:1101px) and (max-width:1330px){
+  .pc-nav li>a{padding:0 8px}
+  .pc-nav li .toggle-btn{width:11px}
+}
 
+/* ============================================================
+   方案 D · 双排报头（20261005，仅测试站）
+   行一（sticky .header 60px）：logo + 内嵌搜索 + 用户/夜间图标；
+   行二（.navstrip 42px，不吸附）：频道排全平铺，仅豆瓣/微博/其他区保留下拉。
+   桌面 ≥1101px：隐藏 pc-nav（仍在 DOM，供移动端抽屉复用）与右侧搜索按钮；
+   ≤1100px：频道排整体隐藏，移动端头部与 nav2 一律不变。
+   ============================================================ */
+/* 行一内嵌搜索为桌面专属：基础态整体隐藏（≤1100px），下方媒体块内恢复布局 */
+.h-search{display:none}
+@media screen and (min-width:1101px){
+  .header{margin-bottom:0}
+  /* 行一统一搜索条（五轮）：flex:1 占满 logo 与图标间空位；三段输入各自成盒（surface 底
+     +边框），分段宽度按用户标注图比例 342:206:180（≈1.9:1.14:1）分配，间隙 12px；
+     所有页面单一形态：q 关键词 + kp 屏蔽 + mip/mxp 价格 一并提交 /search.php */
+  .h-search{display:block;position:relative;flex:1 1 auto;min-width:0;margin:0 14px 0 24px}
+  .h-wrap .responsive-nav{display:none}
+  .header .search-button{display:none}
+  #search-area{display:none!important}
+  .h-wrap>.login{margin-left:0}
+  .h-search .hs-form{position:relative;display:flex;align-items:center;height:44px;padding:0 7px;gap:12px;background:var(--surface-2);border-radius:var(--radius-pill);transition:box-shadow .15s}
+  .h-search.h-qf--on .hs-form{box-shadow:var(--shadow-ring-strong)}
+  .hq-seg{display:flex;align-items:center;gap:4px;height:30px;padding:0 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-control);min-width:0;transition:border-color .15s,box-shadow .15s}
+  .hq-seg:focus-within{border-color:var(--focus-ring);box-shadow:0 0 0 3px var(--focus-halo)}
+  .hq-seg--k{position:relative;flex:1.9 1 0;padding-left:30px}
+  .hq-seg--kp{flex:1.14 1 0}
+  .hq-seg--price{flex:1 1 0}
+  .hq-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text-3);font-size:15px;line-height:1}
+  .hs-input{flex:1 1 0;min-width:0;height:28px;border:none;background:transparent;padding:0;font-size:13px;color:var(--text)}
+  .hs-input::placeholder{color:var(--text-3)}
+  .hs-input:focus{outline:none}
+  .hq-lb{flex:none;font-size:12px;color:var(--text-3);white-space:nowrap;cursor:pointer}
+  .hq-lb:hover{color:var(--text-2)}
+  .hq-input{flex:1 1 0;min-width:0;width:auto;height:26px;border:none;background:transparent;padding:0;font-size:13px;color:var(--text)}
+  .hq-input--num{text-align:center}
+  .hq-input::placeholder{color:var(--text-3)}
+  .hq-input:focus{outline:none}
+  .hq-sep{flex:none;color:var(--text-3);font-size:12px}
+  .hq-submit{flex:none;height:30px;padding:0 18px;border:none;border-radius:var(--radius-pill);background:var(--primary);color:var(--on-primary);font-size:13px;line-height:1;cursor:pointer;transition:background .15s,transform .1s}
+  .hq-submit:hover{background:var(--primary-hover)}
+  .hq-submit:active{transform:translateY(1px)}
+  .hq-clearbtn{flex:none;height:30px;padding:0 14px;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:transparent;color:var(--text-2);font-size:13px;line-height:1;cursor:pointer;transition:background .15s,color .15s}
+  .hq-clearbtn:hover{background:var(--surface);color:var(--text)}
+  .hs-panel{position:absolute;top:calc(100% + 8px);left:0;right:auto;z-index:96;width:340px;padding:12px 14px;background:var(--surface);border-radius:var(--radius-card);box-shadow:var(--shadow-ring-lg);display:none}
+  .hs-panel.open{display:block}
+  /* 行一已承接搜索+屏蔽+价格：内容区筛选卡与漏斗按钮桌面隐藏（移动端 ≤1100px 原样保留） */
+  /* 监控中贴右（20261015：推送开关按钮已下线，:has 兜底规则一并删除；
+     监控中需自带 margin-left:auto 兜底；有推送按钮时回退固定间距保持 [推送][监控中] 成组） */
+  .mianbaoxie .xb-monitor,.page-hd .xb-monitor{margin-left:auto}
 
+  .navstrip{background:var(--surface);border-bottom:1px solid var(--border);margin-bottom:16px}
+  /* 勿给 .ns-wrap 加 overflow-x:auto——overflow-x:auto 会把 overflow-y 强制为 auto，裁掉 .ns-dd 垂直溢出；
+     频道排总宽约 830px，≥1101px 无需横滑（20261007 二轮：本站四项改挂"首页"下拉，平铺仍 16 项，
+     曾试过的 20 项压缩 12px/5px+窄口换行档随平铺方案一并回退） */
+  .ns-wrap{display:flex;align-items:stretch;height:42px;padding:0 10px}
+  .ns-ul{display:flex;align-items:stretch;list-style:none;margin:0;padding:0}
+  .ns-ul li{position:relative;display:flex;align-items:stretch}
+  .ns-ul .t{display:inline-flex;align-items:center;gap:4px;padding:0 10px;font-size:13px;color:var(--text-2);white-space:nowrap;text-decoration:none;position:relative}
+  .ns-ul .t:hover{color:var(--text);text-decoration:none}
+  .ns-ul .t.on{color:var(--text);font-weight:600}
+  .ns-ul .t.on::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;border-radius:1px 1px 0 0;background:var(--primary)}
+  /* 下拉箭头绝对定位在右侧内边距，不再为 12 个新增频道项额外撑宽导航行；
+     hover 时仍旋转，紧凑视口也保持单行。 */
+  .ns-ul .t.has-dd{padding-right:10px}
+  .ns-ul .t.has-dd .xb-ic{position:absolute;right:2px;top:50%;width:8px;height:8px;font-size:8px;color:var(--text-3);line-height:1;transform:translateY(-50%);transition:transform .15s var(--ease)}
+  .ns-ul li:hover .t.has-dd .xb-ic{transform:translateY(-50%) rotate(180deg)}
+  .ns-dd{position:absolute;top:calc(100% + 6px);left:0;z-index:95;min-width:158px;padding:6px;background:var(--surface);border-radius:var(--radius-card);box-shadow:var(--shadow-ring-lg);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .15s var(--ease),transform .15s var(--ease),visibility 0s linear .22s}
+  .ns-dd::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}
+  .ns-ul li:hover>.ns-dd,.ns-ul li:focus-within>.ns-dd{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+  /* 末端频道向左展开，避免“爱Q生活网/免费赚钱中心”等下拉撑出视口。 */
+  .ns-ul li:nth-last-child(-n+4)>.ns-dd{left:auto;right:0}
+  .ns-dd a{display:flex;align-items:center;height:32px;padding:0 10px;border-radius:7px;font-size:13px;color:var(--text-2);white-space:nowrap;text-decoration:none}
+  .ns-dd a:hover{background:var(--surface-2);color:var(--text);text-decoration:none}
+  .ns-dd-h{padding:6px 10px 2px;font-size:11px;color:var(--text-3)}
+  .ns-dd-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 8px;min-width:340px;right:auto;left:-120px}
+}
+
+/* 频道排 16 项：1101–1290px 紧区间再收一档字号与间距 */
+@media screen and (min-width:1101px) and (max-width:1290px){
+  .ns-ul .t{padding:0 8px;font-size:12.5px}
+  .ns-ul .t.on::after{left:8px;right:8px}
+}
+@media screen and (max-width:1100px){
+  .navstrip{display:none}
+}
+/* .search-hot 自带 border-top（移动端面板内位于表单下方），桌面面板内热词块是首元素，去掉 */
+.hs-panel .search-hot{margin-top:0;padding-top:0;border-top:none}
+/* 抽屉行评论徽章豁免 ≤1100px 的 .title .com 隐藏规则（历史/收藏行 0 也显示） */
+.xb-hdrawer .article-list .title .com,.xb-hdrawer .article-list .title .rmb{display:inline-flex}
+
+/* ============================================================
+   swiper autoHeight 防首屏跳变（20261005，页面加载抖动修复）
+   根因：SSR 侧栏卡首帧 .swiper-wrapper 为 flex 行，容器高度=三窗最高窗；
+   ~0.4s 延迟 JS 初始化 swiper(autoHeight) 后容器收敛到当前窗高度，
+   卡片下方内容整体跳动（实测 排行卡 424→298，关注卡同机理）。
+   修法：初始化前（容器内还没有 swiper 挂的 .swiper-slide-active 类）
+   把非首窗格绝对定位+隐藏，首帧高度即当前窗高度；init 瞬间 swiper 同步
+   加 -active 类并内联写入 autoHeight 高度，两态几何一致，无可感知跳变。
+   初始化因任何原因未发生时仅展示首窗（tab 本就无法切换），无副作用。
+   ============================================================ */
+.rank-list .swiper:not(.xb-sw-init) .swiper-slide:not(:first-child),
+.guanzhu .swiper:not(.xb-sw-init) .swiper-slide:not(:first-child),
+.xb-hots-swiper:not(.xb-sw-init) .swiper-slide:not(:first-child),
+#mainbox .xiangguan .swiper:not(.xb-sw-init) .swiper-slide:not(:first-child){position:absolute;top:0;left:0;width:100%;visibility:hidden}
+
+/* swiper 量窗格高时临时关掉行级 content-visibility（20261016d，见 script/app/xb-swiper.js _heightOf）
+   行被引擎「跳过布局」时 rect 高是占位/记忆值（实测 59），而真实行高是单行 41.4 / 两行 63.8 混排
+   → 容器像素高被钉错（内容被裁或底部留白）。测量瞬间挂 .xb-cv-off 量真值，量完即摘。 */
+.xb-cv-off .article-list{content-visibility:visible}
+
+/* ============ 文章页底部按钮行移动端（20261005；二轮：按按钮个数自适应档位） ============ */
+/* 文章页状态条投票钮自适应拉伸（20261006）：有效/失效/抢完均分"待反馈"胶囊右侧剩余宽度 */
+@media (max-width:768px){
+.xb-statusbar .xb-st-votes{flex:1 1 auto;display:flex}
+.xb-statusbar .xb-st-btn{flex:1 1 0;justify-content:center}
+}
+/* 按钮内尺寸全部 em 化（基准字号挂 .xb-artfoot-btns）。档位由服务端按实际渲染个数直出：
+   ≤3 个钮加 xb-btfull=全称文案+14px 放大档；4~5 个=两字文案+12px 紧凑档；main.js fitArtBtns 只做放不下时的等比缩小兜底 */
+.xb-artfoot-btns .xb-bs{display:none}
+@media (max-width:768px){
+.xb-artfoot-btns{justify-content:center;font-size:12px;gap:.67em}
+.xb-artfoot-btns #article-button,.xb-artfoot-btns #article-button .mochu_us_shoucang{gap:.67em}
+.xb-artfoot-btns .xb-bt{display:none}
+.xb-artfoot-btns .xb-bs{display:inline}
+.xb-artfoot-btns .xb-qlink,.xb-artfoot-btns .mochu-us-colluser{height:2.7em!important;padding:0 .8em!important;font-size:1em!important;gap:.4em!important}
+.xb-artfoot-btns .xb-qlink .xb-ic,.xb-artfoot-btns .mochu-us-colluser .xb-ic{font-size:1.1em!important}
+.xb-artfoot-btns .mochu-us-bianji a{gap:.4em}
+/* 全称放大档（≤3 个钮）：整行升 14px、显示全称；排在上面的两字规则之后才能覆盖 */
+.xb-artfoot-btns.xb-btfull{font-size:14px}
+.xb-artfoot-btns.xb-btfull .xb-bt{display:inline}
+.xb-artfoot-btns.xb-btfull .xb-bs{display:none}
+/* 按钮自适应拉伸占满行宽（20261006 三轮：真等宽）：#article-button/.mochu_us_shoucang
+   display:contents 拍平嵌套，全部按钮成为按钮行的同级 flex 项，flex:1 1 0 + 行级统一
+   gap → 任意钮数（3/4/5）逐钮像素等宽（嵌套容器 + grow 配比方案算不平内外两层 gap，
+   实测"原文"比其余钮宽 26px，用户指认作废）；min-width:0 防 min-content 托底，
+   放不下时 min-content 兜底换行、fitArtBtns 以换行检测收敛（见 main.js）；
+   版权说明行独占整行不参与拉伸。#article-button 仅剩 data-* 挂点，无 JS 读其盒模型 */
+.xb-artfoot-btns .xb-artfoot-note{flex:1 1 100%}
+/* 注意带 #article-button 前缀到 ID 特异性（1,1,0）——1159/1160 的旧容器规则同为 (1,1,0)，靠后位生效；
+   漏掉内层 .mochu_us_shoucang 时它会以 content 尺寸参与换行，"原文"独占一行（已实测踩坑） */
+.xb-artfoot-btns #article-button,.xb-artfoot-btns #article-button .mochu_us_shoucang{display:contents}
+.xb-artfoot-btns .xb-qlink,.xb-artfoot-btns .mochu-us-colluser,.xb-artfoot-btns .mochu-us-bianji a{flex:1 1 0;justify-content:center;display:flex;min-width:0}
+.xb-artfoot-btns .mochu-us-bianji a{flex:none;width:100%}
+}
+
+/* ============ 文章页底部按钮行（20261005 三轮定稿）：默认白底黑字，已收藏变黑底白字 ============ */
+/* 仅重定义已收藏态（mochu-us-buttonhover）：--primary 黑底白字加粗；未收藏按钮维持既有白胶囊（1182-1188）不动；
+   夜间 --primary 反转为白底黑字（1192 的夜绿底 (0,3,1) 由下方同名更高优先级规则压过） */
+.xb-artfoot-btns .mochu-us-coll.mochu-us-buttonhover{background:var(--primary)!important;border-color:var(--primary)!important;color:var(--on-primary)!important;font-weight:500}
+.xb-artfoot-btns .mochu-us-coll.mochu-us-buttonhover .xb-ic{color:var(--on-primary)!important}
+.xb-artfoot-btns .mochu-us-coll.mochu-us-buttonhover:hover{background:var(--primary-hover)!important;border-color:var(--primary-hover)!important;color:var(--on-primary)!important;box-shadow:none!important}
+html.night .xb-artfoot-btns .mochu-us-coll.mochu-us-buttonhover{background:var(--primary)!important;border-color:var(--primary)!important;color:var(--on-primary)!important}
+
+/* 三轮补规则已删（20261005 晚用户要求按钮加回对应图标，markup 内 SVG 本就存在，恢复显示即可） */
+/* ============ 图标体系（20261005）：Lucide（ISC）+ simple-icons（CC0）SVG sprite use 替代 iconfont ============ */
+/* sprite 内联于 header.php body 开头；图标=1em 跟随字号，currentColor 跟随文字色，夜间零适配 */
+.xb-ic{box-sizing:content-box;width:1em;height:1em;display:inline-block;vertical-align:-.14em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* 移动端搜索键开合双态（search/close 双 use，navigation.js 挂 .xb-on） */
+.search-button .xb-ic-close{display:none}
+.search-button.xb-on .xb-ic-search{display:none}
+.search-button.xb-on .xb-ic-close{display:inline}
+
+/* ===== SEO 审计（20261005）：语义化 h2/main 视觉对齐 + 文章更新时间 ===== */
+main{display:block}
+.page-hd h2{font-size:15px;font-weight:600;color:var(--text)}
+.mianbaoxie.zuankebatabs .rt-hd h2{font-size:15px;font-weight:600;color:var(--text)}
+.art-main .head-info .updated{font-size:12.5px;color:var(--text-3)}
+
+/* logo 左距窄屏回退（20261005 二次指认后 7→20px）：≤350px 回退 7px——320px 视口顶栏
+   logo+三键合计约 315px 仅 5px 富余，20px 左距会溢出约 8px */
+@media (max-width:350px){.logo-area{padding-left:7px}.header .login{padding-right:16px}}
+
+/* ============================================================
+   搜索×筛选融合方案 A（20261005）v20261005999940
+   ① 已生效条件 chips（.xb-conds）：列表卡头 / 移动端融合面板 / 桌面焦点面板三处共用，
+      × 为真实链接（服务端直出，零 JS）
+   ② 移动端融合面板（#search-area 内 .fp-form，仅 ≤1100px 可见；桌面已有
+      #search-area{display:none!important}）＝chips + 关键词 + 屏蔽/价格 + 搜索/清空
+      + 生效范围 + 热词 + 价格说明
+   ③ 搜索键条件徽标点（.qb-dot）：任一搜索参数非空时服务端直出
+   ④ 桌面焦点面板（#hs-panel）升级：chips + 生效范围（热词区块沿用 .search-hot*）
+   ============================================================ */
+/* 搜索键徽标点（.qb-dot）20261006 应用户要求移除 */
+.xb-conds{display:flex;flex-wrap:wrap;gap:6px}
+.xb-cond{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 5px 0 9px;border-radius:var(--radius-pill);background:var(--surface-2);font-size:12px;color:var(--text)}
+.xb-cond i{font-style:normal;color:var(--text-3)}
+.xb-cond-x{display:flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;color:var(--text-3);flex:none}
+.xb-cond-x:hover{background:var(--surface-hover);color:var(--text);text-decoration:none}
+.xb-cond-x .xb-ic{font-size:9px}
+/* 列表卡头条件行（.mianbaoxie 的下一个兄弟节点，卡内标题行与列表行之间）；20261006 加下边距 */
+#mainbox>.xb-conds{padding:10px 16px 12px}
+/* 生效范围提示（融合面板与桌面焦点面板共用） */
+.fp-scope{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--text-2);background:var(--surface-2);border-radius:var(--radius);padding:7px 10px}
+.fp-scope .xb-ic{width:13px;height:13px;flex:none;color:var(--text-3)}
+/* 融合面板（.fp-form） */
+.fp-form{display:flex;flex-direction:column;text-align:left}
+.fp-form .xb-conds{margin-bottom:12px}
+.fp-kwrap{position:relative}
+.fp-kwrap>.xb-ic{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--text-3);pointer-events:none}
+.fp-input{width:100%;height:40px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface);padding:0 12px 0 34px;font-size:16px;color:var(--text);transition:border-color var(--dur-fast),box-shadow var(--dur-fast)}
+.fp-input:focus{outline:none;border-color:var(--border-strong);box-shadow:var(--shadow-ring-pop)}
+.fp-input::placeholder{color:var(--text-3)}
+.fp-sub{display:flex;gap:10px;margin-top:10px}
+.fp-fd{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--text-3);min-width:0;white-space:nowrap}
+.fp-fd--kp{flex:1.2 1 0}
+.fp-in2{height:36px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface);padding:0 10px;font-size:16px;color:var(--text);min-width:0;width:100%;transition:border-color var(--dur-fast),box-shadow var(--dur-fast)}
+.fp-in2:focus{outline:none;border-color:var(--border-strong);box-shadow:var(--shadow-ring-pop)}
+.fp-in2::placeholder{color:var(--text-3)}
+.fp-fd--pr{flex:none}
+.fp-in2--num{width:52px;text-align:center;padding:0 6px}
+.fp-sep{color:var(--text-3);font-size:12px}
+.fp-acts{display:flex;gap:9px;margin-top:12px}
+.fp-go{flex:1;height:36px;border:none;border-radius:var(--radius-pill);background:var(--primary);color:var(--on-primary);font-size:13.5px;font-weight:var(--fw-500);line-height:1;cursor:pointer;transition:background var(--dur-fast),transform .1s}
+.fp-go:hover{background:var(--primary-hover)}
+.fp-go:active{transform:translateY(1px)}
+.fp-clear{flex:none;height:36px;padding:0 16px;border:1px solid var(--border-strong);border-radius:var(--radius-pill);background:transparent;color:var(--text-2);font-size:13px;line-height:1;cursor:pointer;transition:background var(--dur-fast),color var(--dur-fast)}
+.fp-clear:hover{background:var(--surface-2);color:var(--text)}
+.fp-hot{margin-top:13px;padding-top:11px;border-top:1px solid var(--border)}
+.fp-note{display:flex;align-items:flex-start;gap:6px;margin:10px 0 0;font-size:11.5px;color:var(--text-3);line-height:1.6}
+.fp-note .xb-ic{width:13px;height:13px;flex:none;margin-top:2px}
+/* 桌面焦点面板升级：chips / scope 在热词区块之外（.search-hot 自带 border-top 分隔） */
+#hs-panel .xb-conds{margin-bottom:2px}
+#hs-panel .fp-scope{margin-top:12px}
+/* 夜间：容器底色变化由令牌承担，无需额外规则 */
+
+/* 移动端卡头「监控中」贴右（20261006 用户要求；bdts 推送按钮仅 PC 渲染，无成组互斥问题） */
+@media (max-width:1100px){
+.mianbaoxie .xb-monitor,.page-hd .xb-monitor{margin-left:auto}
+}
+/* xb-statusbar v20261006002000：投票钮只留 有效/失效 两钮（抢完下线），防数字增长后钮内文字折行 */
+.xb-st-btn{white-space:nowrap}
+
+/* ============================================================
+   v20261006006000 · 多主题切换菜单（20261006，测试站先行）
+   触发键=header #xbThemeBtn（.dark-mode 月亮胶囊）；菜单 fixed 定位由 JS 锚定按钮下缘。
+   勾选态 .on 由 dark-mode.js xbThemeSyncMenu() 客户端画（页面缓存下 markup 固定）。
+   ============================================================ */
+.xb-thememenu{position:fixed;z-index:9999;width:250px;max-height:calc(100vh - 90px);max-height:calc(100dvh - 90px);overflow-y:auto;background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-pop);padding:var(--sp-2);-webkit-tap-highlight-color:transparent}
+.xb-tm-opt{display:flex;align-items:center;gap:var(--sp-3);width:100%;padding:9px var(--sp-3);border:0;background:transparent;border-radius:var(--radius);cursor:pointer;font-family:inherit;font-size:var(--fs-13);color:var(--text-body);text-align:left;transition:background var(--dur-fast) var(--ease)}
+.xb-tm-opt:hover{background:var(--surface-2)}
+.xb-tm-opt.on{background:var(--surface-2);color:var(--text);font-weight:var(--fw-500)}
+.xb-tm-sw{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:var(--shadow-ring-sm)}
+.xb-tm-cn{flex:none}
+.xb-tm-en{font-size:11px;color:var(--text-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.xb-tm-opt.on .xb-tm-en{color:var(--text-2)}
+.xb-tm-ck{margin-left:auto;color:var(--primary);font-weight:var(--fw-700);opacity:0;font-size:13px;line-height:1}
+.xb-tm-opt.on .xb-tm-ck{opacity:1}
+/* 短纯文正文下加外边距（20261006 用户指认：内容<30字且无图时按钮行贴太密；post-single.php 服务端判定 xb-shortpad）；
+   特异性须压过 ≤1100px 块内 article.art-main .art-content 的 margin 简写（含 margin-bottom:0） */
+article.art-main .art-content.xb-shortpad{margin-bottom:16px}
+
+/* ===== PWA 安装提示条（20261007） ===== */
+.xb-pwa-tip{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(90px);opacity:0;z-index:99999;background:var(--surface,#fff);border:1px solid var(--border,#e4e4e7);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.16);padding:10px 14px;display:flex;align-items:center;gap:12px;font-size:13px;transition:transform .3s ease,opacity .3s ease;max-width:calc(100vw - 24px);color:var(--text,#18181b)}
+.xb-pwa-tip.on{transform:translateX(-50%) translateY(0);opacity:1}
+.xb-pwa-tip .xb-pwa-ic{font-size:22px;line-height:1}
+.xb-pwa-tip .xb-pwa-tx{line-height:1.4;white-space:nowrap}
+.xb-pwa-tip .xb-pwa-tx small{display:block;color:var(--text-2,#71717a);font-size:11px}
+.xb-pwa-tip button{cursor:pointer;border:none;font:inherit}
+.xb-pwa-tip .xb-pwa-ok{padding:6px 16px;border-radius:999px;background:var(--primary,#18181b);color:var(--on-primary,#fff);font-size:12.5px;font-weight:500}
+.xb-pwa-tip .xb-pwa-ok:hover{background:var(--primary-hover,#27272a)}
+.xb-pwa-tip .xb-pwa-no{background:none;color:var(--text-2,#71717a);font-size:16px;padding:2px 4px}
+@media (max-width:400px){.xb-pwa-tip{gap:9px;padding:9px 11px}.xb-pwa-tip .xb-pwa-tx small{display:none}}
+
+/* ===== 评论点赞（20261007） ===== */
+.xb-cmtlike{display:inline-flex;align-items:center;gap:4px;margin-left:10px;font-size:12px;color:var(--text-2,#71717a);cursor:pointer;-webkit-user-select:none;user-select:none;vertical-align:middle}
+.xb-cmtlike .xb-cl-ico{width:13px;height:13px;display:block}
+.xb-cmtlike em{font-style:normal;line-height:1}
+.xb-cmtlike:hover{color:var(--primary,#18181b)}
+.xb-cmtlike.on{color:var(--primary,#18181b);font-weight:500}
+.xb-cl-hot{font-style:normal;color:var(--warning-text,#d97706);font-size:11px;margin-left:2px}
+
+/* ===== 线报类型徽章（AI 打标，20261007） ===== */
+.badge.xb-aitag{background:var(--tint-info,rgba(59,130,246,.1));color:var(--info,#2563eb)}
+html.night .badge.xb-aitag{background:rgba(96,165,250,.15);color:#93c5fd}
+
+/* ===== navstrip 17 项（20261008 加线报酷）：1101-1160px 再收一档防溢出 =====
+   实测 17 项 @12.5px/pad8 = 1130px，1101px 视口容器可用 1081px 溢出 29px；
+   12px/pad6 实测约 1028px 单行容纳。勿改 1290 档（1161-1290 区间 12.5 档仍够）。 */
+@media screen and (min-width:1101px) and (max-width:1160px){
+  .ns-ul .t{padding:0 6px;font-size:12px}
+  .ns-ul .t.on::after{left:6px;right:6px}
+}
+
+/* ===== 字号档位 + 列表标题行数（20261009） =====
+   字号：cookie xb_fs（''=标准 / s 小号 / l 大号 / xl 特大号）→ html.xb-fs-*；单一缩放系数 --fscale，
+   各消费规则 font-size:calc(原px * var(--fscale))，标准档 =1 与原值逐像素一致（换值不换名）。
+   首绘防跳变：class 由 header.php head 内联脚本挂（KSC 页面缓存下同样生效）；切换与菜单勾选在 dark-mode.js。
+   不缩放项：fp-input/fp-in2（16px 防 iOS 聚焦缩放）、文章底部按钮行（fitArtBtns JS 自适应控字号）、logo。 */
+html{--fscale:1}
+html.xb-fs-s{--fscale:.93}
+html.xb-fs-l{--fscale:1.1}
+html.xb-fs-xl{--fscale:1.2}
+/* 基准 / 文章页 */
+body,button,input,select,textarea{font-size:calc(14px*var(--fscale))}
+.art-main .art-title{font-size:calc(22px*var(--fscale))}
+.art-main .art-content{font-size:calc(15px*var(--fscale))}
+.art-main .head-info{font-size:calc(13px*var(--fscale))}
+.head-info .cmt,.art-main .head-info .updated{font-size:calc(12.5px*var(--fscale))}
+.art-content .art-copyright{font-size:calc(13px*var(--fscale))}
+/* 列表行与徽章 */
+.article-list .title{font-size:calc(14px*var(--fscale))}
+.xb-hdrawer .article-list .title{font-size:calc(13.5px*var(--fscale))}
+.badge{font-size:calc(12px*var(--fscale))}
+.article-list .badge-cat,.article-list .istop{font-size:calc(11px*var(--fscale))}
+/* 卡头标题 / 面包屑 / 副标 */
+#sidebar .side-hd b,.page-hd b,.page-hd h2,.mianbaoxie .mbx-title,.flink .c-title,.xhd-t,.comment-list .title,.mianbaoxie.zuankebatabs .rt-hd b,.mianbaoxie.zuankebatabs .rt-hd h2{font-size:calc(15px*var(--fscale))}
+.mianbaoxie{font-size:calc(14px*var(--fscale))}
+#sidebar .side-hd .sub,.page-hd .sub,.mianbaoxie .sub,.mianbaoxie.zuankebatabs .rt-hd .sub,.footer small,.xb-empty .sub,.search-hot-title,.mianbaoxie .pull-right{font-size:calc(12px*var(--fscale))}
+#sidebar .side-ft a{font-size:calc(12.5px*var(--fscale))}
+/* 顶栏 / 导航 / 筛选 tab */
+.pc-nav,.pc-nav li>a{font-size:calc(14px*var(--fscale))}
+.header .login a,.header .dark-mode{font-size:calc(13.5px*var(--fscale))}
+.nav2-ul li a{font-size:calc(12.5px*var(--fscale))}
+.nav2-chips a{font-size:calc(13.5px*var(--fscale))}
+.tabs span,.zuankebatabs span,.rank-tabs span[data-tabs],.gz-tabs a{font-size:calc(12.5px*var(--fscale))}
+.nav-ul>li>a,.m-nav .sub-nav>li>a{font-size:calc(15px*var(--fscale))}
+/* 评论 / 表单 / 分页 / 页脚 / 搜索 */
+.compost .com-name,#txaArticle,.page-numbers,.pagination,.search-empty,.xb-empty b,.search-hot-chip,.footer .intro,.f-nav a,.f-contact p{font-size:calc(13px*var(--fscale))}
+.footer .title{font-size:calc(14px*var(--fscale))}
+.art-fujia-content .comment-list .c-neirong{font-size:calc(13.5px*var(--fscale))}
+.art-fujia-content .comment-list .clbody .author,.art-fujia-content .comment-list .clbody .author a{font-size:calc(13px*var(--fscale))}
+/* 移动端专属档（≤768 内原值与桌面不同的项在此重申：同名媒体规则在文件前部，本块在后必胜） */
+@media (max-width:768px){
+.art-main .art-title{font-size:calc(20px*var(--fscale))}
+.art-main h1,.art-main h2,.art-main h3{font-size:calc(19px*var(--fscale))}
+.mianbaoxie{font-size:calc(13px*var(--fscale))!important}
+}
+/* 列表标题行数选项：默认不挂类=现状（单行省略 + 微博/值得买/好单三分类 xb-t2 白名单两行）；
+   两行=html.xb-tl2 全站放开（特异性 (0,3,2)+important 压过 .listbox.xb-t2 与 diy-weibo 内联样式） */
+html.xb-tl2 .article-list .title a{display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;white-space:normal!important}
+/* 主题菜单扩展分组（字号/标题行数）：菜单项 21 个超一屏，容器限高滚动 */
+.xb-thememenu{max-height:calc(100vh - 88px);max-height:calc(100dvh - 88px);overflow-y:auto;overscroll-behavior:contain}
+.xb-tm-sep{height:1px;background:var(--border);margin:6px 12px}
+.xb-tm-gt{padding:2px 12px 4px;font-size:11px;color:var(--text-3);letter-spacing:.06em}
+.xb-tm-aa{width:auto;min-width:16px;height:16px;padding:0 2px;border-radius:4px;background:transparent;color:var(--text-2);font-weight:600;line-height:16px}
+/* 主题菜单两列网格（20261009 二轮，用户反馈单列太长）：主题 15 项 + 字号 4 项 + 行数 2 项分组内两列；
+   网格内选项隐藏副标（.xb-tm-en）只留色点+名称，宽度 250→340px；单数末项占首列不拉伸 */
+.xb-thememenu{width:340px}
+.xb-tm-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 6px;align-items:start}
+.xb-tm-grid .xb-tm-opt{padding:8px 10px}
+.xb-tm-grid .xb-tm-en{display:none}
+.xb-tm-grid .xb-tm-opt:last-child:nth-child(odd){grid-column:1}
+/* ============================================================
+   侧栏列表行几何对齐主列表（20261013）
+   起因：手机端主列表行与侧栏（排行榜/热帖/公告/我的关注等）行高不一致——
+   ① 行内边距：≤1100px 块里 .article-list{padding:6px 16px}（20261010 触控目标
+      28px 配套收紧）只作用到主列表；#sidebar .article-list{padding:10px 16px}
+      特异性 (1,1,0) 整体胜出，侧栏行仍吃 10px → 行高 49 vs 主列表 41。
+   ② 行首分类图标：侧栏卡由 xb_side_render_rows() 直出 .figure.cgN，而
+      .listbox .article-list .badge-cat 的隐藏规则不覆盖侧栏，侧栏行比主列表
+      多出一枚 20px 图标。用户口径：侧栏一律不带行首图标。
+   修法：桌面 `#sidebar .article-list` 并入 9px 行密令，≤1100px 再加 (0,2,0)
+   `#sidebar .article-list` 压过 (1,1,0)，让侧栏与主列表同吃 6px；图标按用户
+   要求隐藏（与 .listbox 主列表口径一致）。标题字号/行高（14px/28px）本就
+   来自 .article-list .title 未加容器前缀，侧栏已随主列表，无需重复。
+   ============================================================ */
+#sidebar .article-list{padding:var(--row-pad-y) 16px}
+@media screen and (max-width:1100px){
+    #sidebar .article-list{padding:6px 16px}
+}
+/* ============================================================
+   20261015：二列骨架宽度固化 —— 修复首屏「主列先占满 100%、侧栏到达后回缩」的横向跳动
+   现象：#mainbox 为 flex:1 1 0%，HTML 按字节流分块到达时，浏览器会在 #sidebar 尚未
+   解析出来之前先绘制一帧：此时主列吃掉整行（=视口内满宽），侧栏到达后再回缩到
+   「容器宽 − 400px − 24px」，表现为列表先满宽出现、随后右移回缩 + 排行榜侧栏才出现。
+   做法：桌面端二列页面把主列宽度固定为 calc(100% - 424px)（=400px 侧栏 + 24px 列间距），
+   与 #sidebar 是否已解析无关 —— 侧栏晚到时右列留白待填，不再触发重排。
+   ≤1100px 仍走移动端单列规则（本块在 min-width 内，与 643 行起的移动端块不冲突）。
+   rank 页（#content.rank-page-wrap）本就无侧栏，用 :not() 排除，保持 flex:1 1 100%。
+   ============================================================ */
+@media screen and (min-width:1101px){
+  #content:not(.rank-page-wrap)>.clearfix>.main-col,
+  #content:not(.rank-page-wrap).clearfix>.main-col,
+  #content:not(.rank-page-wrap)>.clearfix>#mainbox,
+  #content:not(.rank-page-wrap).clearfix>#mainbox{flex:0 1 calc(100% - 424px)}
+}
+
+/* style.css?v=20261018125131 —— 历史搜索（lscache）+ 搜索面板清空按钮（20261018） */
+
+/* ============================================================
+   侧栏·订阅推送引导卡（20261019，service_sidebar.php: xb_side_subscribe_card）
+   只用语义令牌；与 .rank-list/.bangdan 同族外观（.sb 提供白面细环）。
+   追加在文件尾，特异度控制在 #sidebar 之内，避免影响全站 .side-ft 等共享规则。
+   ============================================================ */
+
+/* ============ 公告·新人指引：随机勋章云（20261023） ============
+   公告 tab 保持原列表行；新人必看 / 新手路线图 / 知识库随机改为椭圆药丸，
+   只显示标题、一屏可放十几篇新手指引；长标题省略号收口，悬停 title 看全文。 */
+.xb-notice-tags{padding:12px 16px 14px;align-content:flex-start}
+.xb-notice-tags .xb-tag{max-width:100%;min-width:0}
+.xb-notice-tags .xb-tag>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ============ 订阅推送：勋章云（20261023） ============
+   原 4 行「图标 + 说明」列表改为两组药丸：订阅方式 4 枚 + 推送教程 16 枚。
+   正文复用 .xb-notice-tags（见上块），这里只调组标题与内边距贴合卡片；
+   旧的 .xb-dycard-row/.xb-dycard-ic/.xb-dycard-tx/.xb-dycard-go 随列表一并移除。 */
+#sidebar .xb-dycard-bd{display:flex;flex-direction:column;gap:0;padding:0}
+#sidebar .xb-dycard-cap{padding:12px 16px 0;font-size:var(--fs-12);line-height:1.4;color:var(--text-3)}
+#sidebar .xb-dycard-bd .xb-notice-tags{padding:8px 16px 4px}
+#sidebar .xb-dycard-bd .xb-notice-tags:last-child{padding-bottom:14px}

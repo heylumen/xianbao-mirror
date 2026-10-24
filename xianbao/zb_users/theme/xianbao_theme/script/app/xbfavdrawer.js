@@ -116,7 +116,7 @@ var XbFavDrawer = (function () {
   function favRowHtml(it) {
     return '<li class="article-list xb-done" data-fid="' + (it.id || 0) + '" data-gid="' + (it.gid || 0) + '">'
       + (it.cateid ? '<span class="figure cg' + (it.cateid | 0) + '"></span>' : '')
-      + '<p class="title"><a href="' + esc(it.url) + '" title="' + esc(it.title) + '" target="_blank">' + esc(it.title) + '</a>'
+      + '<p class="title"><a href="' + esc(it.url) + '" title="' + esc(it.title) + '" target="_blank" rel="noopener">' + esc(it.title) + '</a>'
       + '<span class="badge com"><svg class="xb-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-comment"></use></svg>' + (Number(it.comm) > 0 ? esc(it.comm) : '0') + '</span>'
       + (it.ts ? timeBadge(it.ts) : '<time class="badge">' + esc(it.time) + '</time>')
       + '<button type="button" class="xb-favmgr" aria-label="管理这条收藏">' + MGR_SVG + '</button>'
@@ -413,16 +413,20 @@ var XbFavDrawer = (function () {
 
   function init() {
     var toolbar = document.getElementById('toolbar');
-    if (toolbar && !document.getElementById('xb-favbtn')) {
-      var btn = document.createElement('div');
+    if (!toolbar) return;
+    // 20261006：按钮改 footer.php 服务端直出（消除 JS 注入后工具条长高一格的跳变）；
+    // 这里只在缺失时兜底创建（旧缓存页），两种来源都补绑点击
+    var btn = document.getElementById('xb-favbtn');
+    if (!btn) {
+      btn = document.createElement('div');
       btn.id = 'xb-favbtn';
       btn.className = 'btn sb br';
       btn.setAttribute('title', '浏览历史 · 我的收藏');
       btn.setAttribute('tabindex', '0');
       btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-history"></use></svg>';
-      btn.addEventListener('click', open);
       toolbar.appendChild(btn);
     }
+    btn.addEventListener('click', open);
   }
 
   if (document.readyState === 'loading') {

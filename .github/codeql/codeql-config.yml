@@ -1,0 +1,13 @@
+# CodeQL 高级扫描配置
+#
+# 只扫描我方维护的源码；排除 xianbao/ 镜像产物目录
+# （其中是每日爬取源站得到的第三方主题脚本，不属于本项目代码）。
+#
+# 说明：paths-ignore 必须写在配置文件里，不能作为 codeql-action/init 的入参
+# （init 不接受该 input，会告警且不生效）。若 GitHub 仓库又同时启用了
+# default setup，则高级工作流上传 SARIF 会被拒绝
+# （CodeQL analyses from advanced configurations cannot be processed
+#   when the default setup is enabled）——两者只能启用其一。
+name: "xianbao-mirror CodeQL config"
+paths-ignore:
+  - xianbao/**

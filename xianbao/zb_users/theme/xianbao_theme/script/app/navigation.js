@@ -1,108 +1,66 @@
 /*! app/navigation.js | 顶部导航、二级导航、移动端菜单、搜索开关、工具栏、面包屑 | 依赖: jQuery */
-function daohangchuli(a) {
-    if (a == "赚客吧") {
-        return '<li><a href="/category-zuankeba/" title="赚客吧" rel="nofollow">赚客吧</a></li>'
-    } else if (a == "赚客吧热帖") {
-        return '<li><a href="/zuankeba-hot.html" title="赚客吧热帖" rel="nofollow">赚客吧热帖</a></li>'
-    } else if (a == "新赚吧") {
-        return '<li><a href="/category-xinzuanba/" title="新赚吧" rel="nofollow">新赚吧</a></li>'
-    } else if (a == "新赚吧热帖") {
-        return '<li><a href="/xinzuanba-hot.html" title="新赚吧热帖" rel="nofollow">新赚吧热帖</a></li>'
-    } else if (a == "微博线报") {
-        return '<li><a href="/category-weibo/" title="微博线报" rel="nofollow">微博线报</a></li>'
-    } else if (a == "微博热帖") {
-        return '<li><a href="/weibo-hot.html" title="微博热帖" rel="nofollow">微博热帖</a></li>'
-    } else if (a == "微博超话") {
-        return '<li><a href="/category-weibo-chaohua/" title="微博超话" rel="nofollow">微博超话</a></li>'
-    } else if (a == "豆瓣线报") {
-        return '<li><a href="/category-douban/" title="豆瓣线报" rel="nofollow">豆瓣线报</a></li>'
-    } else if (a == "豆瓣热帖") {
-        return '<li><a href="/douban-hot.html" title="豆瓣热帖" rel="nofollow">豆瓣热帖</a></li>'
-    } else if (a == "豆瓣买组") {
-        return '<li><a href="/category-douban-maizu/" title="豆瓣买组" rel="nofollow">豆瓣买组</a></li>'
-    } else if (a == "豆瓣拼组") {
-        return '<li><a href="/category-douban-pinzu/" title="豆瓣拼组" rel="nofollow">豆瓣拼组</a></li>'
-    } else if (a == "豆瓣发组") {
-        return '<li><a href="/category-douban-fazu/" title="豆瓣发组" rel="nofollow">豆瓣发组</a></li>'
-    } else if (a == "爱猫生活") {
-        return '<li><a href="/category-douban-maolife/" title="豆瓣爱猫生活" rel="nofollow">豆瓣爱猫生活</a></li>'
-    } else if (a == "爱猫澡盆") {
-        return '<li><a href="/category-douban-maobathtub/" title="豆瓣爱猫澡盆" rel="nofollow">豆瓣爱猫澡盆</a></li>'
-    } else if (a == "豆瓣狗组") {
-        return '<li><a href="/category-douban-gouzu/" title="豆瓣狗组" rel="nofollow">豆瓣狗组</a></li>'
-    } else if (a == "好单线报") {
-        return '<li><a href="/category-haodan/" title="好单线报" rel="nofollow">好单线报</a></li>'
-    } else if (a == "小嘀咕") {
-        return '<li><a href="/category-xiaodigu/" title="小嘀咕" rel="nofollow">小嘀咕</a></li>'
-    } else if (a == "值得买") {
-        return '<li><a href="/category-zhidemai/" title="值得买" rel="nofollow">值得买</a></li>'
-    } else if (a == "值得买热帖") {
-        return '<li><a href="/zhidemai-hot.html" title="值得买热帖" rel="nofollow">值得买热帖</a></li>'
-    } else if (a == "酷安") {
-        return '<li><a href="/category-kuan/" title="酷安" rel="nofollow">酷安</a></li>'
-    } else if (a == "葫芦侠三楼") {
-        return '<li><a href="/category-huluxia/" title="葫芦侠三楼" rel="nofollow">葫芦侠三楼</a></li>'
-    } else if (a == "更新较慢活动") {
-        return '<li><a href="/category-man/" title="更新较慢活动" rel="nofollow">更新较慢活动</a></li>'
-    } else if (a == "小刀娱乐网") {
-        return '<li><a href="/category-xiaodao/" title="小刀娱乐网" rel="nofollow">小刀娱乐网</a></li>'
-    } else if (a == "爱Q生活网") {
-        return '<li><a href="/category-iqnew/" title="爱Q生活网" rel="nofollow">爱Q生活网</a></li>'
-    } else if (a == "技术QQ网") {
-        return '<li><a href="/category-qqjishu/" title="技术QQ网" rel="nofollow">技术QQ网</a></li>'
-    } else if (a == "YYOK大全") {
-        return '<li><a href="/category-yyok/" title="YYOK大全" rel="nofollow">YYOK大全</a></li>'
-    } else if (a == "活动资讯网") {
-        return '<li><a href="/category-huodong/" title="活动资讯网" rel="nofollow">活动资讯网</a></li>'
-    } else if (a == "免费赚钱中心") {
-        return '<li><a href="/category-mianfei/" title="免费赚钱中心" rel="nofollow">免费赚钱中心</a></li>'
-    } else {
-        return ''
+/* 手机二级导航已于 20261004 晚改 header.php 服务端渲染（PHP 原生激活态，
+ * 预设映射同步维护于 Ucenter Shezhi_jiban.php DH_PRESET 与 header.php）；
+ * 本文件仅保留：展开面板、激活项滚动居中等交互增强。 */
+/* 20261016 首绘闸门配套：Profiler 实测本文件 ready 回调是 defer 链执行最贵的主题脚本
+ * （2x CPU 节流 ~26ms，仅次于 jQuery 本体），但其全部工作（激活态居中/工具栏/返回顶部/
+ * 友链图标/搜索开合/面包屑激活）都不在首屏关键路径上，且闸门（header.php html.xb-boot）
+ * 要到 DOMContentLoaded 之后才放行——把 ready 回调统一推迟到 defer 链结束后的首个空闲帧，
+ * 主列表筛选/标红等真正要赶 DCL 的逻辑先行，本文件不再挤占 TBT。绑定型交互（点击/悬停）
+ * 在用户首个交互前就绪即可，空闲回调在 DCL 后立即排队，实际延迟 <100ms。 */
+/* 激活项滚动居中（20261006 二轮定稿：自然滚动夹取）——激活项对齐屏幕中线，
+ * 但仅限"滚一下就能到"的情形：滚动量夹在 [0, 最大可滚] 内，不注入任何补白。
+ * 靠前的激活项保持自然位置（用户定调：不强行把前几项挪到中间），
+ * 靠后的激活项滚到尽头露出为止。供 nav2（header.php 服务端激活）与
+ * rank.js（rt-tabs/tip-nav 激活项）共用。 */
+function xbNavScrollActive(itemEl) {
+    if (!itemEl || itemEl.nodeType !== 1) return;
+    var el = itemEl, scroller = null;
+    while (el && el !== document.body) {
+        var ox = getComputedStyle(el).overflowX;
+        if (ox === "auto" || ox === "scroll") { scroller = el; break; }
+        el = el.parentElement;
     }
+    if (!scroller) return;
+    /* 内容一屏放得下（无横向溢出）时无需滚动 */
+    if (scroller.scrollWidth <= scroller.clientWidth + 1) return;
+    var iRect = itemEl.getBoundingClientRect();
+    if (iRect.width <= 0) return;
+    var delta = (iRect.left + iRect.width / 2) - window.innerWidth / 2;
+    var max = scroller.scrollWidth - scroller.clientWidth;
+    scroller.scrollLeft = Math.min(max, Math.max(0, scroller.scrollLeft + delta));
 }
-function adddaohang(a){if(a=="默认"){return}var daohangarr=a.split("|");var xindaohang="";for(j=0;j<daohangarr.length;j++){xindaohang=xindaohang+daohangchuli(daohangarr[j])}$(".nav2-ul").html('<li><a href="/" title="线报酷" rel="nofollow">首页</a></li><li><a href="/category-guanzhu/" title="我的关注-线报酷" rel="nofollow">我的关注</a></li><li><a href="/yixiaoshi-hot.html" title="排行榜-线报酷" rel="nofollow">排行榜</a></li>'+xindaohang);zhenglidaohang()}
-function zhenglidaohang() {
-    $(".nav2-ul li a").each(function () {
-        if ($(this).attr("href") == $(".mianbaoxie a").eq(1).attr("href") || $(this).attr("href") == window.location.pathname) {
-            $(".nav2-ul li").removeClass("nav2-ul-li");
-            $(this).parent("li").addClass("nav2-ul-li")
-        } else if ($(this).attr("href") == "/category-douban/" && $(".nav2-ul li a").hasClass("nav2-ul-li") ==false && window.location.pathname.indexOf("douban") != -1) {
-            $(".nav2-ul li").removeClass("nav2-ul-li");
-            $(this).parent("li").addClass("nav2-ul-li")
-        } else if ($(this).attr("href") == "/category-weibo/" && window.location.pathname.indexOf("weibo") != -1) {
-            $(".nav2-ul li").removeClass("nav2-ul-li");
-            $(this).parent("li").addClass("nav2-ul-li")
-        } else if ($(this).attr("href") == "/category-haodan/" && window.location.pathname.indexOf("haodan") != -1) {
-            $(".nav2-ul li").removeClass("nav2-ul-li");
-            $(this).parent("li").addClass("nav2-ul-li")
-        } else if ($(this).attr("href") == "/category-guanzhu1/" && window.location.pathname.indexOf("guanzhu") != -1) {
-            $(".nav2-ul li").removeClass("nav2-ul-li");
-            $(this).parent("li").addClass("nav2-ul-li")
-        } else if ($(this).attr("href") == "/category-zhidemai/" && window.location.pathname.indexOf("zhidemai") != -1) {
-            $(".nav2-ul li").removeClass("nav2-ul-li");
-            $(this).parent("li").addClass("nav2-ul-li")
-        } else if ($(this).attr("href").indexOf($(".tip-main").data("type")) != -1) {
-            $(".nav2-ul li").removeClass("nav2-ul-li");
-            $(this).parent("li").addClass("nav2-ul-li")
-        } else if ($(this).attr("href") == "/yixiaoshi-hot.html" && $(".pc-nav").attr("data-pagealias")) {
-            $(".nav2-ul li").removeClass("nav2-ul-li");
-            $(this).parent("li").addClass("nav2-ul-li")
-        }
-    });
-    if ($(".nav2-ul-li").length > 0) {
-        var w = 0;
-        $(".nav2-ul-li").prevAll().each(function () {
-            w = w + $(this).innerWidth()
+/* nav2 激活项居中（服务端已标 nav2-ul-li） */
+function nav2Center() {
+    var ulEl = document.querySelector(".nav2-ul");
+    if (ulEl) xbNavScrollActive(ulEl.querySelector(".nav2-ul-li"));
+}
+/* 全部 ready 回调集中推迟到空闲时（见文件头 20261016 注释）：
+ * xbReady(fn) = DOMContentLoaded 后的空闲帧执行；期间用户若已点击，仍会执行（不丢交互）。
+ * xbNavScrollActive/nav2Center/xbNavRecenterAll 保持全局函数（rank.js/resize 依赖），不动。 */
+function xbReady(fn) {
+    if (document.readyState !== 'loading') {
+        (window.requestIdleCallback || function (f) { setTimeout(f, 50); })(fn);
+    } else {
+        document.addEventListener('DOMContentLoaded', function () {
+            (window.requestIdleCallback || function (f) { setTimeout(f, 50); })(fn);
         });
-        w = w + ($(".nav2-ul-li").innerWidth() / 2);
-        w = w - ($(".nav2-ul").innerWidth() / 2);
-        $(".nav2-ul").scrollLeft(w)
-    } else {
-        $(".nav2-ul").find("li").eq(0).addClass("nav2-ul-li")
     }
 }
-$(function() {zhenglidaohang();});
-$(function () {
+xbReady(function() {nav2Center();});
+$(window).on("load", nav2Center);
+/* 旋转/缩放后全部横滑条重居中（rt-tabs/tip-nav 的激活项由 rank.js 首次载入居中，这里统一兜底） */
+function xbNavRecenterAll() {
+    nav2Center();
+    var act = document.querySelector(".rt-tabs span.active");
+    if (act) xbNavScrollActive(act);
+    act = document.querySelector(".tip-nav span.active");
+    if (act) xbNavScrollActive(act);
+}
+var xbNavCenterTimer;
+$(window).on("resize", function() { clearTimeout(xbNavCenterTimer); xbNavCenterTimer = setTimeout(xbNavRecenterAll, 150); });
+
+xbReady(function () {
     var $toggle = $(".nav2-toggle"), $list = $("#nav2-list"), $panel = $("#nav2-panel");
     if ($toggle.length && $list.length && $panel.length) {
         function closePanel() {
@@ -113,8 +71,8 @@ $(function () {
         }
         $toggle.on("click", function () {
             var expanded = !$toggle.hasClass("expanded");
+            /* 面板内容已由 header.php 服务端分组直出（20261005 方案 A），此处仅开合 */
             if (expanded) {
-                $panel.empty().append($list.children("li").clone(true, true));
                 $panel.addClass("open");
             } else {
                 $panel.removeClass("open");
@@ -123,17 +81,10 @@ $(function () {
             $toggle.attr("aria-expanded", expanded ? "true" : "false");
             $toggle.attr({"aria-label": expanded ? "收起分类" : "展开分类", "title": expanded ? "收起分类" : "展开分类"});
         });
-        var lastY = $(window).scrollTop();
-        $(window).on("scroll", function () {
-            if ($panel.hasClass("open")) {
-                var y = $(this).scrollTop();
-                if (Math.abs(y - lastY) > 4) { closePanel(); }
-            }
-            lastY = $(this).scrollTop();
-        });
+        /* 20261005：滚动不再自动关闭展开面板（用户要求滑动时保持展开），仅点击 toggle 开合 */
     }
 });
-$(function(){$("#toolbar").each(function(){$(this).find("#qr").mouseenter(function(){$(this).find("#qr-img").fadeIn("fast")});$(this).find("#qr").mouseleave(function(){$(this).find("#qr-img").fadeOut("fast")});$(this).find("#totop").click(function(){$("html, body").animate({"scroll-top":0},"fast")})});var a=false;$(window).scroll(function(){var b=$(window).scrollTop();if(b>500){$("#toolbar").data("status",true)}else{$("#toolbar").data("status",false)}if($("#toolbar").data("status")!=a){a=$("#toolbar").data("status");if(a){$("#totop").show()}else{$("#totop").hide()}}})});$(function(){var a=$("#flink a");a.addClass("iconfont icon-link")});
+xbReady(function(){$("#toolbar").each(function(){$(this).find("#qr").mouseenter(function(){$(this).find("#qr-img").fadeIn("fast")});$(this).find("#qr").mouseleave(function(){$(this).find("#qr-img").fadeOut("fast")});$(this).find("#totop").click(function(){$("html, body").animate({"scroll-top":0},"fast")})});var a=false;$(window).scroll(function(){var b=$(window).scrollTop();if(b>500){$("#toolbar").data("status",true)}else{$("#toolbar").data("status",false)}if($("#toolbar").data("status")!=a){a=$("#toolbar").data("status");if(a){$("#totop").show()}else{$("#totop").hide()}}})});xbReady(function(){var a=$("#flink a");a.prepend('<svg class="xb-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-link"></use></svg> ')});
 $(function () {
     // 缓存常用选择器和路径
     const $breadcrumbLink = $(".mianbaoxie a").eq(1);
@@ -227,8 +178,15 @@ $(function () {
         $("#nvabar-item-index").addClass("active");
     }
 });
-$(function(){var f=$(".responsive-nav");$(".m-nav-btn i").click(function(){$(".sub-nav").toggleClass("m-sub-nav");if($('.responsive-nav .m-nav').hasClass('pc-nav')){$(".m-nav-btn i.iconfont").css("position","fixed");$(".responsive-nav").addClass("show");$(".responsive-nav .m-nav").removeClass("pc-nav")}else{$(".m-nav-btn i.iconfont").css("position","absolute");$(".responsive-nav .m-nav").addClass("pc-nav");$(".responsive-nav").removeClass("show")}})});
-$(function(){jQuery(".m-nav .nav-ul > li,.m-nav .nav-ul > li ul li").each(function(){jQuery(this).children(".m-nav .m-sub-nav").not(".active").css("display","none");jQuery(this).children(".m-nav .toggle-btn").bind("click",function(){$(".m-nav .m-sub-nav").addClass("active");jQuery(this).children().addClass(function(){if(jQuery(this).hasClass("active")){jQuery(this).removeClass("active");return""}return"active"});jQuery(this).siblings(".m-nav .m-sub-nav").slideToggle()})})});
-$(function(){var f=$(".pc-nav").attr("data-type");$(".m-nav-btn i").click(function(){$(".m-nav-btn i").toggleClass("active");})});
-$(function(){$("#search-button").click(function(){$("#search-button i").toggleClass("icon-close"),$("#search-button i").toggleClass("icon-search"),$("#mask-hidden").toggleClass("mask-show"),$("#search-area").fadeToggle("fast")})});
-$(function(){var f=$("#flink a");f.addClass("iconfont icon-link")});
+/* mnav C2（20261005）：列表抽屉入口（m-nav-btn）与其开合逻辑整体下线——按钮 markup 已从 header.php
+   移除，抽屉（.responsive-nav）无触发途径恒隐藏；下方抽屉内折叠/当前页标记两个绑定因选择器
+   要求 .m-nav 无 .pc-nav 类（该类永在）而恒不命中，保留为惰性代码 */
+/* 抽屉内分类折叠（20261005 修复：toggle-btn 是 <a> 的子元素，旧 children() 绑定永不生效且箭头点击会跳转链接；
+   仅抽屉态（m-nav 无 pc-nav 类）生效，PC 端 hover 下拉不受影响） */
+/* 抽屉内分类折叠（20261005 方案 A：li.open 驱动父项加粗与箭头旋转，slideToggle 不变） */
+xbReady(function(){$(document).on("click",".responsive-nav .m-nav:not(.pc-nav) .toggle-btn",function(e){e.preventDefault();e.stopPropagation();var $li=$(this).closest("li"),$sub=$li.children(".sub-nav");if(!$sub.length)return;var opening=$sub.is(":hidden");$sub.stop(true,false).slideToggle(200);$li.toggleClass("open",opening)})});
+/* 移动端搜索面板开合（20261023）：面板 fixed 悬浮但背景页仍能滚，顶栏（含关闭键）会被带出屏幕 ⇒
+   开合同步给 <html> 挂/摘 xb-splock（style.css ≤1100px 媒体查询锁 html/body 溢出）；遮罩点按可直接关闭。 */
+xbReady(function(){var $sb=$("#search-button");$sb.click(function(){var on=!$sb.hasClass("xb-on");$sb.toggleClass("xb-on",on);$("#mask-hidden").toggleClass("mask-show",on);$("#search-area").fadeToggle("fast");document.documentElement.classList.toggle("xb-splock",on)});$("#mask-hidden").click(function(){if($sb.hasClass("xb-on"))$sb.click()})});
+/* 抽屉当前页子项绿点标记（20261005 方案 A）：按 pathname 精确匹配，PC 端同加类但样式仅抽屉态生效 */
+xbReady(function(){var p=location.pathname.replace(/\/+$/,"");$(".responsive-nav .sub-nav a").each(function(){if(this.pathname.replace(/\/+$/,"")===p&&p!=="")$(this).addClass("cur")})});

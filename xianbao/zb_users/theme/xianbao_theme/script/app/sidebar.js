@@ -1,55 +1,41 @@
 /**
- * 侧边栏综合模块 (我的关注 + 排行榜) - 最终版 (直接初始化，解决高度问题)
- * 核心思想：数据完全加载后，一次性渲染HTML并初始化Swiper，确保autoHeight准确。
+ * 侧栏轻量初始化（20261004 服务端直出改造版）
+ * 侧栏全部卡片（我的关注/排行榜/我的收藏/相关标签/同分类热帖）与文章页「猜你喜欢」
+ * 已由主题 function/service_sidebar.php 服务端直出，本文件不再发任何首屏 AJAX，只负责：
+ * ① 卡片内 Swiper 初始化与 tab 联动（我的关注 g-tabs / 排行榜 r-tabs）；
+ *    （20261015 Swiper 官方 bundle 已换自写 app/xb-swiper.js，API 同名兼容，本文件调用面未动）
+ * ② 分类热帖页主列表三窗轮播（.xb-hots-swiper，tab 点击/hover 切换）；
+ * ③ 猜你喜欢 swiper 初始化（autoHeight，筛选后重测高度）；
+ * ④ 服务端渲染行的后处理：全局筛选（xb_global_filter/fe）+ 标题标红（list_red）；
+ * ⑥ 我的关注底部「查看更多内容」链接跟随激活分组（/category-guanzhuN/）；
+ * ⑦ 公告·新人指引卡关闭记忆（localStorage 按版本，新公告自动重现）。
  */
 const SidebarModule = (function ($) {
-    
-    const CONFIG = {
-        containerSelector: '.theiaStickySidebar',
-        guanzhuApi: '/plus/json/guanzhu.php',
-        rankApiPrefix: '/plus/json/rank/',
-        cacheDuration: 5*60,          // 排行榜缓存时间 (分钟)
-        guanzhuCacheDuration: 3*60,    // 我的关注缓存时间 (分钟)
-        peakTimeMsg: {
-            guanzhu: '高峰时间非会员我的关注列表暂停输出<br>请去顶部导航"我的关注"查看信息',
-            rank: '高峰时间非会员侧栏排行榜暂停输出<br>请去顶部导航"排行榜"查看榜单'
-        }
-    };
-
-    const RANK_NAME_TO_KEY_MAP = {
-        "一小时排行榜": "yixiaoshi",
-        "三小时排行榜": "sanxiaoshi",
-        "六小时排行榜": "liuxiaoshi",
-        "十二小时榜": "shierxiaoshi",
-        "二十四小时榜": "ershisixiaoshi",
-        "四十八小时榜": "sishibaxiaoshi",
-        "今天排行榜": "jintian",
-        "昨天排行榜": "zuotian",
-        "前天排行榜": "qiantian",
-    };
 
     function isTouchDevice() {
         return ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     }
 
-    function buildSlideHtml(listData) {
-        if (!listData || listData.length === 0) {
-            return '<div class="swiper-slide"><div class="empty-tip" style="padding:15px;text-align:center;color:#999;">暂无数据</div></div>';
+    function updateTabs($root, tabClass, activeIndex) {
+        const $tabs = $root.find(`.${tabClass} span`);
+        $tabs.removeClass('active');
+        $tabs.eq(activeIndex).addClass('active');
+        const $t = $tabs.eq(activeIndex);
+        // 排行榜卡：查看完整榜单跟随激活 tab（tab 带 data-ft=/xx-hot.html）
+        const ft = $t.data('ft');
+        if (ft) {
+            $root.find('.xb-rk-ftlink').attr('href', ft);
         }
-        let innerHtml = '';
-        if (typeof listtimechuli === 'function') {
-            try {
-                innerHtml = listtimechuli(listData);
-                if (typeof innerHtml !== 'string') innerHtml = '';
-            } catch (e) {
-                console.error('listtimechuli 执行错误:', e);
-                innerHtml = '<li>列表渲染错误</li>';
-            }
-        } else {
-            console.warn('缺少 listtimechuli 函数，使用默认占位');
-            innerHtml = '<li>系统初始化中...</li>';
+        // 我的关注卡：底链跟随 data-gzid（/category-guanzhuN/），且激活板块行数满 10 才显示
+        const gzid = parseInt($t.data('gzid'), 10);
+        if (gzid > 0) {
+            $root.find('.xb-gz-ftlink').attr('href', '/category-guanzhu' + gzid + '/');
         }
-        return `<div class="swiper-slide"><ul class="new-post">${innerHtml}</ul></div>`;
+        const $gzFt = $root.find('.xb-gz-ftlink');
+        if ($gzFt.length) {
+            const rows = $root.find('.swiper .swiper-slide').eq(activeIndex).find('li.article-list').length;
+            $gzFt.closest('.side-ft').toggleClass('xb-fthide', rows < 10);
+        }
     }
 
     // 创建 Swiper 实例的辅助函数
@@ -67,17 +53,7 @@ const SidebarModule = (function ($) {
             },
         });
         element.swiperInstance = mySwiper; // 将实例挂载到DOM元素上，便于管理
-        bindTabEvents($root, tabClass, mySwiper);
-        return mySwiper;
-    }
-
-    function updateTabs($root, tabClass, activeIndex) {
-        const $tabs = $root.find(`.${tabClass} span`);
-        $tabs.removeClass('active');
-        $tabs.eq(activeIndex).addClass('active');
-    }
-
-    function bindTabEvents($root, tabClass, swiperInstance) {
+        // tab 事件委托：点击（触屏）/点击+悬停（PC）切换到对应窗格
         const $tabs = $root.find(`.${tabClass} span`);
         const eventType = isTouchDevice() ? 'click' : 'click mouseenter';
         $tabs.off(eventType);
@@ -86,314 +62,211 @@ const SidebarModule = (function ($) {
             e.preventDefault();
             const index = $(this).data('index');
             updateTabs($root, tabClass, index);
-            swiperInstance.slideTo(index);
+            mySwiper.slideTo(index);
+        });
+        // 初始同步一次（底链指向/显隐与首窗格对齐）
+        updateTabs($root, tabClass, 0);
+        return mySwiper;
+    }
+
+    // 侧栏卡片 swiper 初始化（服务端已直出 DOM，这里只建实例）
+    function initSwiperCard(rootSel, tabClass) {
+        $(rootSel).each(function () {
+            const $root = $(this);
+            const el = $root.find('.swiper')[0];
+            if (!el || typeof Swiper === 'undefined') return;
+            try {
+                createSwiperInstance(el, $root, tabClass);
+            } catch (e) {
+                console.error('侧栏 swiper 初始化失败:', e);
+            }
         });
     }
 
-    // --- 我的关注 (已按新规则修改：仅 code: 200 时缓存) ---
-    function fetchGuanzhuData() {
-        const ids = [1, 2, 3];
-        
-        const promises = ids.map(id => {
-            const cacheKey = `guanzhu_${id}`;
-            
-            if (typeof lscache !== 'undefined' && lscache.supported()) {
-                const cached = lscache.get(cacheKey);
-                if (cached !== null && cached !== undefined) {
-                    console.log(`✅ [关注] 命中缓存: ${cacheKey}`);
-                    return Promise.resolve(cached);
-                }
-            }
+    // 服务端渲染行的全局筛选（window.xb_global_filter / 用户端 fe filter；未启用时内部直通）
+    function applyGlobalFilters() {
+        if (typeof xb_global_listfilter === 'function') {
+            xb_global_listfilter($('.theiaStickySidebar .guanzhu .article-list'), ['侧栏我的关注', '我的关注']);
+            xb_global_listfilter($('.theiaStickySidebar .rank-list .article-list'), '排行榜');
+            xb_global_listfilter($('#mainbox .xiangguan .article-list'), '猜你喜欢');
+        }
+        if (typeof xb_global_fe_listfilter === 'function') {
+            xb_global_fe_listfilter($('.theiaStickySidebar .guanzhu .article-list'), ['侧栏我的关注', '我的关注']);
+            xb_global_fe_listfilter($('.theiaStickySidebar .rank-list .article-list'), '排行榜');
+            xb_global_fe_listfilter($('#mainbox .xiangguan .article-list'), '猜你喜欢');
+        }
+    }
 
-            console.log(`🔍 [关注] 缓存未命中，发起请求: ${cacheKey}`);
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    url: `${CONFIG.guanzhuApi}?id=${id}`,
-                    type: 'GET',
-                    dataType: 'json',
-                    timeout: 10000
-                })
-                .done(function(data) {
-                    if (data && data.code === 200) {
-                        if (typeof lscache !== 'undefined' && lscache.supported()) {
-                            lscache.set(cacheKey, data, CONFIG.guanzhuCacheDuration);
-                            console.log(`💾 [关注] 已缓存: ${cacheKey} (有效期 ${CONFIG.guanzhuCacheDuration}秒)`);
-                        }
-                    } else {
-                        console.log(`⚠️ [关注] 请求成功但业务状态码非200 (code: ${data?.code}), 跳过缓存: ${cacheKey}`);
-                    }
-                    resolve(data);
-                })
-                .fail(function(xhr, status, error) {
-                    console.warn(`❌ [关注] 请求失败: id=${id}, Status: ${status}, Error: ${error}`);
-                    resolve({ code: 500, name: `分类${id}`, list: [] });
+    // 标题标红（侧栏 bangdan 板块 + 猜你喜欢 xiangguan 板块；主列表由 meta.php 现有 list_red 覆盖）
+    function applyListRed(redstr) {
+        if (!redstr || typeof list_red !== 'function') return;
+        try { list_red(redstr, 'bangdan'); } catch (e) { console.error('list_red error:', e); }
+        try { list_red(redstr, 'xiangguan'); } catch (e) { /* 板块缺失时静默 */ }
+    }
+
+    // 分类热帖页主列表三窗轮播（cate-hot.php：.rt-tabs span[data-index] ↔ .xb-hots-swiper）
+    function syncHotTabs(activeIndex) {
+        $('.mianbaoxie .rt-tabs span[data-index]').removeClass('active');
+        $('.mianbaoxie .rt-tabs span[data-index]').eq(activeIndex).addClass('active');
+    }
+
+    function initHotSwiper() {
+        if (typeof Swiper === 'undefined') return;
+        document.querySelectorAll('.xb-hots-swiper').forEach(function (el) {
+            if (el.swiperInstance) return;
+            try {
+                const mySwiper = new Swiper(el, {
+                    autoHeight: true,
+                    speed: 300,
+                    on: {
+                        slideChange: function () {
+                            syncHotTabs(this.activeIndex);
+                        },
+                    },
                 });
-            });
-        });
-
-        return Promise.all(promises);
-    }
-
-    // --- 重构后的 renderGuanzhu ---
-    function renderGuanzhu(netkaiguan) {
-        const $container = $(CONFIG.containerSelector);
-        if (netkaiguan !== "on") {
-            $container.append(`<div class="guanzhu sb mb"><div class="mianbaoxie" style="color:#ff6b6b">${CONFIG.peakTimeMsg.guanzhu}</div></div>`);
-            return Promise.resolve();
-        }
-
-        // 关键：先获取所有数据
-        return fetchGuanzhuData().then(dataList => {
-            let tabsHtml = '';
-            let slidesHtml = '';
-            
-            // 然后构建完整的HTML结构
-            dataList.forEach((resp, index) => {
-                const name = resp.name || `我的关注${index+1}`;
-                const isActive = index === 0 ? 'active' : '';
-                tabsHtml += `<span class="${isActive}" data-index="${index}">${name}</span>`;
-                slidesHtml += buildSlideHtml(resp.list);
-            });
-
-            const html = `
-                <div class="guanzhu sb mb">
-                    <div class="clearfix">
-                        <div class="mianbaoxie tabs g-tabs">${tabsHtml} <div class="guanzhu-prompt fr" onclick="showGuanzhuPrompt()" class="fr"><i class="iconfont icon-jubao"></i></div></div>
-                        <div class="swiper g-swiper">
-                            <div class="swiper-wrapper">${slidesHtml}</div>
-                        </div>
-                    </div>
-                </div>`;
-
-            // 将完整的HTML添加到DOM
-            $container.append(html);
-            
-            // 查找到刚刚添加的根元素和Swiper容器
-            const $newGuanzhuRoot = $container.find('.guanzhu').last();
-            const swiperElement = $newGuanzhuRoot.find('.g-swiper')[0];
-
-            // 此时，DOM中已经有了完整的、带内容的Swiper结构，可以直接初始化
-            if (typeof Swiper !== 'undefined' && swiperElement) {
-                createSwiperInstance(swiperElement, $newGuanzhuRoot, 'g-tabs');
-            } else {
-                console.error('❌ Swiper库或DOM元素未找到，无法初始化我的关注Swiper');
+                el.swiperInstance = mySwiper;
+                const $tabs = $('.mianbaoxie .rt-tabs span[data-index]');
+                const eventType = isTouchDevice() ? 'click' : 'click mouseenter';
+                $tabs.off(eventType).on(eventType, function (e) {
+                    if (e.type === 'mouseenter' && $(this).hasClass('active')) return;
+                    e.preventDefault();
+                    const index = parseInt($(this).data('index'), 10) || 0;
+                    syncHotTabs(index);
+                    mySwiper.slideTo(index);
+                });
+            } catch (e) {
+                console.error('热帖窗格 swiper 初始化失败:', e);
             }
         });
     }
 
-    // --- 排行榜相关辅助函数 ---
-    function parseRankName(peizhi) {
-        if (!peizhi) return { 'name': 'jintian', 'ming': '未知榜单' };
-        var name = RANK_NAME_TO_KEY_MAP[peizhi];
-        var ming = peizhi;
-        if (typeof name === 'undefined') {
-            name = RANK_NAME_TO_KEY_MAP["今天排行榜"];
-            ming = "设置错误:" + peizhi;
-        }
-        return { 'name': name, 'ming': ming };
-    }
-
-    function processRankItem(res, shuliang, sortkey, filterArgs) {
-        if (!res || !Array.isArray(res)) return buildSlideHtml([]);
-        
-        var currentCount = 0;
-        var filteredItems = [];
-        var args = Array.isArray(filterArgs) ? filterArgs : [];
-        var [pingbifenlei, pingbilouzhu, zhanxianlouzhu, pingbilouzhuplus,
-             pingbibiaoti, zhanxianbiaoti, pingbibiaotiplus, pingbineirong,
-             zhanxianneirong, pingbineirongplus, pingbitime] = args;
-
-        for (var i = 0; i < res.length; i++) {
-            if (currentCount >= shuliang) break;
-            var field = res[i];
-            if (typeof listfilter === 'function') {
+    // 猜你喜欢 swiper（autoHeight；筛选/标红可能隐藏行，延后重测一次高度避免"空尾巴"）
+    function initGuesslike() {
+        const el = document.querySelector('#mainbox .xiangguan .swiper');
+        if (!el || el.swiperInstance || typeof Swiper === 'undefined') return;
+        try {
+            const mySwiper = new Swiper(el, { autoHeight: true });
+            el.swiperInstance = mySwiper;
+            setTimeout(function () {
                 try {
-                    if (!listfilter(field, pingbifenlei, pingbilouzhu, zhanxianlouzhu, pingbilouzhuplus, pingbibiaoti, zhanxianbiaoti, pingbibiaotiplus, pingbineirong, zhanxianneirong, pingbineirongplus, pingbitime)) {
-                        continue;
+                    if (typeof mySwiper.update === 'function') {
+                        mySwiper.update();
+                        if (typeof mySwiper.updateAutoHeight === 'function') mySwiper.updateAutoHeight(0);
                     }
-                } catch(e) { console.warn('filter error', e); }
-            }
-            filteredItems.push(field);
-            currentCount++;
+                } catch (e) { /* 旧版 Swiper 无这些 API 时静默 */ }
+            }, 400);
+        } catch (e) {
+            console.error('猜你喜欢 swiper 初始化失败:', e);
         }
-
-        if (sortkey !== "1") {
-            filteredItems.sort(function(a, b) {
-                return (b.shijianchuo || 0) - (a.shijianchuo || 0);
-            });
-        }
-        return buildSlideHtml(filteredItems);
     }
 
-    function fetchRankData(configStr, useCache) {
-        if (!configStr || typeof configStr !== 'string') {
-            console.error('❌ 排行榜配置错误：configStr 不是字符串!', configStr);
-            configStr = "今天排行榜###昨天排行榜###前天排行榜"; 
-        }
-
-        const configArr = configStr.trim().split("###");
-        const tasks = [];
-
-        for (let i = 0; i < 3; i++) {
-            const rawName = configArr[i] || configArr[0];
-            const info = parseRankName(rawName);
-            const cacheKey = info.name;
-            const displayName = info.ming;
-
-            if (useCache && typeof lscache !== 'undefined' && lscache.supported()) {
-                const cached = lscache.get(cacheKey);
-                if (cached !== null && cached !== undefined) {
-                    console.log(`✅ [排行] 命中缓存: ${cacheKey}`);
-                    tasks.push(Promise.resolve({ name: displayName, key: cacheKey, data: cached, fromCache: true }));
-                    continue;
-                }
-            }
-
-            tasks.push(new Promise((resolve) => {
-                $.ajax({
-                    url: `${CONFIG.rankApiPrefix}${cacheKey}.json`,
-                    type: 'GET',
-                    dataType: 'json',
-                    timeout: 10000
-                })
-                .done(function(data) {
-                    if (useCache && typeof lscache !== 'undefined' && lscache.supported()) {
-                        lscache.set(cacheKey, data, CONFIG.cacheDuration);
-                        console.log(`💾 [排行] 已缓存: ${cacheKey} (有效期 ${CONFIG.cacheDuration}秒)`);
-                    }
-                    resolve({ name: displayName, key: cacheKey, data: data, fromCache: false });
-                })
-                .fail(() => resolve({ name: displayName, key: cacheKey, data: [], fromCache: false }));
-            }));
-        }
-        return Promise.all(tasks);
-    }
-
-    // --- 重构后的 renderRank ---
-    function renderRank(netkaiguan, configStr, shuliang, redstr, sortkey, ...filterArgs) {
-        const $container = $(CONFIG.containerSelector);
-
-        if (netkaiguan !== "on") {
-            $container.append(`<div class="bangdan sb mb"><div class="mianbaoxie" style="color:#ff6b6b">${CONFIG.peakTimeMsg.rank}</div></div>`);
-            return Promise.resolve();
-        }
-
-        // 关键：先获取所有数据
-        return fetchRankData(configStr, true).then(results => {
-            let tabsHtml = '';
-            let slidesHtml = '';
-
-            results.forEach((item, index) => {
-                const isActive = index === 0 ? 'active' : '';
-                tabsHtml += `<span class="${isActive}" data-index="${index}">${item.name}</span>`;
-                slidesHtml += processRankItem(item.data, shuliang, sortkey, filterArgs);
-            });
-
-            const weizhi = 'rank-list';
-            const html = `
-                <div class="${weizhi} bangdan sb mb">
-                    <div class="clearfix">
-                        <div class="mianbaoxie tabs r-tabs">${tabsHtml}</div>
-                        <div class="swiper r-swiper">
-                            <div class="swiper-wrapper">${slidesHtml}</div>
-                        </div>
-                    </div>
-                </div>`;
-
-            // 将完整的HTML添加到DOM
-            $container.append(html);
-            
-            // 查找到刚刚添加的根元素和Swiper容器
-            const $newRankRoot = $container.find(`.${weizhi}`).last();
-            const swiperElement = $newRankRoot.find('.r-swiper')[0];
-
-            // 执行可能存在的红色标记逻辑
-            if (typeof list_red === 'function' && redstr) {
-                try { list_red(redstr, "bangdan"); } catch(e){ console.error('list_red error:', e); }
-            }
-
-            // 此时，DOM中已经有了完整的、带内容的Swiper结构，可以直接初始化
-            if (typeof Swiper !== 'undefined' && swiperElement) {
-                createSwiperInstance(swiperElement, $newRankRoot, 'r-tabs');
+    // ================= 全站标签热度 =================
+    // 服务端直出多窗格（Scope=全部+各 own 标签 × 窗口=48小时/30天），这里只做切换与 tooltip
+    function bindTagHeat() {
+        $(document).off('click.xbthtab').on('click.xbthtab', '.xb-tagheat-tabs span', function () {
+            const $span = $(this);
+            const $box = $span.closest('.xb-tagheat');
+            if ($span.parent().hasClass('xb-th-win')) {
+                $box.find('.xb-th-win span').removeClass('on');
             } else {
-                console.error('❌ Swiper库或DOM元素未找到，无法初始化排行榜Swiper');
+                $box.find('.xb-th-scope span').removeClass('on');
             }
+            $span.addClass('on');
+            const scope = String($box.find('.xb-th-scope span.on').data('scope') === undefined ? '0' : $box.find('.xb-th-scope span.on').data('scope'));
+            const win = String($box.find('.xb-th-win span.on').data('win') === undefined ? '48' : $box.find('.xb-th-win span.on').data('win'));
+            $box.find('.xb-tagheat-pane').removeClass('on');
+            $box.find('.xb-tagheat-pane[data-scope="' + scope + '"][data-win="' + win + '"]').addClass('on');
         });
+        // 曲线 tooltip：SVG 带 data-v/data-base/data-step/data-unit，按鼠标 X 换算槽位
+        // （preserveAspectRatio=none 会拉伸图形，tooltip 坐标一律按 client 尺寸比例计算）
+        $(document).off('mousemove.xbthtip mouseleave.xbthtip')
+            .on('mousemove.xbthtip', '.xb-trend-svg[data-v]', function (e) {
+                const svg = this;
+                const vals = String(svg.dataset.v || '').split(',');
+                if (!vals.length) { return; }
+                const rect = svg.getBoundingClientRect();
+                const n = vals.length;
+                const idx = Math.max(0, Math.min(n - 1, Math.round((e.clientX - rect.left) / rect.width * (n - 1))));
+                const base = Number(svg.dataset.base) || 0;
+                const step = Number(svg.dataset.step) || 3600;
+                const unit = svg.dataset.unit || '';
+                const ts = new Date((base + idx * step) * 1000);
+                const label = (ts.getMonth() + 1) + '-' + ts.getDate() + (step === 3600 ? ' ' + ts.getHours() + '时' : '');
+                const v = Number(vals[idx]) || 0;
+                const $trend = $(svg).closest('.xb-trend');
+                let $tip = $trend.data('xbtip');
+                if (!$tip || !$tip.length) {
+                    $tip = $('<div class="xb-tagheat-tip"></div>');
+                    $trend.append($tip);
+                    $trend.data('xbtip', $tip);
+                }
+                // 纵向跟点：viewBox 高 40，归一化 y=36-v/max*36，按 client 高等比还原
+                const max = Math.max.apply(null, vals.map(Number)) || 1;
+                const yPx = (36 - v / max * 36) / 40 * rect.height + (rect.top - $trend[0].getBoundingClientRect().top);
+                const xPx = e.clientX - $trend[0].getBoundingClientRect().left;
+                $tip.text(label + ' · ' + v + ' ' + unit)
+                    .css({ left: Math.max(30, Math.min(xPx, $trend[0].clientWidth - 30)), top: yPx - 4 })
+                    .show();
+            })
+            .on('mouseleave.xbthtip', '.xb-trend-svg[data-v]', function () {
+                const $trend = $(this).closest('.xb-trend');
+                const $tip = $trend.data('xbtip');
+                if ($tip) { $tip.hide(); }
+            });
+    }
+
+    // ================= 公告·新人指引卡 + 订阅推送卡关闭记忆 =================
+    // 关闭后 localStorage 记「卡片版本」（最新公告文章指纹）；发布新公告 → 版本变化 → 自动重现。
+    // 20261021：两张卡共用同一键 xb_notice_x 同一版本值——点任一 × 两张卡同时隐藏、同时重现。
+    function initNoticeCard() {
+        const n = document.getElementById('xb-notice');
+        const d = document.getElementById('xb-dycard');
+        // 共享版本值：优先公告卡 data-ver（版本计算单点在公告卡），缺席时兜底 '1'
+        const ver = (n && n.dataset.ver) ? n.dataset.ver : '1';
+        if (!n && !d) return;
+        let closed = null;
+        try { closed = localStorage.getItem('xb_notice_x'); } catch (e) { /* 隐私模式静默 */ }
+        if (closed && closed === ver) {
+            if (n) n.style.display = 'none';
+            if (d) d.style.display = 'none';
+            return;
+        }
+        const onClose = function (card) {
+            card.style.display = 'none';
+            try { localStorage.setItem('xb_notice_x', ver); } catch (e) { /* 静默 */ }
+            // 两卡联动：关任一张，另一张同步隐藏（另一张的 × 事件无需触发）
+            if (n && card !== n) n.style.display = 'none';
+            if (d && card !== d) d.style.display = 'none';
+        };
+        const x = n && n.querySelector('.xb-notice-x');
+        if (x) {
+            x.addEventListener('click', function (e) {
+                e.preventDefault();
+                onClose(n);
+            });
+        }
+        const dx = d && d.querySelector('.xb-dycard-x');
+        if (dx) {
+            dx.addEventListener('click', function (e) {
+                e.preventDefault();
+                onClose(d);
+            });
+        }
     }
 
     // ================= 主入口 =================
-    function init(guanzhuStatus, rankConfig, rankNetkaiguan, rankShuliang, rankRedstr, rankSortkey, ...rankFilterArgs) {
-        const $container = $(CONFIG.containerSelector);
-        if ($container.length === 0) {
-            console.error('未找到侧边栏容器 (.theiaStickySidebar)');
-            return;
-        }
-
-        console.log('🚀 侧边栏初始化参数:', {
-            guanzhuStatus,
-            rankConfig,
-            rankNetkaiguan,
-            rankShuliang,
-            guanzhuCacheMin: CONFIG.guanzhuCacheDuration
-        });
-
-        if (typeof rankConfig !== 'string') {
-            console.error('❌ 严重错误：第2个参数 rankConfig 必须是字符串');
-            rankConfig = "今天排行榜###今天排行榜###今天排行榜";
-        }
-
-        // 依次渲染我的关注和排行榜
-        // renderGuanzhu(guanzhuStatus)
-        //     .then(() => {
-        //         return renderRank(rankNetkaiguan, rankConfig, rankShuliang, rankRedstr, rankSortkey, ...rankFilterArgs);
-        //     })
-        //     .catch(err => {
-        //         console.error("💥 侧边栏初始化失败:", err);
-        //         $container.append(`<div style="color:red;padding:10px;background:#ffe6e6;border:1px solid red;">JS错误: ${err.message}<br>请检查控制台详情</div>`);
-        //     });
-        
-        // ★ 并行取数优化：排行榜与我的关注同时发起请求，互不等待
-        // - each-catch 模式：任一取数失败仅记录日志，不阻塞另一方，也不中断后续渲染
-        // - 开关关闭(非"on")时对应项传 null 不发请求，与原有 peak 高峰提示行为保持一致
-        // - 本次预取按原有规则写入 lscache（我的关注仅 code:200 缓存、排行榜 5 分钟），
-        //   渲染阶段再次取数时命中部分直接走缓存，从而实现"并行取数、按序渲染"
-        Promise.all([
-            rankNetkaiguan === "on"
-                ? fetchRankData(rankConfig, true).catch(err => {
-                    console.error("💥 [排行] 并行取数失败(渲染阶段将按现有空数据逻辑兜底):", err);
-                    return null;
-                })
-                : null,
-            guanzhuStatus === "on"
-                ? fetchGuanzhuData().catch(err => {
-                    console.error("💥 [关注] 并行取数失败(渲染阶段将按现有空数据逻辑兜底):", err);
-                    return null;
-                })
-                : null
-        ]).then(() => {
-            // 数据已并行预取，此处按原顺序渲染：先排行榜、后我的关注。
-            // 渲染阶段链式衔接（此时取数已完成/缓存命中，几乎零等待），
-            // 确保侧栏 DOM 插入顺序不变（含 peak 提示分支：rank 在前、guanzhu 在后）；
-            // 任一渲染失败走现有红框错误提示，且不阻塞另一模块渲染。
-            return renderRank(rankNetkaiguan, rankConfig, rankShuliang, rankRedstr, rankSortkey, ...rankFilterArgs)
-                .catch(err => {
-                    console.error("💥 排行榜渲染失败:", err);
-                    $container.append(`<div style="color:red;padding:10px;background:#ffe6e6;border:1px solid red;">JS错误: ${err.message}<br>请检查控制台详情</div>`);
-                })
-                .then(() => {
-                    return renderGuanzhu(guanzhuStatus).catch(err => {
-                        console.error("💥 我的关注渲染失败:", err);
-                        $container.append(`<div style="color:red;padding:10px;background:#ffe6e6;border:1px solid red;">JS错误: ${err.message}<br>请检查控制台详情</div>`);
-                    });
-                });
-        }).catch(err => {
-            // 兜底：编排层意外错误（与原错误处理保持一致）
-            console.error("💥 侧边栏初始化失败:", err);
-            $container.append(`<div style="color:red;padding:10px;background:#ffe6e6;border:1px solid red;">JS错误: ${err.message}<br>请检查控制台详情</div>`);
-        });
-            
-            
-            
+    // opts：{ redstr: '标红关键词串' }（meta.php 注入；侧栏排行榜与猜你喜欢板块标红用）
+    function init(opts) {
+        opts = opts || {};
+        bindTagHeat();
+        initNoticeCard();
+        // 先筛选/标红再建 swiper：autoHeight 按筛选后高度定格（与原 JS 渲染时序一致）
+        applyGlobalFilters();
+        applyListRed(String(opts.redstr || ''));
+        initSwiperCard('.theiaStickySidebar .guanzhu', 'g-tabs');
+        initSwiperCard('.theiaStickySidebar .rank-list', 'r-tabs');
+        initHotSwiper();
+        initGuesslike();
     }
 
     return { init: init };
@@ -401,35 +274,3 @@ const SidebarModule = (function ($) {
 })(jQuery);
 
 
-function showGuanzhuPrompt() {
-    layer.confirm(
-        "本版块是“我的关注”列表，<br>没登录/没设置会显示系统预设内容。<br><br>登录后在用户中心可以自由命名板块名称，<br>并设定对应的分类/内容/关键词/楼主展示规则，<br>实现活动内容的精准过滤与聚合。",
-        {
-            title: false, // 不显示标题栏
-            closeBtn: 0, // 不显示关闭按钮
-            btn: ["查看教程", "设置入口", "取消"] // 按钮文本
-        },
-        function(index) { // 点击“查看教程”按钮的回调函数 (index=0)
-            window.open("/docs/7lmvp.html", "_blank");
-            layer.close(index);
-        },
-        function(index) { // 点击“设置入口”按钮的回调函数 (index=1)
-            window.open("/Ucenter#/Shezhi_guanzhu", "_blank");
-            layer.close(index);
-        },
-        function(index) { // 点击“取消”按钮的回调函数 (index=2)
-            layer.close(index);
-        }
-    );
-}
-
-// // 初始化调用
-// SidebarModule.init(
-//         "on",  
-//         "一小时排行榜###三小时排行榜###六小时排行榜", 
-//         "on",  
-//         20,    
-//         "",    
-//         "0",   
-//         "", "", "", "", "", "", "", "", "", "", "" 
-//     );

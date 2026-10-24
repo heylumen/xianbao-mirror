@@ -136,8 +136,11 @@ var XbStore = (function () {
   }
 
   // 收藏成功桥（mochu_us.js 触发 xbcolltoggle）：有预选 → 归组；无预选（兜底路径）→ 必弹选组
+  // 20261016：触发端改原生 CustomEvent + jQuery trigger 双发；这里对应双注册 + 去重——
+  // 新原生派发会同时命中两条注册（jQuery 对自定义事件也走原生监听），300ms 同键去重；
+  // 只剩旧 mochu_us.js（缓存）时 jQuery 分支兜底；只剩新触发时原生分支兜底。
   function bindCollToggleBridge() {
-    $(document).on('xbcolltoggle', function (e, id, on) {
+    function handle(id, on) {
       if (typeof id === 'undefined' || id === null) return;
       if (!on) return;
       var artid = parseInt(id, 10) || 0;
@@ -151,7 +154,24 @@ var XbStore = (function () {
         return;
       }
       openGroupPicker(artid);
+    }
+    var lastKey = '', lastTs = 0;
+    function dedup(id, on) {
+      // 无效投递必须先挡在记账之前：原生派发经 jQuery 内部监听转过来时不带附加实参
+      // （id=undefined），若让它覆写 lastKey，随后合法的 jQuery trigger 会被当成"另一个事件"重复处理
+      if (typeof id === 'undefined' || id === null || !on) return;
+      var key = String(id) + ':' + String(!!on), now = Date.now();
+      if (key === lastKey && now - lastTs < 300) return;
+      lastKey = key; lastTs = now;
+      handle(id, on);
+    }
+    document.addEventListener('xbcolltoggle', function (e) {
+      var d = e.detail || {};
+      dedup(d.id, d.on);
     });
+    if (window.jQuery) {
+      window.jQuery(document).on('xbcolltoggle', function (e, id, on) { dedup(id, on); });
+    }
   }
 
   // 兜底选组（收藏已落库后补问）：确定后直接归组
@@ -200,21 +220,14 @@ var XbStore = (function () {
   }
 
   function markVisitedRows() {
-    var rows = document.querySelectorAll('li.article-list');
+    var rows = document.querySelectorAll('li.article-list:not(.xb-visit-chk)');
     for (var i = 0; i < rows.length; i++) {
       var li = rows[i];
+      li.classList.add('xb-visit-chk');           // 判定过就不再重判（20261016 性能）
       if (li.classList.contains('visited-row')) continue;
       var a = li.querySelector('.title a');
       if (a) markVisitedRow(li, a);
     }
-  }
-
-  function debounce(fn, wait) {
-    var t = null;
-    return function () {
-      clearTimeout(t);
-      t = setTimeout(fn, wait);
-    };
   }
 
   /* ============ 浏览历史记录（本机；查看入口在 xbfavdrawer.js 双 tab 抽屉） ============ */
@@ -270,11 +283,28 @@ var XbStore = (function () {
     }, true);
 
     // IAS 追加行 / 猜你喜欢 / 侧栏 JS 拼串行 → 动态补注入
+    /* 20261016 性能：原先任何 body 子节点变化都触发全文档重扫，而页面上的「秒数倒计时」
+       （.xb-monitor-tip / .shuatime 每 1s 重写一次文本节点 = childList 变化）会让这条
+       扫描链永远空转（实测每 250~600ms 一次全列表扫描）。现在只放行与列表行相关的
+       变化（倒计时那两处 update 直接跳过），行访问态判定也只做一次（.xb-visit-chk 标记）。 */
     if (window.MutationObserver) {
-      var mo = new MutationObserver(debounce(function () {
-        injectRows();
-        markVisitedRows();
-      }, 250));
+      var MO_SKIP = '.xb-monitor-tip,.shuatime';
+      var moNeed = false, moTimer = null;
+      var mo = new MutationObserver(function (records) {
+        for (var i = 0; i < records.length; i++) {
+          var t = records[i].target;
+          if (t && t.nodeType === 1 && t.matches && t.matches(MO_SKIP)) { continue; }
+          moNeed = true;
+          break;
+        }
+        if (!moNeed) { return; }
+        clearTimeout(moTimer);
+        moTimer = setTimeout(function () {
+          moTimer = null; moNeed = false;
+          injectRows();
+          markVisitedRows();
+        }, 250);
+      });
       mo.observe(document.body, { childList: true, subtree: true });
     }
 
@@ -301,6 +331,70 @@ var ST_SHORT = { 1: '有效', 2: '失效', 3: '抢完' };
 var ST_CLS = { 1: 'ok', 2: 'bad', 3: 'gone' };
 var ST_KEY = { 1: 'alive', 2: 'dead', 3: 'done' };
 
+/* 20261016 游客票面本地对账 —— nginx 游客页缓存按 URL 共享一份 HTML（TTL 60s），
+   直出在里面的 mine（我方投态）与票数因此会滞后，甚至属于"暖页"的那个访客：
+   表现就是"投完刷新，看着跟没投一样"。故本地另存一份"我投过哪些"（localStorage，
+   与 IP+UA 哈希的服务端投票口径互补），加载时与直出态对账：
+     · 一致 → 不动（绝大多数场景零开销、零请求）；
+     · 本地有我方记录、直出为 0 → 直接按记录原地纠偏（缓存页常见），再回源刷新票数；
+     · 直出说我投过、本地无记录 → 无法本地判定真伪（可能是别人暖的页），回源取权威值。
+   localStorage 不可用（隐私模式/配额满）时整体退出，退回只信服务端直出。 */
+/* 键/上限一律走函数取字面量：本模块的 init() 会在 bundle 执行到本文件顶层 var 之前同步跑
+   （defer 脚本执行时 document.readyState 已是 interactive → IIFE 尾部的同步 init() 分支），
+   故这里不能依赖顶层 var 的赋值顺序，只能依赖函数声明提升。 */
+function stLsKey() { return 'xb_st_mine'; }
+var stLsOk = null;
+function stLsUsable() {
+  if (stLsOk === true || stLsOk === false) return stLsOk;
+  try {
+    window.localStorage.setItem('xb_st_probe', '1');
+    window.localStorage.removeItem('xb_st_probe');
+    stLsOk = true;
+  } catch (e) { stLsOk = false; }
+  return stLsOk;
+}
+function stLocalGet(artid) {
+  if (!stLsUsable()) return 0;
+  artid = parseInt(artid, 10) || 0; // initStatusBar 传进来的是 data-artid（字符串），此处归一化
+  try {
+    var parts = String(window.localStorage.getItem(stLsKey()) || '').split(',');
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var kv = parts[i].split(':');
+      if (parseInt(kv[0], 10) === artid) return parseInt(kv[1], 10) || 0;
+    }
+  } catch (e) {}
+  return 0;
+}
+function stLocalSet(artid, st) {
+  if (!stLsUsable()) return;
+  artid = parseInt(artid, 10) || 0;
+  if (!artid) return;
+  try {
+    var keep = [], parts = String(window.localStorage.getItem(stLsKey()) || '').split(',');
+    for (var i = 0; i < parts.length; i++) {
+      var kv = parts[i].split(':');
+      if (kv[0] && parseInt(kv[0], 10) !== artid) keep.push(parts[i]);
+    }
+    if (st) keep.push(artid + ':' + st);
+    if (keep.length > 40) keep = keep.slice(keep.length - 40);
+    window.localStorage.setItem(stLsKey(), keep.join(','));
+  } catch (e) {}
+}
+// 直出/AJAX 渲染出的投态与汇总（都从 DOM 读，两处渲染产物同构）
+function stDomMine(root) {
+  var b = root.querySelector('.xb-st-btn.mine');
+  return b ? (parseInt(b.getAttribute('data-st'), 10) || 0) : 0;
+}
+function stDomSum(root) {
+  var el = root.querySelector('.xb-statusbar');
+  var raw = el ? (el.getAttribute('data-sum') || '') : '';
+  if (!raw) return null;
+  try {
+    var s = JSON.parse(raw);
+    return (s && typeof s === 'object') ? s : null;
+  } catch (e) { return null; }
+}
+
 // 档案头 v3（20261005 定稿）：头部灰带内 白底胶囊结论 + 30px 投票钮 + 反馈计数
 // 接口 summary 键名是 alive/dead/done（原版用 sum[1..3] 取数 → 单项计数恒 0 的隐患，此处修复）
 // 结论显示：>=3 票走接口 result（共识，带百分比）；1~2 票本地取当前领先项即时透出（无百分比），0 票才显示"待反馈"
@@ -308,17 +402,23 @@ var ST_KEY = { 1: 'alive', 2: 'dead', 3: 'done' };
 function stBarHtml(sum, mine) {
   function n(k) { return (sum && sum[ST_KEY[k]]) || 0; }
   var total = (sum && sum.total) || 0;
+  // 20261013 速率闸门：接口对"近 10 分钟票数超阈值"的篇目下发 burst=1，
+  // 本篇一律不出结论/领先项（票数照显），避免堆票换可信度。判定权威在服务端，此处只消费。
+  var burst = !!(sum && sum.burst);
   var lead = 0, consensus = false;
-  if (sum && total >= 3 && sum.result) {
+  if (!burst && sum && total >= 3 && sum.result) {
     lead = sum.result;
     consensus = true;
-  } else if (total > 0) {
+  } else if (!burst && total > 0) {
     var best = 0;
     [1, 2, 3].forEach(function (k) {
       if (n(k) > best) { best = n(k); lead = k; }
     });
   }
-  var html = '<div class="xb-statusbar" role="group" aria-label="线报状态投票">';
+  // data-sum：供 reconcileStatusBar 原地重画（票数在缓存页里同样会滞后 60s）
+  var sumAttr = '{"alive":' + n(1) + ',"dead":' + n(2) + ',"done":' + n(3) + ',"total":' + total
+    + ',"result":' + ((sum && sum.result) || 0) + ',"burst":' + (burst ? 1 : 0) + '}';
+  var html = '<div class="xb-statusbar" role="group" aria-label="线报状态投票" data-sum=\'' + sumAttr + '\'>';
   if (lead) {
     html += '<span class="xb-st-verdict ' + ST_CLS[lead] + '"><span class="dot"></span>' + ST_NAMES[lead]
       + (consensus ? ' <b>' + Math.round(n(lead) / total * 100) + '%</b>' : '') + '</span>';
@@ -357,12 +457,46 @@ function initStatusBar(artid) {
     if (head && head.parentNode) head.parentNode.insertBefore(root, head.nextSibling);
     else { var host = document.querySelector('.art-main'); if (host) host.appendChild(root); }
   }
-  if (root.querySelector('.xb-statusbar')) { bindStatusVote(root, artid); return; }
+  if (root.querySelector('.xb-statusbar')) {
+    bindStatusVote(root, artid);
+    // 对账延到下一个宏任务：本模块的 init() 会在 bundle 执行到本文件顶层 var 之前同步跑
+    // （见 stLsKey 处注释：defer 脚本执行时 readyState 已是 interactive），而 ST_NAMES/ST_SHORT
+    // 等渲染表与 localStorage 记录都是顶层 var —— 同步调用会读到未初始化值。setTimeout 0
+    // 保证整个 bundle 的顶层语句（含后续模块）都已跑完，代价只是纠偏晚一帧。
+    setTimeout(function () { reconcileStatusBar(root, artid, false); }, 0);
+    return;
+  }
   // 兜底：旧缓存页/槽位缺失时仍走 AJAX 首拉（GET 返回 mine，已投显示"感谢反馈"）
   $.get('/plus/json/status_vote.php', { artid: artid }, function (res) {
     if (!res || res.code !== 200) return;
     root.innerHTML = stBarHtml(res.summary, (res.mine | 0));
     bindStatusVote(root, artid);
+    reconcileStatusBar(root, artid, true); // 刚拉的是权威值 → 只顺带把本地记录收敛过去
+  }, 'json');
+}
+
+/* 直出态 vs 本地投态记录对账（20261016，见文件上方"游客票面本地对账"注释）。
+   fresh=true 表示当前 DOM 是刚从接口拿的权威值（AJAX 首拉/投票响应）→ 只收敛本地记录；
+   fresh=false 表示 DOM 来自页面直出（可能是 nginx 缓存的共享副本）→ 不一致时纠偏。 */
+function reconcileStatusBar(root, artid, fresh) {
+  var htmlMine = stDomMine(root);
+  if (fresh) { stLocalSet(artid, htmlMine); return; }
+  if (!stLsUsable()) return;
+  var localMine = stLocalGet(artid);
+  if (htmlMine === localMine) return; // 一致：不动（绝大多数请求在此返回，零请求）
+  // 本地有我方记录 → 先按记录原地纠偏（票数照用直出汇总），避免"看着像没投"再闪一下
+  var sum = stDomSum(root);
+  if (localMine && sum) {
+    root.innerHTML = stBarHtml(sum, localMine);
+    bindStatusVote(root, artid);
+  }
+  // 再回源一次：取权威投态（缓存页里的 mine 可能是别人暖的）+ 最新票数
+  $.get('/plus/json/status_vote.php', { artid: artid }, function (res) {
+    if (!res || res.code !== 200) return;
+    var mine = res.mine | 0;
+    root.innerHTML = stBarHtml(res.summary, mine);
+    bindStatusVote(root, artid);
+    stLocalSet(artid, mine);
   }, 'json');
 }
 
@@ -374,6 +508,11 @@ function bindStatusVote(root, artid) {
         if (res && res.code === 200) {
           root.innerHTML = stBarHtml(res.summary, parseInt(st, 10));
           bindStatusVote(root, artid);
+          stLocalSet(artid, parseInt(st, 10));
+          // 90s 内让本人请求绕过 nginx 游客页缓存：否则紧接着的刷新会命中投票前的旧页
+          // （键是 $scheme$host$request_uri，不含访客身份），又变回"看着像没投"。
+          // 与 core.js 重新抓取路径同一手段（update.php 也用 xb_nocache_window）。
+          if (typeof xb_nocache_window === 'function') xb_nocache_window();
           layer.msg('感谢反馈');
         } else {
           layer.msg((res && res.msg) || '提交失败');

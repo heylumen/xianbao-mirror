@@ -143,10 +143,27 @@ def strip_source_addr(html: str) -> str:
 def strip_common_js(html: str) -> str:
     """外科手术式删除源站主题 ``common.js`` 引用。该脚本在移动端会重新初始化评论控件，
     并把文本节点中的 URL 自动链接化，破坏 ``.author`` 链接结构，导致用户名显示异常、
-    同时出现两个「顺序」按钮。仅删除匹配脚本标签，不影响文档其余字节。"""
-    return re.sub(
+    同时出现两个「顺序」按钮。仅删除匹配脚本标签，不影响文档其余字节。
+
+    2026-10 源站主题改版后，新版主题脚本（dark-mode.min.js 等）会调用 common.js
+    里定义的全局函数（实测 ``isWebapp``；meta.php 另用 ``huanyuanurl``）。common.js
+    被整体剥离后这些函数不存在，会在每个页面抛 ReferenceError 并中断主题初始化。
+    这里在 ``<head>`` 最前补一个最小兼容 shim（不恢复 common.js 的评论绑定行为）。"""
+    html = re.sub(
         r'<script[^>]*src="[^"]*common\.js[^"]*"[^>]*>\s*</script>',
         '', html, flags=re.S | re.I)
+    shim = (
+        '<script id="xianbao-common-shim">(function(){'
+        'if(typeof window.isWebapp!=="function"){window.isWebapp=function(){return false;};}'
+        'if(typeof window.huanyuanurl!=="function"){window.huanyuanurl=function(){};}'
+        '})();</script>'
+    )
+    if "xianbao-common-shim" in html:
+        return html
+    m = re.search(r"<head[^>]*>", html, re.I)
+    if m:
+        return html[:m.end()] + shim + html[m.end():]
+    return shim + html
 
 
 def strip_push_scripts(html: str) -> str:
@@ -237,6 +254,16 @@ CHECKPOINT_EVERY = int(os.environ.get("CHECKPOINT_EVERY", "120"))
 CONSEC_MISS_LIMIT = int(os.environ.get("CONSEC_MISS_LIMIT", "3"))
 # 单分类列表页安全上限（防止死循环）。
 MAX_CAT_PAGES = int(os.environ.get("MAX_CAT_PAGES", "5000"))
+# 允许「覆盖刷新」的静态资源前缀。源站主题改版后同名资源内容会变化，而
+# fill_missing 原先「本地已存在即跳过」会永久保留旧版——2026-10 源站主题换代后，
+# 旧版 dark-mode.min.js / c_html_js_add.php 仍被引用，导致全站 Prism/isWebapp
+# ReferenceError。以下前缀属代码类资产（体积小、失效影响大），每次补全时重新
+# 下载比对：内容有变才落盘，避免无意义 diff 与部署。
+REFRESH_ASSET_PREFIXES = (
+    "/zb_users/theme/",
+    "/zb_system/script/",
+    "/zb_users/plugin/",
+)
 
 # 镜像「分类索引页 / 首页」每页展示的帖子数。
 # 刻意与源站列表页每页约 100 帖保持一致（实测源站 category-zuankeba 每页 101 帖、
@@ -396,7 +423,14 @@ def url_to_local(url: str):
 
 def is_asset_path(path: str) -> bool:
     ext = os.path.splitext(path)[1].lower()
-    return ext in ASSET_EXT
+    if ext in ASSET_EXT:
+        return True
+    # .php 默认不视为静态资产（源站有大量动态端点，抓取无意义且可能误触）。
+    # 例外：主题/系统脚本目录下被 <script src> 引用的 .php 是源站「静态落盘」的
+    # JS 片段（如 zb_system/script/c_html_js_add.php，定义 zbpConfig/zbp 与
+    # Prism 动态加载器）——必须参与补全与刷新，否则源站改版后旧版会永久残留。
+    return ext == ".php" and path.startswith(
+        ("/zb_system/script/", "/zb_users/theme/", "/zb_users/plugin/"))
 
 
 def _encode_url(absu: str) -> str:
@@ -589,16 +623,15 @@ def _build_article_nav(active_cat: str):
     无需「返回列表」即可在分类间跳转，与首页/分类页一致。
 
     暗色切换复用 inject_dark_mode_sync 注入的 switchNightMode()；搜索按钮内联
-    onclick 展开 search-area（源站 JS 已被剥离，这里自包含实现）；图标字体走
-    CDN，离线时不显示，故加「浅色 / 搜索」文字兜底保证可用。
-    """
+    onclick 展开 search-area（源站 JS 已被剥离，这里自包含实现）。
+    2026-10 源站主题改版：iconfont 字体已不再随主题提供（旧 `<i class="iconfont">`
+    会显示为空白方块），这里改用内联 SVG（不依赖页面内 symbol 雪碧图，新旧页面通吃）。"""
     frag = (
         '<header class="header sb xianbao-article-nav">'
         '<div class="h-wrap container clearfix">'
         '<div class="logo-area fl"><a href="/" title="线报酷">'
         '<img alt="线报酷" class="img" src="/zb_users/theme/xianbao_theme/image/newlogo.png" title="线报酷"/>'
         '</a></div>'
-        '<div class="m-nav-btn"><i class="iconfont icon-category"></i></div>'
         '<nav class="responsive-nav">'
         '<div class="pc-nav m-nav fl" data-cateid="16" data-catename="' + active_cat + '" data-type="category">'
         '<ul class="nav-ul">'
@@ -610,10 +643,17 @@ def _build_article_nav(active_cat: str):
                  '<a href="/category-' + c + '/">' + CAT_LABELS[c] + '</a></li>')
     frag += (
         '</ul></div></nav>'
-        '<a class="dark-mode fr" href="javascript:switchNightMode()" target="_self" title="浅色/暗色模式">'
-        '<i class="iconfont icon-moon"></i></a>'
-        '<span class="search-button fr" id="search-button" title="搜索">'
-        '<i class="iconfont icon-search"></i></span>'
+        '<a class="dark-mode fr" href="javascript:switchNightMode()" target="_self" '
+        'title="浅色/暗色模式" role="button">'
+        '<svg class="xb-ic" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">'
+        '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" '
+        'stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'
+        '<span class="lt">主题</span></a>'
+        '<span class="search-button fr" id="search-button" title="搜索" role="button" tabindex="0">'
+        '<svg class="xb-ic" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">'
+        '<circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>'
+        '<path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" '
+        'stroke-linecap="round"/></svg></span>'
         '<div class="container br sb animated-fast fadeInUpMenu hidden" id="search-area" style="display:none;">'
         '<form action="/search.html" class="searchform clearfix" method="get" name="search">'
         '<input autofocus="autofocus" class="s-input br fl" name="q" placeholder="请输入关键词..." type="text"/>'
@@ -850,6 +890,10 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 img_fb.string = IMG_FALLBACK_JS
                 body.append(img_fb)
             _inject_nav_tools(soup)
+    # 新版主题把站外频道/功能入口写成 href=""（源站由 JS 接管跳转）；
+    # 静态镜像上点击会刷新当前页，属无意义死链 → 去掉 href（保留文字与样式）。
+    for a in soup.find_all("a", href=""):
+        del a["href"]
     # iconfont 外链本地化：at.alicdn.com 偶发超时导致全站图标缺字（方框/空白）。
     # 在最终序列化字符串上做字节级替换，避免再次 soup 往返。
     return localize_iconfont(str(soup))
@@ -1484,7 +1528,7 @@ SEARCH_HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像 · 站内搜索</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=6">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=7">
 <script src="/lib/minisearch.umd.min.js"></script>
 <style>
   body{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}
@@ -1549,8 +1593,15 @@ _loadIndex().then(function(docs){
     if(initial){ _q.value=initial; run(); }
   });
 }).catch(function(e){
-  _r.innerHTML='<p>搜索索引加载失败：'+(e&&e.message?e.message:e)+'</p>';
+  // 异常文本必须转义后再进 innerHTML：错误信息可能来自网络响应/解析器，
+  // 直接拼接会构成 DOM XSS（CodeQL js/xss-through-exception）。
+  _r.innerHTML='<p>搜索索引加载失败：'+escHtml(e&&e.message?e.message:e)+'</p>';
 });
+// 统一转义：所有进入 innerHTML 的动态文本（标题/摘要/URL/错误信息）都走这里
+function escHtml(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 // 按发布时间排序（新→旧），同日内按相关度兜底：
 // 线报/优惠强时效，用户明确要求结果以发布时间为准（2026-09-05 反馈）。
 function postTime(tstr){
@@ -1570,8 +1621,8 @@ function run(){
   var res=ranked(_ms.search(t,{prefix:true,fuzzy:0.2,boost:{title:2}}));
   if(!res.length){_r.innerHTML='<p>没有找到相关结果。</p>';return;}
   _r.innerHTML=res.slice(0,100).map(function(x){
-    return '<div class="it"><a href="'+x.url+'">'+x.title+'</a>'
-      +'<p>'+((x.fulltext||'').slice(0,140))+'</p></div>';
+    return '<div class="it"><a href="'+escHtml(x.url)+'">'+escHtml(x.title)+'</a>'
+      +'<p>'+escHtml((x.fulltext||'').slice(0,140))+'</p></div>';
   }).join('');
 }
 // 输入防抖：合并连续输入触发的检索，避免每个按键都全量搜索
@@ -1621,7 +1672,8 @@ def _extract_comment_text(soup) -> str:
     if not box:
         return ""
     for el in box.select(
-        "button, .comment-toolbar, .comment-order, .showlouzhu, script, style"
+        "button, .comment-toolbar, .comment-order, .showlouzhu, "
+        ".xb-cmtpills, .xb-cmtn, script, style"
     ):
         el.decompose()
     return box.get_text(" ", strip=True)
@@ -1769,6 +1821,23 @@ def _lite_url() -> str:
     版本不变 → 浏览器零请求秒加载；新部署 → URL 变化 → 自动拉取新索引。"""
     version = os.environ.get("RENDER_VERSION") or str(int(time.time()))
     return f"/search-lite.json?v={version}"
+
+
+def ensure_dynamic_stubs(out_dir: Path) -> None:
+    """为源站新版主题依赖的只读 JSON 端点生成静态桩，消除每页必现的 404。
+
+    2026-10 主题改版新增「有效/失效投票」状态接口 ``/plus/json/status_vote.php``：
+    列表页渲染完成后由 xb-extra.min.js 以 ``$.get(..., "json")`` 回填投票数。
+    镜像站没有 PHP 运行时，该请求必然 404（控制台噪声，且部分浏览器会重试）。
+
+    源站响应契约（从主题 JS 反推）：``{code:200, summary:{...}, mine:0}``。
+    这里返回 ``code:0``：前端判断 ``o.code !== 200`` 后直接跳过，
+    保持服务端已渲染的静态投票数据不变——即「无副作用的安全桩」。"""
+    stub = out_dir / "plus" / "json" / "status_vote.php"
+    stub.parent.mkdir(parents=True, exist_ok=True)
+    content = '{"code":0,"summary":{"valid":0,"invalid":0,"total":0},"mine":0}'
+    if not stub.exists() or stub.read_text(encoding="utf-8", errors="replace") != content:
+        stub.write_text(content, encoding="utf-8")
 
 
 def build_search_page(out_dir: Path, items: list) -> None:
@@ -1935,7 +2004,7 @@ def build_search_page(out_dir: Path, items: list) -> None:
       res.sort(function(a,b){ return (b._t - a._t) || (b.score - a.score); });
       render(res);
     }).catch(function(e){
-      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">搜索索引加载失败：'+(e&&e.message?e.message:e)+'</p></li>';
+      ul.innerHTML = '<li class="article-list"><p class="title" style="padding:20px 0">搜索索引加载失败：'+escapeHtml(e&&e.message?e.message:e)+'</p></li>';
     });
   }
   // 输入防抖：连续输入时合并检索，避免每个按键都触发一次全量检索
@@ -2048,7 +2117,7 @@ def _build_legacy_hub(out_dir: Path):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>线报酷镜像</title>
-<link rel="stylesheet" href="/lib/xianbao-override.css?v=6">
+<link rel="stylesheet" href="/lib/xianbao-override.css?v=7">
 <style>
 body{{font-family:system-ui,"Microsoft YaHei",sans-serif;background:#f6f7fb;color:#222;margin:0}}
 .wrap{{max-width:900px;margin:0 auto;padding:24px 16px}}
@@ -2151,16 +2220,25 @@ def _extract_article_meta(path: Path, soup=None) -> dict:
     rel = "/" + path.relative_to(path.parent.parent).as_posix()
     m = re.search(r"/([^/]+)/(\d+)\.html$", rel)
     art_id = int(m.group(2)) if m else 0
-    # 评论数：优先取 .head-info .comment 中的数字
+    # 评论数：兼容两种主题结构（存量文章仍是旧结构，新爬文章是新结构）
+    #   旧版：.head-info span.comment（如「12」）
+    #   新版：2026-10 改版后移到 #comment .comment-list .title .xb-cmtn（如「5 条」）
+    # 只取旧选择器会让改版后的所有新文章评论数恒为 0（列表徽章与搜索索引同时失真）。
     comments = 0
-    head_info = soup.find(class_="head-info")
-    if head_info:
-        comment_span = head_info.find("span", class_="comment")
-        if comment_span:
-            cmt_text = comment_span.get_text(" ", strip=True)
-            cmt_m = re.search(r"(\d+)", cmt_text)
-            if cmt_m:
-                comments = int(cmt_m.group(1))
+    cmt = soup.select_one("#comment .xb-cmtn, .comment-list .xb-cmtn")
+    if cmt:
+        cmt_m = re.search(r"(\d+)", cmt.get_text(" ", strip=True))
+        if cmt_m:
+            comments = int(cmt_m.group(1))
+    if not comments:
+        head_info = soup.find(class_="head-info")
+        if head_info:
+            comment_span = head_info.find("span", class_="comment")
+            if comment_span:
+                cmt_text = comment_span.get_text(" ", strip=True)
+                cmt_m = re.search(r"(\d+)", cmt_text)
+                if cmt_m:
+                    comments = int(cmt_m.group(1))
     return {
         "id": art_id,
         "url": rel,
@@ -2524,6 +2602,10 @@ def rebuild_category_page(
         _strip_pagination(soup)
     _fix_search_form(soup)
     _sanitize_local_links(soup, out_dir)
+    # 新版主题的站外频道入口是 href="" 占位（源站由 JS 接管），
+    # 静态镜像上点击会刷新当前页 → 去 href 保留外观（与文章页一致）。
+    for _a in soup.find_all("a", href=""):
+        del _a["href"]
     _prune_nav(soup, active_cat=cat if not is_home else None, is_home=is_home)
     _remove_footer(soup)
     if is_home:
@@ -2976,6 +3058,7 @@ def main():
     # 现用 try/finally 保证无论成败都先落盘一次；末尾仍会再写一次（覆盖写，幂等）。
     try:
         n_idx = build_search_index(OUT_DIR)
+        ensure_dynamic_stubs(OUT_DIR)
         build_hub(OUT_DIR)
         rebuild_category_pages(OUT_DIR)
 
@@ -3114,7 +3197,14 @@ def fill_missing(state=None, raw_url_map=None, since=None):
             skipped_dead += 1
             continue  # 已记录失效，不再重试
         local = url_to_local(absu)
-        if not local or (OUT_DIR / local).exists():
+        if not local:
+            continue
+        dst = OUT_DIR / local
+        # 代码类资产允许覆盖刷新（源站改版后同名文件内容会变），
+        # 其余资源（图片/字体等）保持「已存在即跳过」以节省流量。
+        refreshable = any(urlparse(absu).path.startswith(p)
+                          for p in REFRESH_ASSET_PREFIXES)
+        if dst.exists() and not refreshable:
             continue
         body = None
         ctype = ""
@@ -3145,8 +3235,22 @@ def fill_missing(state=None, raw_url_map=None, since=None):
         outp = OUT_DIR / local
         outp.parent.mkdir(parents=True, exist_ok=True)
         if is_text(absu, ctype):
-            outp.write_text(rewrite_text_asset(body.decode("utf-8", "replace"), absu), encoding="utf-8")
+            new_text = rewrite_text_asset(body.decode("utf-8", "replace"), absu)
+            # 内容未变则不落盘：避免每次运行都产生无意义 diff / 触发部署
+            if outp.exists():
+                try:
+                    if outp.read_text(encoding="utf-8", errors="replace") == new_text:
+                        continue
+                except Exception:
+                    pass
+            outp.write_text(new_text, encoding="utf-8")
         else:
+            if outp.exists():
+                try:
+                    if outp.read_bytes() == body:
+                        continue
+                except Exception:
+                    pass
             outp.write_bytes(body)
         count += 1
     if count:

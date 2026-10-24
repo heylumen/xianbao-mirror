@@ -41,8 +41,9 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
-          paths-ignore: |
-            xianbao/**
+          # paths-ignore 不是 init 的合法 input（传了会告警且不生效），
+          # 必须通过配置文件声明；详见 .github/codeql/codeql-config.yml。
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v4

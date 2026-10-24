@@ -1,8 +1,20 @@
-/*! app/rank.js | 排行榜模块：榜单渲染/热帖/榜单Tab/微博分类标签 | 依赖: lscache, Swiper, core.listfilter, list.listtimechuli */
-function retiechuli(cars,shuliang,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbibiaoti,zhanxianbiaoti,pingbineirong,zhanxianneirong,pingbitime){zuanCars=[];var dangqian=0;var bangdingshu=shuliang;$.each(cars,function(i,field){if(listfilter(field,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbibiaoti,zhanxianbiaoti,pingbineirong,zhanxianneirong)==false){return true}zuanCars.push(field);dangqian++;if(dangqian==bangdingshu){return false}});if(sortkey!="1"){zuanCars=sortByKey(zuanCars,"shijianchuo","desc")}var adddata=listtimechuli(zuanCars);if(adddata){adddata='<div class="swiper-slide"><ul class="new-post">'+adddata+'</ul></div>';return adddata}}
-function retielist(result,config,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbibiaoti,zhanxianbiaoti,pingbineirong,zhanxianneirong,pingbitime){var zuandata6=retiechuli(result.remen6,30,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbibiaoti,zhanxianbiaoti,pingbineirong,zhanxianneirong,pingbitime);var zuandata24=retiechuli(result.remen24,30,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbibiaoti,zhanxianbiaoti,pingbineirong,zhanxianneirong,pingbitime);var zuandata48=retiechuli(result.remen48,30,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbibiaoti,zhanxianbiaoti,pingbineirong,zhanxianneirong,pingbitime);if(config=="zuankeba-hot"||config=="xinzuanba-hot"){var name="赚吧"}else if(config=="weibo-hot"){name="微博"}else if(config=="douban-hot"){name="豆瓣"}var zuizhong='<div class="mianbaoxie zuankebatabs"><span class="active">'+name+'6小时热帖</span><span>'+name+'24小时热帖</span><span>'+name+'48小时热帖</span></div><div class="listbox"><ul class="retie-post"><div class="swiper zuankebahot"><div class="swiper-wrapper">'+zuandata6+zuandata24+zuandata48+'</div></div></ul></div></div>';$("#mainbox").append(zuizhong);var mySwiper=new Swiper('#mainbox .zuankebahot',{autoHeight:true,on:{slideChange:function(){$("#mainbox .zuankebatabs .active").removeClass('active');$("#mainbox .zuankebatabs span").eq(this.activeIndex).addClass('active')},},});$("#mainbox .zuankebatabs span").on('click',function(e){e.preventDefault();$("#mainbox .zuankebatabs .active").removeClass('active');$(this).addClass('active');mySwiper.slideTo($(this).index())});$("#mainbox .zuankebatabs span").hover(function(e){e.preventDefault();$("#mainbox .zuankebatabs .active").removeClass('active');$(this).addClass('active');mySwiper.slideTo($(this).index())})}
-function zdm_retiechuli(cars) {
-    zuanCars = [];
+/* 文案兜底（后台「站点信息 → 前端 JS 文案」经 meta.php 下发 window.xb_texts） */
+function xbT(k, d) { return (window.xb_texts && window.xb_texts[k]) || d; }
+/*! app/rank.js | 排行榜模块：值得买热帖/榜单Tab/微博分类标签 | 依赖: lscache, Swiper(=app/xb-swiper.js 自写兼容层), core.listfilter, list.listtimechuli
+ * 20261004 服务端直出改造：赚客吧/新赚吧/微博/豆瓣热帖页与全部分类热帖页（/{分类别名}-hot.html）
+ * 已由主题 service_rank.php+cate-hot.php 模板服务端直出（窗格轮播由 sidebar.js initHotSwiper 接管），
+ * 本文件仅保留：值得买热帖（zhidemai-hot，zdm 数据源静态 JSON）、通用榜单页 rank-tabs URL 跳转、
+ * 微博/值得买/好单频道分类标签。 */
+/* 热帖页频道标签：按 config（{channel}-hot）给出频道名、角标文案与 figure 分类号 */
+function xb_rank_label(config) {
+    if (String(config).indexOf("manmanmai") === 0) {
+        return { name: xbT('rank_mmb', '慢慢买'), badgeCat: xbT('rank_mmb', '慢慢买'), figureCate: 32 };
+    }
+    return { name: xbT('rank_zdm', '值得买'), badgeCat: xbT('rank_zdm', '值得买'), figureCate: 19 };
+}
+
+function xb_retiechuli(cars, opts) {
+    var zuanCars = [];
     var dangqian = 0;
     var bangdingshu = 40;
     $.each(cars, function (i, field) {
@@ -15,111 +27,88 @@ function zdm_retiechuli(cars) {
 
     zuanCars = sortByKey(zuanCars, "posttime", "desc")
 
-    var adddata = zdm_listtimechuli(zuanCars);
+    var adddata = xb_listtimechuli(zuanCars, { figure: true, badgeCat: (opts && opts.badgeCat) || undefined, figureCate: opts && opts.figureCate });
     if (adddata) {
         adddata = '<div class="swiper-slide"><ul class="new-post">' + adddata + '</ul></div>';
         return adddata
     }
+    return '<div class="swiper-slide"><div class="xb-empty"><b>' + xbT('rank_empty', '该时间窗暂无热帖') + '</b><span class="sub">' + xbT('rank_empty_sub', '稍后再来看看') + '</span></div></div>';
 }
 
-function zdm_retielist(result) {
-    var zuandata1 = zdm_retiechuli(result.remen1);
-    var zuandata3 = zdm_retiechuli(result.remen3);
-    var zuandata6 = zdm_retiechuli(result.remen6);
+function xb_retielist(result, config) {
+    var label = xb_rank_label(config);
+    var zuandata1 = xb_retiechuli(result.remen1, label);
+    var zuandata3 = xb_retiechuli(result.remen3, label);
+    var zuandata6 = xb_retiechuli(result.remen6, label);
 
     var zuizhong =
-        '<div class="mianbaoxie zuankebatabs"><span class="active">值得买1小时热帖</span><span>值得买3小时热帖</span><span>值得买6小时热帖</span></div><div class="listbox"><ul class="retie-post"><div class="swiper zuankebahot"><div class="swiper-wrapper">' +
-        zuandata1 + zuandata3 + zuandata6 + '</div></div></ul></div></div>';
+        '<div class="mianbaoxie zuankebatabs"><div class="rt-hd"><b>' + label.name + '热帖</b><span class="sub">按窗口热度实时更新</span></div><div class="rt-tabs"><span class="active">' + label.name + '1小时热帖</span><span>' + label.name + '3小时热帖</span><span>' + label.name + '6小时热帖</span></div></div><div class="listbox"><div class="retie-post"><div class="swiper zuankebahot"><div class="swiper-wrapper">' +
+        zuandata1 + zuandata3 + zuandata6 + '</div></div></div></div></div>';
     $("#mainbox").append(zuizhong);
+    // 全局筛选（window.xb_global_filter）：热榜板块渲染后过滤（未启用时内部直通）
+    if (typeof xb_global_listfilter === "function") {
+        xb_global_listfilter($("#mainbox .retie-post .article-list"), "热榜");
+    }
+    // 全局列表筛选·用户端（window.xb_global_fe_filter）：同板块本地过滤补充（未启用直通）
+    if (typeof xb_global_fe_listfilter === "function") {
+        xb_global_fe_listfilter($("#mainbox .retie-post .article-list"), "热榜");
+    }
     var mySwiper = new Swiper('#mainbox .zuankebahot', {
         autoHeight: true,
         on: {
             slideChange: function () {
-                $("#mainbox .zuankebatabs .active").removeClass('active');
-                $("#mainbox .zuankebatabs span").eq(this.activeIndex).addClass('active')
+                $("#mainbox .zuankebatabs .rt-tabs .active").removeClass('active');
+                $("#mainbox .zuankebatabs .rt-tabs span").eq(this.activeIndex).addClass('active')
             },
         },
     });
-    $("#mainbox .zuankebatabs span").on('click', function (e) {
+    $("#mainbox .zuankebatabs .rt-tabs span").on('click', function (e) {
         e.preventDefault();
-        $("#mainbox .zuankebatabs .active").removeClass('active');
+        $("#mainbox .zuankebatabs .rt-tabs .active").removeClass('active');
         $(this).addClass('active');
         mySwiper.slideTo($(this).index())
     });
-    $("#mainbox .zuankebatabs span").hover(function (e) {
+    $("#mainbox .zuankebatabs .rt-tabs span").hover(function (e) {
         e.preventDefault();
-        $("#mainbox .zuankebatabs .active").removeClass('active');
+        $("#mainbox .zuankebatabs .rt-tabs .active").removeClass('active');
         $(this).addClass('active');
         mySwiper.slideTo($(this).index())
-    })
+    });
+    /* 值得买热帖 tab 为 JSON 异步渲染，DOMContentLoaded 时点居中会落空，渲染完成后补一次 */
+    if (typeof xbNavScrollActive === "function") {
+        var $rtAct = $("#mainbox .zuankebatabs .rt-tabs span.active").first();
+        if ($rtAct.length) xbNavScrollActive($rtAct[0]);
+    }
 }
 
-function rementie(config, sortkey, pingbifenlei, pingbilouzhu, zhanxianlouzhu, pingbibiaoti, zhanxianbiaoti,
-    pingbineirong, zhanxianneirong, pingbitime) {
+function rementie(config) {
+    // 仅值得买热帖（zhidemai-hot）与慢慢买热帖（manmanmai-hot）走本函数（平台静态 JSON 数据源）；
+    // 其他热帖页已服务端直出，meta.php 不调用本函数（防御：非白名单配置直接忽略）
+    if (config !== "zhidemai-hot" && config !== "manmanmai-hot") return;
     if (lscache.supported()) {
-        if (lscache.get(config)) {
-            result = lscache.get(config);
-            if (pingbifenlei == "zhidemai-hot") {
-                zdm_retielist(result);
-            } else {
-                retielist(result, config, sortkey, pingbifenlei, pingbilouzhu, zhanxianlouzhu, pingbibiaoti, zhanxianbiaoti, pingbineirong, zhanxianneirong, pingbitime);
-            }
-            return
+        var cached = lscache.get(config);
+        if (cached) {
+            xb_retielist(cached, config);
+            return;
         }
     }
     $.getJSON("/plus/json/rank/" + config + ".json", function (result, status) {
         if (status == "success") {
             lscache.set(config, result, 30 * 60);
-            if (pingbifenlei == "zhidemai-hot") {
-                zdm_retielist(result);
-            } else {
-                retielist(result, config, sortkey, pingbifenlei, pingbilouzhu, zhanxianlouzhu, pingbibiaoti, zhanxianbiaoti, pingbineirong, zhanxianneirong, pingbitime);
-            }
+            xb_retielist(result, config);
+        }
+    }).fail(function () {
+        if (!$("#mainbox .retie-post").length && !$("#mainbox .xb-empty").length) {
+            $("#mainbox").append('<div class="listbox sb mb"><div class="xb-empty"><b>' + xbT('rank_err', '热帖数据加载失败') + '</b><span class="sub">' + xbT('rank_err_sub', '网络异常或数据未生成，请稍后刷新重试') + '</span></div></div>');
         }
     })
 }
-function addrank(config,netkaiguan,shuliang,redstr,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbilouzhuplus,pingbibiaoti,zhanxianbiaoti,pingbibiaotiplus,pingbineirong,zhanxianneirong,pingbineirongplus,pingbitime){if(lscache.supported()&&lscache.get(config)){var data=lscache.get(config);var rankdata=rankchuli(data,shuliang,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbilouzhuplus,pingbibiaoti,zhanxianbiaoti,pingbibiaotiplus,pingbineirong,zhanxianneirong,pingbineirongplus,pingbitime);$(".rank").append(rankdata);list_red(redstr,"list")}else{if(netkaiguan=="on" || netkaiguan == "off"){$.getJSON("/plus/json/rank/"+config+".json",function(result,status){if(status=="success"){if(lscache.supported()){if(config=="yixiaoshi-hot"){lscache.set(config,result,60*5)}else if(config=="sanxiaoshi-hot"){lscache.set(config,result,60*10)}else if(config=="liuxiaoshi-hot"||config=="shierxiaoshi-hot"){lscache.set(config,result,60*60)}else{lscache.set(config,result,60*60)}}var rankdata=rankchuli(result,shuliang,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbilouzhuplus,pingbibiaoti,zhanxianbiaoti,pingbibiaotiplus,pingbineirong,zhanxianneirong,pingbineirongplus,pingbitime);$(".rank").append(rankdata);list_red(redstr,"list")}})}else{const gaofeng='<div class="bangdan"><div class="clearfix"><div class="mianbaoxie">高峰时间排行榜暂停输出</div></div></div>';$(".listbox.rank").append(gaofeng)}}}
-function rankchuli(res,shuliang,sortkey,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbilouzhuplus,pingbibiaoti,zhanxianbiaoti,pingbibiaotiplus,pingbineirong,zhanxianneirong,pingbineirongplus,pingbitime){dangqian=0;bangdingshu=shuliang;Cars=[];$.each(res,function(i,field){if(listfilter(field,pingbifenlei,pingbilouzhu,zhanxianlouzhu,pingbilouzhuplus,pingbibiaoti,zhanxianbiaoti,pingbibiaotiplus,pingbineirong,zhanxianneirong,pingbineirongplus,pingbitime)==false){return true}Cars.push(field);dangqian++;if(dangqian==bangdingshu){return false}});if(sortkey!="1"){Cars=sortByKey(Cars,"shijianchuo","desc")}if(Cars.length%2===1){Cars.pop()}data=listtimechuli(Cars);if(data){data='<ul class="new-post">'+data+'</ul>';return data}}
-$(function(){var pagealias=$(".pc-nav").attr("data-pagealias");if(pagealias&&pagealias.includes("-hot")){$('.rank-tabs span[data-tabs="'+pagealias+'"]').addClass("active");$('.rank-tabs span[data-tabs]').on('click',function(){var dataTabsValue=$(this).data('tabs');window.open("/"+dataTabsValue+".html","_self")});var w=0;$(".active").prevAll().each(function(){w=w+$(".active").innerWidth()});w=w+($(".active").innerWidth()/2);w=w-($(".rank-tabs").innerWidth()/2);$(".rank-tabs").scrollLeft(w-250)}});
-function getWeiboCategories(pageName) {
-    const FIRST_LEVEL_CATEGORIES = [
-    'xianbao', 
-    'shipin', 
-    'yinliao', 
-    'danrou', 
-    'liangyou', 
-    'guoshu', 
-    'riyong', 
-    'fushi', 
-    'meizhuang', 
-    'muying', 
-    'jiankang', 
-    'yundong', 
-    'yule', 
-    'shuma', 
-    'jiayong', 
-    'chongwu', 
-    'qita'
-];
-
-    const SECOND_LEVEL_CATEGORIES = ['tb', 'jd', 'pdd', 'tuan', 'other', 'zhengdian', 'maochao'];
-    const categories = pageName.split('-').slice(1);
-    const isInArray = (item, array) => array.includes(item);
-    const firstLevel = isInArray(categories[0], FIRST_LEVEL_CATEGORIES) ? categories[0] : null;
-    let secondLevel = categories.length > 1 && isInArray(categories[1], SECOND_LEVEL_CATEGORIES) ? categories[1] : null;
-    if (!secondLevel) {
-        secondLevel = isInArray(categories[0], SECOND_LEVEL_CATEGORIES) ? categories[0] : null
-    }
-    return {
-        firstLevel,
-        secondLevel
-    }
-}
-
+$(function(){var pagealias=$(".pc-nav").attr("data-pagealias");if(pagealias&&pagealias.includes("-hot")){/* 激活态已由 rank-hot.php 服务端标（20261004 晚），JS 仅保留跳转与居中 */$('.rank-tabs span[data-tabs]').on('click',function(){var dataTabsValue=$(this).data('tabs');window.open("/"+dataTabsValue+".html","_self")});var $act=$('.rank-tabs span.active').first();if($act.length&&typeof xbNavScrollActive==='function'){xbNavScrollActive($act[0])}}});
 $(function () {
     const currentURL = window.location.href;
     const pageType = currentURL.includes("weibo") ? "weibo" : 
                      currentURL.includes("zhidemai") ? "zhidemai" : 
+                     currentURL.includes("manmanmai") ? "manmanmai" :
                      currentURL.includes("haodan") ? "haodan" : null;
     
     if (!pageType) return;
@@ -132,13 +121,13 @@ $(function () {
     // 通用函数：设置活动标签
     function setActiveTabs() {
         if (pagetype === "category") {
-            const wbcategory = getWeiboCategories(pagename);
-            const firstLevel = wbcategory.firstLevel || "index";
-            const secondLevel = wbcategory.secondLevel || "index";
-            
-            $(`.tip-nav span[data-tabs="${firstLevel}"]`).addClass("active");
-            $(`.sort-row span[data-tabs="${secondLevel}"]`).addClass("active");
+            /* 一二级 tab 激活态已由 diy-weibo.php 服务端标（20261004 晚），JS 不再加 class */
         } else if (pagetype === "article") {
+            /* 激活态已由 diy-weibo.php 服务端按文章分类/标签标（20261006），
+               此处仅在服务端未标时按 biaoqian 文本兜底，避免出现双激活 */
+            if ($('.tip-nav span.active').length) {
+                return;
+            }
             const biaoqianArray = pagebiaoqian.split('|');
             let hasActive = false;
             
@@ -191,34 +180,47 @@ $(function () {
                 return window.open("/haodan/bendi.html#?code=i1C4W8HL", "_self");
             }
         }
-        
+
+        let target = "";
         if (firstTabsValue === "index" && secondTabsValue === "index") {
-            window.open(`/category-${pageType}/`, "_self");
+            target = `/category-${pageType}/`;
         } else {
             let url = `/category-${pageType}`;
             if (firstTabsValue && firstTabsValue !== "index") url += `-${firstTabsValue}`;
             if (secondTabsValue && secondTabsValue !== "index") url += `-${secondTabsValue}`;
-            window.open(`${url}/`, "_self");
+            target = `${url}/`;
         }
+        // 值得买/微博/好单页动态筛选保留：切换一二级分类时携带当前 quick 条件
+        //（仅非空参数；mall/cate 为值得买专用参数，频道页会忽略），与服务端 quick
+        // 优先语义一致（分类切换只换路由，不丢动态筛选）
+        if (pageType !== null) {
+            const q = new URLSearchParams(window.location.search);
+            const carry = new URLSearchParams();
+            ["k", "kp", "mall", "cate", "mip", "mxp"].forEach(function (key) {
+                const v = q.get(key);
+                if (v) carry.set(key, v);
+            });
+            // 浏览器入口常用 q= 传关键词（k 的服务端别名）；这里统一归一为 k，
+            // 否则 ?q=耳机 页切一二级分类时关键词掉参（20261011）
+            if (!carry.get('k')) {
+                const qv = q.get('q');
+                if (qv) carry.set('k', qv);
+            }
+            const cs = carry.toString();
+            if (cs) target += "?" + cs;
+        }
+        window.open(target, "_self");
     }
 
-    // 通用函数：滑动导航栏
+    // 通用函数：滑动导航栏（20261006 重写：委托 xbNavScrollActive 自动定位真实滚动容器
+    // 并对齐屏幕中线——旧实现把 scrollLeft 设在 .tip-nav 上，而 .xb-navd 体系里滚动容器
+    // 是其父级 .d-tabs，导致激活项从未滚入视野）
     function scrollNavToActive(navClass) {
-    const $active = $(`${navClass} .active`).eq(0);
-    const $nav = $(navClass);
-    
-    if (!$active.length || !$nav.length) return;
-    
-    // 获取元素实际位置和尺寸
-    const activePosition = $active.position().left;
-    const activeWidth = $active.outerWidth();
-    const navWidth = $nav.outerWidth();
-    
-    // 计算居中滚动位置
-    const scrollTo = activePosition + (activeWidth / 2) - (navWidth / 2);
-    
-    $nav.scrollLeft(scrollTo);
-}
+        const $active = $(`${navClass} .active`).eq(0);
+        if ($active.length && typeof xbNavScrollActive === "function") {
+            xbNavScrollActive($active[0]);
+        }
+    }
 
 
     // 初始化
