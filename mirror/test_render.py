@@ -1293,3 +1293,74 @@ def test_fix_new_theme_header_strips_pwa():
     render._fix_new_theme_header(soup)
     assert "pwa-reg.js" not in str(soup)
     assert not [l for l in soup.find_all("link") if "manifest" in (l.get("rel") or [])]
+
+
+def test_build_article_nav_has_theme_menu():
+    """回归：文章页自建导航也要提供源站同款主题菜单（不能只有夜间切换）。"""
+    nav = render._build_article_nav("zuankeba")
+    assert nav.find(id="xbThemeBtn") is not None
+    menu = nav.find(id="xbThemeMenu")
+    assert menu is not None
+    assert len(menu.select(".xb-tm-opt")) >= 16
+
+
+def test_neutralize_nav_links_removes_dead_and_keeps_allowed(tmp_path):
+    """防改版：导航自愈不依赖类名，按链接是否存在于本地来裁剪。"""
+    (tmp_path / "category-zuankeba").mkdir()
+    (tmp_path / "category-zuankeba" / "index.html").write_text("x", encoding="utf-8")
+    (tmp_path / "category-zuankeba" / "2").mkdir()
+    (tmp_path / "category-zuankeba" / "2" / "index.html").write_text("x", encoding="utf-8")
+    html = '''<header><nav>
+      <a href="/">首页</a><a href="/category-zuankeba/">赚客吧</a>
+      <a href="/category-douban/">豆瓣线报</a><a href="">空链接</a>
+      <a href="/category-zuankeba/2/">下一页</a>
+      <ul><li><a href="/gone.html">死链</a></li><li></li></ul>
+    </nav></header>'''
+    soup = BeautifulSoup(html, "html.parser")
+    render._neutralize_nav_links(soup, tmp_path)
+    hrefs = [a.get("href") for a in soup.find_all("a")]
+    assert "/" in hrefs and "/category-zuankeba/" in hrefs
+    assert "/category-zuankeba/2/" in hrefs, "存在的分页链接必须保留"
+    assert "/category-douban/" not in hrefs and "/gone.html" not in hrefs
+    assert "" not in hrefs
+
+
+def test_generic_search_forms_handles_any_class():
+    """防改版：搜索表单按 input[name=q] 识别，源站改类名也生效。"""
+    html = '''<form class="whatever-new" action="/category-x/" method="get">
+      <input name="q"/><span class="x"><input name="kp"/></span>
+      <div><input name="mip"/><input name="mxp"/></div>
+      <button type="submit">搜索</button></form>'''
+    soup = BeautifulSoup(html, "html.parser")
+    render._generic_search_forms(soup)
+    f = soup.find("form")
+    assert f["action"] == "/search.html"
+    assert not f.find("input", attrs={"name": "kp"})
+    assert not f.find("input", attrs={"name": "mip"})
+    assert f.find("input", attrs={"name": "q"}) is not None
+
+
+def test_capture_theme_menu_syncs_new_theme_and_drops_line_option(tmp_path):
+    """防改版：菜单模板从源站实时抓取；新主题按 tokens 自动配色；行数项剔除。"""
+    (tmp_path / "design").mkdir()
+    (tmp_path / "design" / "tokens-themes.css").write_text(
+        'html[data-xb-theme="newtheme"]{--bg:#123456;--primary:#abcdef}',
+        encoding="utf-8")
+    html = '''<html><body><div id="xbThemeMenu"><div class="xb-tm-grid">
+      <button class="xb-tm-opt" data-t="newtheme"><span class="xb-tm-sw" style="background:#000"></span>新主题</button>
+      </div><div class="xb-tm-sep"></div><p class="xb-tm-gt">列表标题行数</p><div class="xb-tm-grid">
+      <button class="xb-tm-opt" data-tl="2">两行</button></div></div></body></html>'''
+    soup = BeautifulSoup(html, "html.parser")
+    render._capture_theme_menu(soup, tmp_path)
+    out = (tmp_path / ".mirror-theme-menu.html").read_text(encoding="utf-8")
+    assert "行数" not in out, "列表标题行数应被剔除"
+    assert "abcdef" in out.lower(), "新主题应按 tokens 配色生成双色圆点"
+
+
+def test_discover_article_links_warns_on_shape_change(capsys):
+    """防改版：列表页出现大量文章式链接但无一匹配时，输出警告（CI 可见）。"""
+    html = "<html><body>" + "".join(
+        f'<a href="/x/{1000+i}.html">a</a>' for i in range(30)) + "</body></html>"
+    out = render.discover_article_links(html, "https://new.xianbao.fun/unknown-shape/")
+    assert out == []
+    assert "结构疑似变化" in capsys.readouterr().err

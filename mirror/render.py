@@ -619,12 +619,25 @@ def _ensure_display_block(el) -> None:
     el["style"] = (style + ";display:block;").lstrip(";") if style else "display:block;"
 
 
+def _theme_menu_html() -> str:
+    """读取主题菜单模板：优先使用「随源站同步」的动态模板
+    （xianbao/.mirror-theme-menu.html，由爬取时自动抓取更新），
+    回退到仓库内静态模板 mirror/theme-menu.html。"""
+    for p in (OUT_DIR / ".mirror-theme-menu.html",
+              Path(__file__).resolve().parent / "theme-menu.html"):
+        try:
+            return p.read_text(encoding="utf-8")
+        except OSError:
+            continue
+    return ""
+
+
 def _build_article_nav(active_cat: str):
-    """构造源站风格的文章页顶部导航（分类标签 + 搜索 + 浅色模式），让文章页
+    """构造源站风格的文章页顶部导航（分类标签 + 搜索 + 主题菜单），让文章页
     无需「返回列表」即可在分类间跳转，与首页/分类页一致。
 
-    暗色切换复用 inject_dark_mode_sync 注入的 switchNightMode()；搜索按钮内联
-    onclick 展开 search-area（源站 JS 已被剥离，这里自包含实现）。
+    主题切换复用源站 dark-mode.min.js 的 xbThemeMenuToggle（菜单标记见
+    mirror/theme-menu.html）；搜索按钮内联展开 search-area（自包含实现）。
     2026-10 源站主题改版：iconfont 字体已不再随主题提供（旧 `<i class="iconfont">`
     会显示为空白方块），这里改用内联 SVG（不依赖页面内 symbol 雪碧图，新旧页面通吃）。"""
     frag = (
@@ -644,12 +657,18 @@ def _build_article_nav(active_cat: str):
                  '<a href="/category-' + c + '/">' + CAT_LABELS[c] + '</a></li>')
     frag += (
         '</ul></div></nav>'
-        '<a class="dark-mode fr" href="javascript:switchNightMode()" target="_self" '
-        'title="浅色/暗色模式" role="button">'
+        '<a class="dark-mode fr" href="javascript:;" id="xbThemeBtn" '
+        'onclick="xbThemeMenuToggle(event);return false;" target="_self" '
+        'role="button" aria-haspopup="true" aria-expanded="false" '
+        'aria-label="选择主题" title="选择主题">'
         '<svg class="xb-ic" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">'
-        '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" '
-        'stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>'
+        '<path d="M12 2a10 10 0 1 0 0 20 2.5 2.5 0 0 0 2.5-2.5c0-.6-.2-1.1-.6-1.5-.4-.4-.6-.9-.6-1.5A2.5 2.5 0 0 1 15.8 15H18a4 4 0 0 0 4-4 10 10 0 0 0-10-9z" '
+        'fill="none" stroke="currentColor" stroke-width="2"/>'
+        '<circle cx="7.5" cy="11.5" r="1.2" fill="currentColor"/>'
+        '<circle cx="10" cy="7.5" r="1.2" fill="currentColor"/>'
+        '<circle cx="14.5" cy="8" r="1.2" fill="currentColor"/></svg>'
         '<span class="lt">主题</span></a>'
+        + _theme_menu_html() +
         '<span class="search-button fr" id="search-button" title="搜索" role="button" tabindex="0">'
         '<svg class="xb-ic" viewBox="0 0 24 24" aria-hidden="true" width="18" height="18">'
         '<circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>'
@@ -893,6 +912,7 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
             _inject_nav_tools(soup)
     # 2026-10 新主题：头部搜索条改提交到站内搜索页、主题按钮简化为一键切换
     _fix_new_theme_header(soup)
+    _neutralize_nav_links(soup, OUT_DIR)
     # 新版主题把站外频道/功能入口写成 href=""（源站由 JS 接管跳转）；
     # 静态镜像上点击会刷新当前页，属无意义死链 → 去掉 href（保留文字与样式）。
     for a in soup.find_all("a", href=""):
@@ -914,6 +934,9 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     # iconfont 外链本地化：at.alicdn.com 偶发超时导致全站图标缺字（方框/空白）。
     # 在最终序列化字符串上做字节级替换，避免再次 soup 往返。
     return localize_iconfont(str(soup))
+
+
+_SHAPE_WARNED = set()
 
 
 def discover_article_links(html: str, base_url: str):
@@ -958,6 +981,12 @@ def discover_article_links(html: str, base_url: str):
             clean = clean[:-1]
         if ART_RE.match(urlparse(clean).path or ""):
             out.append(clean)
+    if not out and html:
+        _hits = re.findall(r'href="[^"]*?/(\d+)\.html(?:[?#"\']|$)', html)
+        if len(_hits) >= 20 and base_url not in _SHAPE_WARNED:
+            _SHAPE_WARNED.add(base_url)
+            print("::warning:: 页面结构疑似变化：发现 %d 个文章式链接但均未匹配 ART_RE：%s"
+                  % (len(_hits), base_url), file=sys.stderr)
     return out
 
 
@@ -1011,6 +1040,8 @@ def inject_dark_mode_sync(soup: BeautifulSoup) -> None:
 
 def rewrite_html(html: str, cat_slug: str = None) -> str:
     soup = BeautifulSoup(html, "html.parser")
+    # 随源站同步主题菜单（源站改版/新增主题时自动跟进）
+    _capture_theme_menu(soup, OUT_DIR)
     inject_dark_mode_sync(soup)
     attrs = ("href", "src", "data-src", "poster", "data-href", "data-url",
              "data-yuanurl", "srcset", "action")
@@ -2060,6 +2091,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
     _sanitize_local_links(soup, out_dir)
     _prune_nav(soup, is_home=False)
     _fix_new_theme_header(soup)
+    _neutralize_nav_links(soup, OUT_DIR)
     _remove_footer(soup)
     _inject_nav_tools(soup)
     (out_dir / "search.html").write_text(str(soup), encoding="utf-8")
@@ -2257,6 +2289,15 @@ def _extract_article_meta(path: Path, soup=None) -> dict:
                 cmt_m = re.search(r"(\d+)", cmt_text)
                 if cmt_m:
                     comments = int(cmt_m.group(1))
+    if not comments:
+        # 通用兜底：源站若再次调整评论结构，仍可从评论区域内「N 条」类节点取数
+        scope = soup.select_one("#comment, .comment-list, [class*='comment']")
+        if scope is not None:
+            for el in scope.select("[class*='cmt'], [class*='comment']"):
+                cmt_m = re.search(r"(\d+)\s*条", el.get_text(" ", strip=True))
+                if cmt_m:
+                    comments = int(cmt_m.group(1))
+                    break
     return {
         "id": art_id,
         "url": rel,
@@ -2453,6 +2494,125 @@ def _sanitize_local_links(soup, out_dir: Path) -> None:
                 del a["target"]
 
 
+def _theme_palette(out_dir: Path):
+    """从 design/tokens-themes.css 解析各主题的 (背景色, 主题色)，
+    用于给菜单圆点绘制可辨识的双色预览（源站新增主题也能自动适配）。"""
+    pal = {
+        "system": ("#fafafa", "#18181b"),
+        "day": ("#fafafa", "#18181b"),
+        "night": ("#18181b", "#f4f4f5"),
+    }
+    for rel in ("design/tokens-themes.css", "design/tokens.css"):
+        p = out_dir / rel
+        try:
+            text = p.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for name, body in re.findall(
+                r'html\[data-xb-theme=["\']?([\w-]+)["\']?\]\s*\{([^}]*)\}', text):
+            bg = re.search(r"--bg\s*:\s*([^;}\s]+)", body)
+            fg = re.search(r"--primary\s*:\s*([^;}\s]+)", body)
+            if bg and fg:
+                pal[name] = (bg.group(1).strip(), fg.group(1).strip())
+    return pal
+
+
+def _capture_theme_menu(soup, out_dir: Path) -> None:
+    """从源站页面实时抓取主题菜单，生成/更新镜像模板（防源站再次改版）。
+
+    - 删除「列表标题行数」分组（镜像不需要，用户已明确取消）
+    - 圆点按 tokens-themes.css 的真实配色重绘为双色渐变（暗色主题可辨识）
+    - 内容未变化则不落盘（幂等）
+    """
+    import copy
+    menu = soup.find(id="xbThemeMenu")
+    if menu is None:
+        return
+    m = copy.deepcopy(menu)
+    for gt in m.find_all(class_=re.compile(r"tm-gt")):
+        if "行数" in gt.get_text():
+            grid = gt.find_next_sibling()
+            sep = gt.find_previous_sibling(class_=re.compile(r"tm-sep"))
+            if grid is not None:
+                grid.decompose()
+            if sep is not None:
+                sep.decompose()
+            gt.decompose()
+    pal = _theme_palette(out_dir)
+    for opt in m.select("[data-t]"):
+        t = opt.get("data-t")
+        sw = opt.find(class_=re.compile(r"tm-sw"))
+        if sw is not None and t in pal:
+            bg, fg = pal[t]
+            sw["style"] = f"background:linear-gradient(135deg,{bg} 0 50%,{fg} 50% 100%)"
+    html = str(m)
+    dst = out_dir / ".mirror-theme-menu.html"
+    try:
+        if dst.exists() and dst.read_text(encoding="utf-8", errors="replace") == html:
+            return
+        dst.write_text(html, encoding="utf-8")
+    except OSError:
+        pass
+
+
+def _generic_search_forms(soup) -> None:
+    """按语义修搜索表单（不依赖主题类名，防源站改版）：
+    任何包含 input[name=q] 的表单都视为站内搜索 → 提交 /search.html；
+    移除镜像不支持的筛选字段（kp/mip/mxp）及其最小包装。"""
+    for form in soup.find_all("form"):
+        q = form.find("input", attrs={"name": "q"})
+        if q is None:
+            continue
+        form["action"] = "/search.html"
+        form["method"] = "get"
+        for name in ("kp", "mip", "mxp"):
+            for inp in form.find_all("input", attrs={"name": name}):
+                holder = inp.find_parent(["label", "span", "div"])
+                if holder is not None and holder is not form \
+                        and len(holder.find_all("input")) == 1:
+                    holder.decompose()
+                else:
+                    inp.decompose()
+        if not q.get("placeholder"):
+            q["placeholder"] = "输入关键词，如 红包 / 活动 / 教程…"
+
+
+def _neutralize_nav_links(soup, out_dir: Path) -> None:
+    """导航区死链自愈（不依赖具体类名）：在导航容器内去掉指向不存在本地页面
+    或空 href 的链接，并清理空 li。源站改版/新增未镜像频道时仍有效。"""
+    scopes = soup.select(
+        "header, nav, .navstrip, .nav2-panel, .ns-ul, .nav-ul, "
+        ".pc-nav, .responsive-nav"
+    )
+    seen = set()
+    allowed_prefix = tuple(f"/category-{c}/" for c in ALLOWED_CATEGORIES)
+    for scope in scopes:
+        if id(scope) in seen:
+            continue
+        seen.add(id(scope))
+        for a in scope.find_all("a"):
+            href = (a.get("href") or "").strip()
+            if not href or href == "#":
+                if "href" in a.attrs:
+                    del a["href"]
+                continue
+            if href.startswith(("javascript:", "mailto:", "tel:")) or "://" in href:
+                continue
+            if not href.startswith("/"):
+                continue
+            path = unquote(urlparse(href).path)
+            if path == "/" or path == "/search.html" or path.startswith(allowed_prefix):
+                continue
+            target = out_dir / path.lstrip("/")
+            if path.endswith("/"):
+                target = target / "index.html"
+            if not target.exists() and "href" in a.attrs:
+                del a["href"]
+        for li in scope.find_all("li"):
+            if li.find("a", href=True) is None and not li.get_text(strip=True):
+                li.decompose()
+
+
 def _fix_new_theme_header(soup) -> None:
     """修复 2026-10 新主题头部搜索条与主题按钮的静态可用性。
 
@@ -2465,30 +2625,26 @@ def _fix_new_theme_header(soup) -> None:
     主题按钮 (#xbThemeBtn) 原生打开多主题菜单（依赖主题脚本切换 data-xb-theme）。
     静态镜像统一简化为「一键浅色/夜间切换」，复用已注入的 switchNightMode()。
     """
-    # ---------- 1) 头部/移动端搜索条 ----------
-    for form in soup.select("form.hs-form, form.fp-form"):
-        form["action"] = "/search.html"
-        form["method"] = "get"
-        for seg in form.select(".hq-seg--kp, .hq-seg--price, .fp-fd--kp, .fp-fd--pr, .fp-scope"):
-            seg.decompose()
-        inp = form.select_one("input[name=q]")
-        if inp is not None:
-            inp["placeholder"] = "输入关键词，如 红包 / 活动 / 教程…"
-    if soup.select_one("form.hs-form, form.fp-form") is not None and soup.body is not None \
-            and soup.find("script", id="xianbao-hs-tools") is None:
+    # ---------- 1) 搜索表单：按语义统一（不依赖主题类名） ----------
+    _generic_search_forms(soup)
+    if soup.find("form") is not None and soup.find("input", attrs={"name": "q"}) is not None \
+            and soup.body is not None and soup.find("script", id="xianbao-hs-tools") is None:
         sc = soup.new_tag("script", id="xianbao-hs-tools")
         sc.string = (
             "(function(){"
-            "document.querySelectorAll('form.hs-form, form.fp-form').forEach(function(f){"
+            "document.querySelectorAll('form').forEach(function(f){"
+            "  var q=f.querySelector('input[name=q]');"
+            "  if(!q){return;}"
             "  f.addEventListener('submit',function(e){"
-            "    var q=f.querySelector('input[name=q]');"
-            "    if(q&&!q.value.trim()){e.preventDefault();q.focus();}"
+            "    if(!q.value.trim()){e.preventDefault();q.focus();}"
             "  });"
-            "  var c=f.querySelector('.hq-clearbtn, .fp-clear');"
-            "  if(c){c.addEventListener('click',function(){"
-            "    var q=f.querySelector('input[name=q]');"
-            "    if(q){q.value='';q.focus();}"
-            "  });}"
+            "  var btns=f.querySelectorAll('button, [role=button]');"
+            "  btns.forEach(function(b){"
+            "    var t=(b.innerText||'').trim();"
+            "    if(t==='清空'||t==='清除'){"
+            "      b.addEventListener('click',function(){q.value='';q.focus();});"
+            "    }"
+            "  });"
             "});"
             "})();"
         )
@@ -2516,9 +2672,7 @@ def _fix_new_theme_header(soup) -> None:
         )
         soup.body.append(sc)
 
-    # ---------- 3) 主题按钮：恢复源站同款多主题菜单 ----------
-    # 源站菜单（16 套配色 + 字号 + 列表行数）由 dark-mode.min.js 处理，逻辑已在
-    # 镜像脚本中；此前误删菜单并改为单键切换，导致「和源站不一样」。
+    # ---------- 3) 主题按钮：源站同款多主题菜单（模板可随源站更新） ----------
     btn = soup.find(id="xbThemeBtn")
     if btn is not None:
         btn["onclick"] = "xbThemeMenuToggle(event);return false;"
@@ -2526,19 +2680,15 @@ def _fix_new_theme_header(soup) -> None:
         btn["aria-label"] = "选择主题"
         btn["aria-haspopup"] = "true"
         if soup.find(id="xbThemeMenu") is None:
-            try:
-                tpl = (Path(__file__).resolve().parent / "theme-menu.html").read_text(
-                    encoding="utf-8")
-                tpl_soup = BeautifulSoup(tpl, "html.parser")
-                menu = tpl_soup.find(id="xbThemeMenu")
+            tpl = _theme_menu_html()
+            if tpl:
+                menu = BeautifulSoup(tpl, "html.parser").find(id="xbThemeMenu")
                 if menu is not None:
                     btn.insert_after(menu)
-            except OSError:
-                pass
 
-    # ---------- 4) PWA：镜像没有 /pwa-sw.js，注册必然 404 ----------
+    # ---------- 4) PWA：镜像没有 Service Worker，注册必然 404 ----------
     # 同时移除 manifest（无 SW 不可安装，且图标集不全，浏览器取图标会 404）。
-    for s in soup.find_all("script", src=re.compile(r"pwa-reg\.js")):
+    for s in soup.find_all("script", src=re.compile(r"(pwa|service-?worker|/sw\.js)", re.I)):
         s.decompose()
     for l in soup.find_all("link"):
         if "manifest" in (l.get("rel") or []):
@@ -2812,6 +2962,7 @@ def rebuild_category_page(
         del _a["href"]
     _prune_nav(soup, active_cat=cat if not is_home else None, is_home=is_home)
     _fix_new_theme_header(soup)
+    _neutralize_nav_links(soup, OUT_DIR)
     _remove_footer(soup)
     if is_home:
         _home_breadcrumb(soup)

@@ -19,3 +19,6 @@ xianbao/search.json
 # （线上 /archive/<cat>/<id>/dead.html 实测 200），又显著拖慢发布，
 # 且文件数占全站 32%。此处排除出部署；本地与 git 中的归档不受影响。
 xianbao/archive/
+
+# 主题菜单动态模板（爬取时从源站同步生成，仅构建期使用，不需要公开）
+xianbao/.mirror-theme-menu.html
