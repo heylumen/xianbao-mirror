@@ -891,6 +891,8 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
                 img_fb.string = IMG_FALLBACK_JS
                 body.append(img_fb)
             _inject_nav_tools(soup)
+    # 2026-10 新主题：头部搜索条改提交到站内搜索页、主题按钮简化为一键切换
+    _fix_new_theme_header(soup)
     # 新版主题把站外频道/功能入口写成 href=""（源站由 JS 接管跳转）；
     # 静态镜像上点击会刷新当前页，属无意义死链 → 去掉 href（保留文字与样式）。
     for a in soup.find_all("a", href=""):
@@ -899,6 +901,16 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     # （避免把 4 万用户页与 404 噪声纳入），点击必 404 → 去掉 href，仅保留作者名。
     for a in soup.find_all("a", href=re.compile(r"^/record/")):
         del a["href"]
+    # 「查看原文」按钮：按自包含原则其外链已被中和为空 href（旧主题删除原文行），
+    # 静态镜像里保留按钮只会让用户误以为可点 → 直接移除（正文已完整镜像）。
+    for a in soup.select("a.xb-qlink"):
+        if not (a.get("href") or "").strip():
+            a.decompose()
+    # 「有效/失效」投票依赖源站写接口，静态镜像无法提交（POST 会 405），
+    # 保留抓取时的静态统计值，仅禁用点击并给出说明，避免误判为功能可用。
+    for b in soup.select("button.xb-st-btn"):
+        b["style"] = "pointer-events:none;"
+        b["title"] = "镜像站为静态快照，投票数据为抓取时快照"
     # iconfont 外链本地化：at.alicdn.com 偶发超时导致全站图标缺字（方框/空白）。
     # 在最终序列化字符串上做字节级替换，避免再次 soup 往返。
     return localize_iconfont(str(soup))
@@ -2047,6 +2059,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
     _fix_search_form(soup)
     _sanitize_local_links(soup, out_dir)
     _prune_nav(soup, is_home=False)
+    _fix_new_theme_header(soup)
     _remove_footer(soup)
     _inject_nav_tools(soup)
     (out_dir / "search.html").write_text(str(soup), encoding="utf-8")
@@ -2440,6 +2453,82 @@ def _sanitize_local_links(soup, out_dir: Path) -> None:
                 del a["target"]
 
 
+def _fix_new_theme_header(soup) -> None:
+    """修复 2026-10 新主题头部搜索条与主题按钮的静态可用性。
+
+    源站「方案 E 行一搜索条」(.hs-form) 依赖 meta.php/list.js 做前端筛选：
+      - 表单 action 指向当前分类页，提交后由 JS 读取 q/kp/mip/mxp 过滤；
+      - 静态镜像没有这些脚本 → 提交只会在分类页刷新，看起来「搜索失效」。
+    这里改为直接提交到站内搜索页 /search.html（仅保留关键词 q），并移除
+    本站不支持的「屏蔽词 / 价格区间」两段（它们只对源站微博/好单/值得买生效）。
+
+    主题按钮 (#xbThemeBtn) 原生打开多主题菜单（依赖主题脚本切换 data-xb-theme）。
+    静态镜像统一简化为「一键浅色/夜间切换」，复用已注入的 switchNightMode()。
+    """
+    # ---------- 1) 头部/移动端搜索条 ----------
+    for form in soup.select("form.hs-form, form.fp-form"):
+        form["action"] = "/search.html"
+        form["method"] = "get"
+        for seg in form.select(".hq-seg--kp, .hq-seg--price, .fp-fd--kp, .fp-fd--pr, .fp-scope"):
+            seg.decompose()
+        inp = form.select_one("input[name=q]")
+        if inp is not None:
+            inp["placeholder"] = "输入关键词，如 红包 / 活动 / 教程…"
+    if soup.select_one("form.hs-form, form.fp-form") is not None and soup.body is not None \
+            and soup.find("script", id="xianbao-hs-tools") is None:
+        sc = soup.new_tag("script", id="xianbao-hs-tools")
+        sc.string = (
+            "(function(){"
+            "document.querySelectorAll('form.hs-form, form.fp-form').forEach(function(f){"
+            "  f.addEventListener('submit',function(e){"
+            "    var q=f.querySelector('input[name=q]');"
+            "    if(q&&!q.value.trim()){e.preventDefault();q.focus();}"
+            "  });"
+            "  var c=f.querySelector('.hq-clearbtn, .fp-clear');"
+            "  if(c){c.addEventListener('click',function(){"
+            "    var q=f.querySelector('input[name=q]');"
+            "    if(q){q.value='';q.focus();}"
+            "  });}"
+            "});"
+            "})();"
+        )
+        soup.body.append(sc)
+
+    # ---------- 2) 移动端分类抽屉 ----------
+    # 新主题自带绑定要求 #nav2-list 存在；历史页面在旧裁剪逻辑中已把它整块删除，
+    # 因此这里补一个自包含切换（有 #nav2-list 时让主题脚本处理，避免双触发）。
+    if soup.select_one(".nav2-toggle") is not None and soup.body is not None \
+            and soup.find("script", id="xianbao-nav2-tools") is None:
+        sc = soup.new_tag("script", id="xianbao-nav2-tools")
+        sc.string = (
+            "(function(){"
+            "if(document.getElementById('nav2-list')){return;}"
+            "var b=document.querySelector('.nav2-toggle');"
+            "var p=document.getElementById('nav2-panel');"
+            "if(!b||!p){return;}"
+            "b.addEventListener('click',function(e){"
+            "  e.preventDefault();"
+            "  var open=p.classList.toggle('open');"
+            "  b.setAttribute('aria-expanded',open?'true':'false');"
+            "  b.classList.toggle('expanded',open);"
+            "});"
+            "})();"
+        )
+        soup.body.append(sc)
+
+    # ---------- 3) 主题按钮：简化为直接切换 ----------
+    btn = soup.find(id="xbThemeBtn")
+    if btn is not None:
+        btn["onclick"] = "switchNightMode();return false;"
+        btn["title"] = "浅色 / 暗色切换"
+        btn["aria-label"] = "浅色 / 暗色切换"
+        btn.attrs.pop("aria-haspopup", None)
+        btn.attrs.pop("aria-expanded", None)
+    menu = soup.find(id="xbThemeMenu")
+    if menu is not None:
+        menu.decompose()
+
+
 def _prune_new_theme_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
     """裁剪 2026-10 新主题导航：只保留「首页 + 已镜像的 5 个分类」。
 
@@ -2516,11 +2605,27 @@ def _prune_new_theme_nav(soup, active_cat: str = None, is_home: bool = False) ->
                 a["class"] = cls
 
 
+def _prune_nav2_uls(soup) -> None:
+    """裁剪次级快捷导航：保留 #nav2-list（移动菜单绑定依赖其存在），
+    只移除未镜像分类项；其余 nav2-ul 整体删除。"""
+    keep = {"/"} | {f"/category-{c}/" for c in ALLOWED_CATEGORIES}
+    for nav2 in soup.find_all("ul", class_="nav2-ul"):
+        if nav2.get("id") == "nav2-list":
+            for li in list(nav2.find_all("li", recursive=False)):
+                a = li.find("a")
+                h = ((a.get("href") if a else "") or "").strip()
+                if h not in keep:
+                    li.decompose()
+            continue
+        nav2.decompose()
+
+
 def _prune_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
     """清理导航：只保留「首页」和已镜像的 5 个分类，其余（线报酷/我的关注/豆瓣线报/微博线报/好单线报/值得买/其他区等）全部删除。
     同时补充葫芦侠、小刀两个没有独立 top-level 导航的分类。"""
     # 2026-10 新主题导航（.ns-ul / .nav2-panel）单独裁剪；旧主题继续走下方逻辑
     _prune_new_theme_nav(soup, active_cat=active_cat, is_home=is_home)
+    _prune_nav2_uls(soup)
     nav = soup.find("ul", class_="nav-ul")
     if not nav:
         return
@@ -2567,9 +2672,9 @@ def _prune_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
             if "active" not in cls:
                 cls.append("active")
             cat_li["class"] = cls
-    # 删除次级快捷导航条（源站含大量未镜像分类）
-    for nav2 in soup.find_all("ul", class_="nav2-ul"):
-        nav2.decompose()
+    # 次级快捷导航条：保留 #nav2-list（新主题移动端菜单的绑定依赖它存在），
+    # 只裁掉未镜像分类项；其余 nav2-ul 仍整体删除（源站含大量未镜像频道）。
+    # 说明：该清理已在函数入口调用 _prune_nav2_uls，此处无需重复。
     # 移除导航项内的「热帖」下拉子菜单（赚客吧/新赚吧等），用户要求只保留平铺分类
     for sub in soup.select(".nav-ul .dropdown-nav, .nav-ul .sub-nav, .nav-ul .toggle-btn"):
         sub.decompose()
@@ -2690,6 +2795,7 @@ def rebuild_category_page(
     for _a in soup.find_all("a", href=""):
         del _a["href"]
     _prune_nav(soup, active_cat=cat if not is_home else None, is_home=is_home)
+    _fix_new_theme_header(soup)
     _remove_footer(soup)
     if is_home:
         _home_breadcrumb(soup)

@@ -10,6 +10,7 @@ build_search_index（搜索索引生成）。
 运行（仓库根目录）：python -m pytest mirror/test_render.py -v
 """
 import os
+from bs4 import BeautifulSoup
 import sys
 import json
 import subprocess
@@ -1210,3 +1211,63 @@ def test_ensure_dynamic_stubs_creates_vote_endpoint(tmp_path):
     import json as _json
     data = _json.loads(stub.read_text(encoding="utf-8"))
     assert data.get("code") == 0
+
+
+def test_fix_new_theme_header_search_and_theme():
+    """回归（2026-10 源站改版）：头部搜索条改提交站内搜索页、移除不支持筛选段、
+    主题按钮简化为一键切换、移动菜单补自包含切换脚本。"""
+    html = '''<html><head></head><body>
+    <form class="hs-form" action="/category-zuankeba/" method="get">
+      <input name="q" value=""/>
+      <label class="hq-seg hq-seg--kp">屏蔽<input name="kp"/></label>
+      <span class="hq-seg hq-seg--price">价格<input name="mip"/></span>
+      <button class="hq-submit" type="submit">搜索</button>
+      <button class="hq-clearbtn" type="button">清空</button>
+    </form>
+    <a id="xbThemeBtn" onclick="xbThemeMenuToggle(event);return false;">主题</a>
+    <div id="xbThemeMenu">menu</div>
+    <button class="nav2-toggle"></button><div id="nav2-panel"></div>
+    </body></html>'''
+    soup = BeautifulSoup(html, "html.parser")
+    render._fix_new_theme_header(soup)
+    form = soup.select_one("form.hs-form")
+    assert form["action"] == "/search.html"
+    assert form.select_one("input[name=kp]") is None
+    assert form.select_one("input[name=mip]") is None
+    btn = soup.find(id="xbThemeBtn")
+    assert "switchNightMode" in btn["onclick"]
+    assert soup.find(id="xbThemeMenu") is None
+    assert soup.find("script", id="xianbao-hs-tools") is not None
+    assert soup.find("script", id="xianbao-nav2-tools") is not None
+
+
+def test_fix_new_theme_header_mobile_form():
+    """回归：移动端抽屉里的 fp-form 同样要指向站内搜索页并去掉筛选段。"""
+    html = '''<html><body><form class="fp-form" action="/category-xinzuanba/" method="get">
+    <input name="q"/><label class="fp-fd fp-fd--kp">屏蔽<input name="kp"/></label>
+    <span class="fp-fd fp-fd--pr">价格<input name="mip"/></span>
+    <button class="fp-clear" type="button">清空</button></form></body></html>'''
+    soup = BeautifulSoup(html, "html.parser")
+    render._fix_new_theme_header(soup)
+    f = soup.select_one("form.fp-form")
+    assert f["action"] == "/search.html"
+    assert f.select_one("input[name=kp]") is None
+    assert soup.find("script", id="xianbao-hs-tools") is not None
+
+
+def test_prune_nav_keeps_nav2_list_but_prunes_items():
+    """回归：移动菜单绑定依赖 #nav2-list 存在，只裁剪未镜像分类，不整块删除。"""
+    html = '''<html><body>
+    <ul class="nav2-ul" id="nav2-list">
+      <li><a href="/">首页</a></li>
+      <li><a href="/category-zuankeba/">赚客吧</a></li>
+      <li><a href="/category-douban/">豆瓣线报</a></li>
+    </ul>
+    <ul class="nav2-ul" id="other"><li>x</li></ul>
+    </body></html>'''
+    soup = BeautifulSoup(html, "html.parser")
+    render._prune_nav(soup)
+    nav2 = soup.find("ul", id="nav2-list")
+    assert nav2 is not None, "#nav2-list 不应被删除"
+    assert [a.get("href") for a in nav2.select("a")] == ["/", "/category-zuankeba/"]
+    assert soup.find("ul", id="other") is None
