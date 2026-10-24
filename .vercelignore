@@ -13,3 +13,9 @@ xianbao/link-map.json
 # 经核查无任何前端 fetch 指向 search.json（降级页也已统一改用 lite 版）。
 # 仍保留在 git 中作归档用途，仅不参与部署，以免拖慢发布。
 xianbao/search.json
+
+# archive/（实测 251MB / 30,648 个文件）：重渲染前的旧版本快照，仅供本地回滚，
+# 没有任何页面引用。此前被当作普通静态文件上传，既公开暴露内部快照
+# （线上 /archive/<cat>/<id>/dead.html 实测 200），又显著拖慢发布，
+# 且文件数占全站 32%。此处排除出部署；本地与 git 中的归档不受影响。
+xianbao/archive/

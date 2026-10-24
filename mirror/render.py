@@ -895,6 +895,10 @@ def strip_chrome(html: str, cat_slug: str = None) -> str:
     # 静态镜像上点击会刷新当前页，属无意义死链 → 去掉 href（保留文字与样式）。
     for a in soup.find_all("a", href=""):
         del a["href"]
+    # 作者名链接指向源站个人主页（/record/<cat>/<user>.html），镜像不抓个人页
+    # （避免把 4 万用户页与 404 噪声纳入），点击必 404 → 去掉 href，仅保留作者名。
+    for a in soup.find_all("a", href=re.compile(r"^/record/")):
+        del a["href"]
     # iconfont 外链本地化：at.alicdn.com 偶发超时导致全站图标缺字（方框/空白）。
     # 在最终序列化字符串上做字节级替换，避免再次 soup 往返。
     return localize_iconfont(str(soup))
@@ -2436,9 +2440,87 @@ def _sanitize_local_links(soup, out_dir: Path) -> None:
                 del a["target"]
 
 
+def _prune_new_theme_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
+    """裁剪 2026-10 新主题导航：只保留「首页 + 已镜像的 5 个分类」。
+
+    新主题有两套导航结构：
+      1) 桌面横向导航 ``.navstrip .ns-ul``（每项可能带 ``.ns-dd`` 下拉）
+      2) 移动端抽屉 ``.nav2-panel``（``.nav2-gt`` 分组 + ``.nav2-chips`` 链接）
+    两套都含大量未镜像频道（线报酷/我的关注/全站排行榜/豆瓣/微博/好单/值得买/
+    酷安/生活优惠/订阅推送/爱Q/免费赚钱中心…），点击无目标或直接 404。
+    按链接目标白名单裁剪，并移除「排行榜」类下拉；同时保持当前分类高亮。
+    """
+    keep = {"/"} | {f"/category-{c}/" for c in ALLOWED_CATEGORIES}
+
+    def href_of(a):
+        return ((a.get("href") if a is not None else "") or "").strip()
+
+    # ---------- 1) 桌面横向导航 ----------
+    ul = soup.find("ul", class_="ns-ul")
+    if ul is not None:
+        for li in list(ul.find_all("li", recursive=False)):
+            a = li.find("a")
+            if href_of(a) not in keep:
+                li.decompose()
+                continue
+            # 下拉内容全是未镜像频道的排行榜 → 整体移除，并还原普通链接样式
+            for dd in li.find_all(class_="ns-dd"):
+                dd.decompose()
+            for svg in li.select("svg"):
+                svg.decompose()
+            a["class"] = [c for c in (a.get("class") or []) if c != "has-dd"]
+        # 当前分类/首页高亮
+        for li in ul.find_all("li", recursive=False):
+            a = li.find("a")
+            h = href_of(a)
+            cls = [c for c in (a.get("class") or []) if c != "on"]
+            if (is_home and h == "/") or (active_cat and h == f"/category-{active_cat}/"):
+                cls.append("on")
+            a["class"] = cls
+        # 模板缺少的分类补齐（保持顺序：首页在前，其余按 ALLOWED_CATEGORIES）
+        have = {href_of(li.find("a")) for li in ul.find_all("li", recursive=False)}
+        for cat in ALLOWED_CATEGORIES:
+            href = f"/category-{cat}/"
+            if href in have:
+                continue
+            li = soup.new_tag("li")
+            a = soup.new_tag("a", href=href, title=f"{CAT_LABELS[cat]}-线报酷")
+            a["class"] = ["t"] + (["on"] if active_cat == cat else [])
+            a.string = CAT_LABELS[cat]
+            li.append(a)
+            ul.append(li)
+
+    # ---------- 2) 移动端抽屉 ----------
+    panel = soup.find(id="nav2-panel")
+    if panel is not None:
+        for g in list(panel.find_all("div", class_="nav2-gt", recursive=False)):
+            chips = g.find_next_sibling("div", class_="nav2-chips")
+            title = g.get_text(strip=True)
+            if chips is None or title not in ("常用", "线报频道", "其他站点"):
+                g.decompose()
+                if chips is not None:
+                    chips.decompose()
+                continue
+            for a in list(chips.find_all("a")):
+                if href_of(a) not in keep:
+                    a.decompose()
+            if chips.find("a") is None:
+                g.decompose()
+                chips.decompose()
+                continue
+            for a in chips.find_all("a"):
+                cls = [c for c in (a.get("class") or []) if c != "nav2-on"]
+                h = href_of(a)
+                if (is_home and h == "/") or (active_cat and h == f"/category-{active_cat}/"):
+                    cls.append("nav2-on")
+                a["class"] = cls
+
+
 def _prune_nav(soup, active_cat: str = None, is_home: bool = False) -> None:
     """清理导航：只保留「首页」和已镜像的 5 个分类，其余（线报酷/我的关注/豆瓣线报/微博线报/好单线报/值得买/其他区等）全部删除。
     同时补充葫芦侠、小刀两个没有独立 top-level 导航的分类。"""
+    # 2026-10 新主题导航（.ns-ul / .nav2-panel）单独裁剪；旧主题继续走下方逻辑
+    _prune_new_theme_nav(soup, active_cat=active_cat, is_home=is_home)
     nav = soup.find("ul", class_="nav-ul")
     if not nav:
         return
