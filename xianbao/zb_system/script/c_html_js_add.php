@@ -101,7 +101,7 @@ $(function(){
   }
 });
 
-$(function(){ if($(".mochu_us_celan_login").length > 0 ){return false;var mochu_us_login_html = "<div class=\"mochu_us_logincelan\"><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/news.ixbk.fun\/login.html\">\u767b\u5f55<\/a><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/news.ixbk.fun\/register.html\">\u6ce8\u518c<\/a><\/div>"; $(".mochu_us_celan_login").html(mochu_us_login_html);}});
+$(function(){ if($(".mochu_us_celan_login").length > 0 ){return false;var mochu_us_login_html = "<div class=\"mochu_us_logincelan\"><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.xianbao.fun\/login.html\">\u767b\u5f55<\/a><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.xianbao.fun\/register.html\">\u6ce8\u518c<\/a><\/div>"; $(".mochu_us_celan_login").html(mochu_us_login_html);}});
 
 $(function(){
                 if($("#txaArticle").length > 0){
