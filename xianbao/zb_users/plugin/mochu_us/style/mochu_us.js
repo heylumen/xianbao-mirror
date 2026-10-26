@@ -1,3 +1,23 @@
+/* 20261027：CSRF token 通道——function_user.php 资金/状态类 act 服务端已对登录用户
+   强制校验。token 唯一真源是 json/csrf.php（页面注入值是二次 md5，不能回传），取一次
+   缓存 20 分钟（token 按小时轮换）。游客取不到 token：服务端对游客跳过校验，行为不变。 */
+window.mochuUsCsrf = '';
+function mochuUsCsrfRefresh() {
+    if (typeof $ === 'undefined' || typeof bloghost === 'undefined') { return; }
+    $.getJSON(bloghost + 'zb_users/plugin/mochu_us/json/csrf.php', {}, function (res) {
+        if (res && res.code == 0 && res.data) { window.mochuUsCsrf = res.data; }
+    });
+}
+if (typeof window.mochuUsCsrfStarted === 'undefined') {
+    window.mochuUsCsrfStarted = true;
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mochuUsCsrfRefresh);
+    } else {
+        mochuUsCsrfRefresh();
+    }
+    setInterval(mochuUsCsrfRefresh, 20 * 60 * 1000);
+}
+
 /**
  * @author Mochu
  * @copyright (C) http://www.73so.com
@@ -112,7 +132,7 @@ window.mochu_us_arthidevipfree = function(aid)
 /* ################################ */
 
 //no data sta
-$("body").on("click", "#mochu-us-xubuy", function () { var inde = layer.load(2); var id = $(this).attr("data-type"); $.post(bloghost + "zb_users/plugin/mochu_us/function_user.php?act=buyxuweizhang", { "id": id }, function (res) { layer.closeAll(); if (res.code == 1) { layer.alert(res.msg, { icon: 0 }) } else { layer.msg(res.msg, { icon: 1 }); $('.mochu_us_article_buy_content').html(res.centent);} }, "json") });
+$("body").on("click", "#mochu-us-xubuy", function () { var inde = layer.load(2); var id = $(this).attr("data-type"); $.post(bloghost + "zb_users/plugin/mochu_us/function_user.php?act=buyxuweizhang", { "id": id, "csrfToken": window.mochuUsCsrf }, function (res) { layer.closeAll(); if (res.code == 1) { layer.alert(res.msg, { icon: 0 }) } else { layer.msg(res.msg, { icon: 1 }); $('.mochu_us_article_buy_content').html(res.centent);} }, "json") });
 //no data end
 
 
@@ -124,11 +144,11 @@ function xbCollNotify(id, on, size) {
     try { document.dispatchEvent(new CustomEvent("xbcolltoggle", { detail: { id: id, on: !!on, size: size } })); } catch (e) {}
     if (window.jQuery) { try { jQuery(document).trigger("xbcolltoggle", [id, !!on, size]); } catch (e) {} }
 }
-$("body").on("click", ".mochu-us-coll", function () { var id = $(this).attr("date-acid");  $.post(bloghost +"zb_users/plugin/mochu_us/function_user.php?act=addshoucang",  { "id": id },  function (res) {  if (res.code == 1) { layer.alert(res.msg, { icon: 0 }); } else if (res.code == 0){  layer.msg(res.msg, { icon: 1 });  var $b = $(".mochu-us-coll"); if (!$b.find("i.iconfont,svg.xb-ic").length) { $b.text("已收藏 | " + res.size); } $b.addClass('mochu-us-buttonhover'); xbCollNotify(id, true, res.size); }else{layer.msg(res.msg, { icon: 1 }); var $b2 = $(".mochu-us-coll"); if (!$b2.find("i.iconfont,svg.xb-ic").length) { $b2.text("收藏 | " + res.size); } $b2.removeClass('mochu-us-buttonhover'); xbCollNotify(id, false, res.size); } }, "json")});   
-$('body').on('click','.mochu-us-zan',function(){ var id = $(this).attr('date-acid'); $.ajax({ type: "POST", url: bloghost +"zb_users/plugin/mochu_us/function_user.php?act=zan", data: {'id':id}, dataType: "json", success: function (res) { if(res.code == 1){ layer.alert(res.msg, { icon: 0 }); } else if (res.code == 0){ $('.mochu-us-zan').text('已赞 | '+res.size); $('.mochu-us-zan').addClass('mochu-us-buttonhover'); }else{ $('.mochu-us-zan').text('点赞 | '+res.size);  $('.mochu-us-zan').removeClass('mochu-us-buttonhover');} }, error: function () {layer.alert('数据获取失败', { icon: 0 }); }});});
+$("body").on("click", ".mochu-us-coll", function () { var id = $(this).attr("date-acid");  $.post(bloghost +"zb_users/plugin/mochu_us/function_user.php?act=addshoucang",  { "id": id, "csrfToken": window.mochuUsCsrf },  function (res) {  if (res.code == 1) { layer.alert(res.msg, { icon: 0 }); } else if (res.code == 0){  layer.msg(res.msg, { icon: 1 });  var $b = $(".mochu-us-coll"); if (!$b.find("i.iconfont,svg.xb-ic").length) { $b.text("已收藏 | " + res.size); } $b.addClass('mochu-us-buttonhover'); xbCollNotify(id, true, res.size); }else{layer.msg(res.msg, { icon: 1 }); var $b2 = $(".mochu-us-coll"); if (!$b2.find("i.iconfont,svg.xb-ic").length) { $b2.text("收藏 | " + res.size); } $b2.removeClass('mochu-us-buttonhover'); xbCollNotify(id, false, res.size); } }, "json")});   
+$('body').on('click','.mochu-us-zan',function(){ var id = $(this).attr('date-acid'); $.ajax({ type: "POST", url: bloghost +"zb_users/plugin/mochu_us/function_user.php?act=zan", data: {'id':id,'csrfToken':window.mochuUsCsrf}, dataType: "json", success: function (res) { if(res.code == 1){ layer.alert(res.msg, { icon: 0 }); } else if (res.code == 0){ $('.mochu-us-zan').text('已赞 | '+res.size); $('.mochu-us-zan').addClass('mochu-us-buttonhover'); }else{ $('.mochu-us-zan').text('点赞 | '+res.size);  $('.mochu-us-zan').removeClass('mochu-us-buttonhover');} }, error: function () {layer.alert('数据获取失败', { icon: 0 }); }});});
 $('body').on('click','.mochu-us-shangbutton',function(){ $('.mochu-us-shangbutton').removeClass('mochu-us-shangbuttons'); $(this).addClass('mochu-us-shangbuttons');});
 $('body').on('click', '.mochu-us-shang', function () { var index = layer.load(2); var id = $(this).attr('date-acid'); $.ajax({ type: "POST", url: bloghost +"zb_users/plugin/mochu_us/function_user.php?act=shanghtml", data: { 'id': id }, dataType: "json", success: function (res) {layer.closeAll(); if(res.code == 1){ layer.alert(res.msg, { icon: 0 }); }else{ layer.open({ title:['打赏作者：'], type: 1, area: ['350px', 'auto'], content: res.html  }); } }, error: function () { layer.closeAll(); layer.alert('数据获取失败', { icon: 0 }); } }); });
-$('body').on('click','.mochu-us-shang-div-span',function(){ var index = layer.load(2); var id = $('.mochu-us-shang').attr('date-acid'); var giod = $('.mochu-us-shangbuttons').attr('data-d'); $.ajax({ type: "POST", url: bloghost+"zb_users/plugin/mochu_us/function_user.php?act=shang", data: { 'id': id,'giod':giod }, dataType: "json", success: function (res) { layer.closeAll(); if (res.code == 1) { layer.msg(res.msg, { icon: 5 });} else { layer.msg(res.msg, { icon: 6}); } },error: function () {layer.closeAll();layer.alert('数据获取失败', { icon: 0 });}});});
+$('body').on('click','.mochu-us-shang-div-span',function(){ var index = layer.load(2); var id = $('.mochu-us-shang').attr('date-acid'); var giod = $('.mochu-us-shangbuttons').attr('data-d'); $.ajax({ type: "POST", url: bloghost+"zb_users/plugin/mochu_us/function_user.php?act=shang", data: { 'id': id,'giod':giod,'csrfToken':window.mochuUsCsrf }, dataType: "json", success: function (res) { layer.closeAll(); if (res.code == 1) { layer.msg(res.msg, { icon: 5 });} else { layer.msg(res.msg, { icon: 6}); } },error: function () {layer.closeAll();layer.alert('数据获取失败', { icon: 0 });}});});
 
 //no data sta
 $('body').on('click','.mochu_us_article_buy_cha',function(){ var index = layer.load(2); var id = $(this).attr('data-type'); $.ajax({ type: "POST", url: bloghost + "zb_users/plugin/mochu_us/function_user.php?act=article_vip_cha", data: { 'id': id}, dataType: "json", success: function (res) { layer.closeAll(); if (res.code == 1) { layer.alert(res.msg, { icon: 0 }); } else { layer.alert(res.msg, { icon: 1 }); $('.mochu_us_article_buy_content').html(res.html); }}, error: function () {layer.closeAll(); layer.alert('数据获取失败', { icon: 0 });}});});
