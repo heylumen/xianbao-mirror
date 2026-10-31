@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-
-<html class="" lang="zh-CN"><head><script id="xianbao-common-shim">(function(){if(typeof window.isWebapp!=="function"){window.isWebapp=function(){return false;};}if(typeof window.huanyuanurl!=="function"){window.huanyuanurl=function(){};}})();</script><!--xianbao-darkmode-sync--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"){document.documentElement.classList.add("night");if(document.body)document.body.classList.add("night");}}catch(e){}})();</script>
+<html class="xb-boot theme-switching" lang="zh-CN"><head><!--xianbao-darkmode-sync--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"){document.documentElement.classList.add("night");if(document.body)document.body.classList.add("night");}}catch(e){}})();</script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="webkit" name="renderer"/>
@@ -8,20 +7,35 @@
 <meta content="webkit" name="force-rendering"/>
 <meta content="IE=edge,Chrome=1" http-equiv="X-UA-Compatible"/>
 <meta content="pc,mobile" name="applicable-device"/>
-<script>
+<script>window.__xbCfTags={"f":["xianbao","shipin","guoshu","yinliao","danrou","liangyou","riyong","fushi","meizhuang","shuma","jiayong","muying","yule","yundong","jiankang","chongwu","qita"],"s":["tb","jd","pdd","tuan","other","zhengdian","maochao"]};</script><script>
 /* 筛选记忆「首绘前恢复」（20261030）：判定只读 localStorage，必须同步、早于 body 解析。
    数据由 footer.php 的 bootMirror() 写入（localStorage['xb_cf_go']）；这里只读，不改状态。
    与 footer.php 的 scopeOf / 干净判定同口径——改一处必须同步另一处（台架 K6 比对）。 */
 (function(){
     try{
         var KEY='xb_cf_go', SK='xb_cf_r:';
+        /* 子分类页（20261031）：微博/好单/值得买/慢慢买的子页各自独立作用域
+           （scope=完整别名，如 weibo-shuma），只记价格。标签表由上面的 __xbCfTags 提供，
+           与 footer partC / PHP xb_fcatefilter_subpage_ctx 同口径。 */
+        var T=window.__xbCfTags||{}, TF=T.f||[], TS=T.s||[];
+        function hasTag(a,v){ for(var i=0;i<a.length;i++){ if(a[i]===v)return true } return false }
+        function tagOk(rest){
+            var p=String(rest).split('-');
+            if(p.length===1)return hasTag(TF,p[0])||hasTag(TS,p[0]);
+            if(p.length===2)return hasTag(TF,p[0])&&hasTag(TS,p[1]);
+            return false;
+        }
         function scopeOf(path){
             if(!path)return '';
             if(path==='/'||path==='/index.php'||/^\/(page\/\d+|\d+)\/?$/.test(path))return 'home';
             var m=/^\/category-([a-z0-9-]+)(?:\/\d+)?\/?$/i.exec(path);
             if(!m)return '';
-            var a=m[1].toLowerCase(), CH=['weibo','haodan','douban','zhidemai','manmanmai'], i;
+            var a=m[1].toLowerCase(), CH=['weibo','haodan','douban','zhidemai','manmanmai'], SB=['weibo','haodan','zhidemai','manmanmai'], i, pre, rest;
             for(i=0;i<CH.length;i++){ if(a===CH[i])return CH[i] }
+            for(i=0;i<SB.length;i++){
+                pre=SB[i]+'-';
+                if(a.indexOf(pre)===0){ rest=a.slice(pre.length); return tagOk(rest)?a:'' }
+            }
             return '';
         }
         var sc=scopeOf(location.pathname);
@@ -145,11 +159,10 @@ var h=document.documentElement,fs=gt('xb_fs'),tl=gt('xb_tlines');
 if(fs==='s'||fs==='l'||fs==='xl'){h.className+=' xb-fs-'+fs}
 if(tl==='2'){h.className+=' xb-tl2'}})();
 </script>
-<title>赚客吧-线报酷镜像</title>
+<title>赚客吧-线报酷</title>
 <meta content="赚客吧" name="keywords"/>
 <meta content="赚客吧——最新线报实时更新，聚合优质线报与优惠活动。" name="description"/>
 <link href="/category-zuankeba/" rel="canonical"/>
-<meta content="noindex,nofollow" name="robots"/>
 <link href="/category-zuankeba/2/" rel="next"/>
 <meta content="website" property="og:type"/>
 <meta content="赚客吧 - 线报酷" property="og:title"/>
@@ -159,10 +172,11 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <meta content="线报酷" property="og:site_name"/>
 <meta content="summary" name="twitter:card"/>
 <script type="application/ld+json">[{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"}]},{"@context":"https://schema.org","@type":"CollectionPage","name":"赚客吧","url":"/category-zuankeba/","isPartOf":{"@type":"WebSite","name":"线报酷","url":"/"},"inLanguage":"zh-CN"}]</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷 10 月下旬更新汇总：搜索默认全含、首页多选筛选、评论配图、推送与转链强化","url":"/gonggao/7351762.html"},{"@type":"ListItem","position":2,"name":"菜鸟收官","url":"/zuankeba/7351842.html"},{"@type":"ListItem","position":3,"name":"我是个不合格的吧友","url":"/zuankeba/7351829.html"},{"@type":"ListItem","position":4,"name":"上次的京东鱼跃呼吸机是8秒？","url":"/zuankeba/7351809.html"},{"@type":"ListItem","position":5,"name":"今晚最优惠吗？","url":"/zuankeba/7351796.html"},{"@type":"ListItem","position":6,"name":"南京银行20立减金","url":"/zuankeba/7351724.html"},{"@type":"ListItem","position":7,"name":"月底查漏补缺，至少找回几十大毛","url":"/zuankeba/7351691.html"},{"@type":"ListItem","position":8,"name":"支付宝xing/用卡还款 中信1000-x，自测","url":"/zuankeba/7351623.html"},{"@type":"ListItem","position":9,"name":"中行没抽到，摇一摇抽到个大的","url":"/zuankeba/7351570.html"},{"@type":"ListItem","position":10,"name":"中行白金199三笔这月还有吗","url":"/zuankeba/7351530.html"},{"@type":"ListItem","position":11,"name":"什么情况，大疆4p怎么一直跌啊，亏麻了","url":"/zuankeba/7351477.html"},{"@type":"ListItem","position":12,"name":"不懂来问这两款吸顶灯忽略价格情况下换哪个好？","url":"/zuankeba/7351404.html"},{"@type":"ListItem","position":13,"name":"想买个充电宝华为手机","url":"/zuankeba/7351383.html"},{"@type":"ListItem","position":14,"name":"有800-80帮我看看这个可以买吗？","url":"/zuankeba/7351374.html"},{"@type":"ListItem","position":15,"name":"虾滑小神价","url":"/zuankeba/7351356.html"},{"@type":"ListItem","position":16,"name":"新能源充电桩 有必要用原厂的吗","url":"/zuankeba/7351334.html"},{"@type":"ListItem","position":17,"name":"江苏银行45大毛（微信）","url":"/zuankeba/7351560.html"},{"@type":"ListItem","position":18,"name":"红米k30pro还有必要修吗","url":"/zuankeba/7351308.html"},{"@type":"ListItem","position":19,"name":"WPS超级会员3年卡+京东plus会员年卡或优酷或芒果或喜马或网易云 = 168元","url":"/zuankeba/7351270.html"},{"@type":"ListItem","position":20,"name":"抖音买上周签收的荣耀winrt查询结果是不是没有空中激活啊彦祖们","url":"/zuankeba/7351211.html"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷 10 月下旬更新汇总：搜索默认全含、首页多选筛选、评论配图、推送与转链强化","url":"/gonggao/7351762.html"},{"@type":"ListItem","position":2,"name":"沪上阿姨小bug","url":"/zuankeba/7353808.html"},{"@type":"ListItem","position":3,"name":"速度 深夜沪上阿姨bug了","url":"/zuankeba/7353802.html"},{"@type":"ListItem","position":4,"name":"支付宝 5元到店支付红包","url":"/zuankeba/7353799.html"},{"@type":"ListItem","position":5,"name":"招行4个基金号红包+体验金","url":"/zuankeba/7353785.html"},{"@type":"ListItem","position":6,"name":"微信提现券-湖北农信6666元","url":"/zuankeba/7353725.html"},{"@type":"ListItem","position":7,"name":"建行抽立减金","url":"/zuankeba/7353721.html"},{"@type":"ListItem","position":8,"name":"移动手机人人5元话费","url":"/zuankeba/7353695.html"},{"@type":"ListItem","position":9,"name":"云闪付搜权益精选，大水","url":"/zuankeba/7353694.html"},{"@type":"ListItem","position":10,"name":"买的中行连续3个月微信还款券，这会竟不让用了","url":"/zuankeba/7353691.html"},{"@type":"ListItem","position":11,"name":"河南工行5000豆子","url":"/zuankeba/7353687.html"},{"@type":"ListItem","position":12,"name":"建行6元毛，速度领","url":"/zuankeba/7353682.html"},{"@type":"ListItem","position":13,"name":"农行过期40块钱","url":"/zuankeba/7353674.html"},{"@type":"ListItem","position":14,"name":"交行的碳星荣耀可以领了","url":"/zuankeba/7353630.html"},{"@type":"ListItem","position":15,"name":"微信支付12大毛","url":"/zuankeba/7353628.html"},{"@type":"ListItem","position":16,"name":"农行xing/用卡微信5000返15领取","url":"/zuankeba/7353625.html"},{"@type":"ListItem","position":17,"name":"微信免费提现50000，这个活动风险大吗","url":"/zuankeba/7353603.html"},{"@type":"ListItem","position":18,"name":"支付宝首页天猫活动，怎么买苹果？","url":"/zuankeba/7353595.html"},{"@type":"ListItem","position":19,"name":"支付宝中行和建行还款1000","url":"/zuankeba/7353589.html"},{"@type":"ListItem","position":20,"name":"建设月月享100报名路径","url":"/zuankeba/7353562.html"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"}]}</script>
 <link href="/favicon.ico" rel="shortcut icon"/>
 <link href="/rss.php" rel="alternate" title="线报酷 RSS 订阅" type="application/rss+xml"/>
+<link href="/manifest.json" rel="manifest"/>
 <!-- 多页秒开（20261015）：Speculation Rules 预取（Chrome/Edge/Safari18.2+/Firefox137+）。
      moderate=悬停 200ms 或进入视口触发，预取命中 nginx 游客页缓存零 PHP 成本，点击即秒开。
      where 语义：and( 站内任意页 href_matches"/*" , not(动态端点/锚点/nofollow/新窗/下载) )；
@@ -222,8 +236,9 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 })();
 </script>
 <!-- 图标体系（20261005）：Lucide v1.52.0（ISC）+ simple-icons（CC0）共 34 枚线性 SVG symbol，内联于 body 开头（xb-icon-sprite），iconfont 字体退役，本页零字体请求 -->
-<link href="/design/tokens.css?v=20261019235000" rel="stylesheet"/>
-<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261031092500" rel="stylesheet"/>
+<link as="font" crossorigin="" href="/design/fonts/pangmen-logo.woff2?v=20261031" rel="preload" type="font/woff2"/>
+<link href="/design/tokens.css?v=20261031202200" rel="stylesheet"/>
+<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261031184103" rel="stylesheet"/>
 <!-- 20261016 带宽优化：fancybox.css（24KB）不再直出，随 vendor/fancybox.js 同批懒注入（footer.php xbLazyFancybox.load） -->
 <!-- 20261015：jQuery/zblogphp 改 defer——zblogphp.js 顶层为纯定义 IIFE（0 处解析期 DOM 访问），
      全站模板内联脚本扫描确认无解析期顶级 $() 调用（唯一 tool.php 的 $ 为 ready 包裹）；
@@ -289,14 +304,8 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-72.png" rel="apple-touch-icon-precomposed" sizes="72x72"/>
 <link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-114.png" rel="apple-touch-icon-precomposed" sizes="114x114"/>
 <link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-144.png" rel="apple-touch-icon-precomposed" sizes="144x144"/>
-<link href="/zb_users/plugin/mochu_us/layer/theme/default/layer.css?v=3.5.1" id="layuicss-layer" rel="stylesheet"/><style id="ck-link-style">.ck-link-pop{position:fixed;z-index:99999;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.15);min-width:140px;max-width:90vw;overflow:hidden;display:none;animation:ckFadeIn .15s ease-out}@keyframes ckFadeIn{from{opacity:0;transform:translateY(-4px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}.ck-link-pop .ck-link-item{display:flex;align-items:center;padding:10px 15px;color:#333;font-size:14px;cursor:pointer;user-select:none;transition:background .15s;white-space:nowrap}.ck-link-pop .ck-link-item + .ck-link-item{border-top:1px solid #f0f0f0}.ck-link-pop .ck-link-item:hover,.ck-link-pop .ck-link-item:active{background:#f7f8fa}.ck-link-pop .ck-link-item svg.xb-ic{font-size:16px;margin-right:10px;flex:none;}.ck-layer.msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:100000;display:none}.ck-qrcode-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.2);text-align:center;z-index:100001;display:none}.ck-qrcode-box .ck-qrcode-tip{margin-top:10px;font-size:12px;color:#999}.ck-qrcode-box .ck-qrcode-close{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;color:#999}</style><link href="/lib/xianbao-override.css?v=7" rel="stylesheet"/>
-<!-- Vercel Analytics + Speed Insights (injected by mirror.sh) -->
-<script>window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments)}</script>
-<script defer="" src="/_vercel/insights/script.js"></script>
-<script>window.si=window.si||function(){(window.siq=window.siq||[]).push(arguments)}</script>
-<script defer="" src="/_vercel/speed-insights/script.js"></script>
-</head>
-<body class="xianbao-list">
+<link href="/zb_users/plugin/mochu_us/layer/theme/default/layer.css?v=3.5.1" id="layuicss-layer" rel="stylesheet"/><style id="ck-link-style">.ck-link-pop{position:fixed;z-index:99999;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.15);min-width:140px;max-width:90vw;overflow:hidden;display:none;animation:ckFadeIn .15s ease-out}@keyframes ckFadeIn{from{opacity:0;transform:translateY(-4px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}.ck-link-pop .ck-link-item{display:flex;align-items:center;padding:10px 15px;color:#333;font-size:14px;cursor:pointer;user-select:none;transition:background .15s;white-space:nowrap}.ck-link-pop .ck-link-item + .ck-link-item{border-top:1px solid #f0f0f0}.ck-link-pop .ck-link-item:hover,.ck-link-pop .ck-link-item:active{background:#f7f8fa}.ck-link-pop .ck-link-item svg.xb-ic{font-size:16px;margin-right:10px;flex:none;}.ck-layer.msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:100000;display:none}.ck-qrcode-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.2);text-align:center;z-index:100001;display:none}.ck-qrcode-box .ck-qrcode-tip{margin-top:10px;font-size:12px;color:#999}.ck-qrcode-box .ck-qrcode-close{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;color:#999}</style></head>
+<body>
 <!-- xb-icon-sprite：Lucide SVG symbol 库（Lucide v1.52.0 ISC + simple-icons CC0） -->
 <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
 <!-- 图标来源：Lucide v1.52.0 (ISC, https://lucide.dev) + simple-icons (CC0)；本地 sprite 生成于 2026-10-05 -->
@@ -395,23 +404,25 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <header class="header sb">
 <div class="h-wrap container clearfix">
 <div class="logo-area fl">
-<a class="logo-text" draggable="false" href="/"><img alt="线报酷" class="logo-img" draggable="false" fetchpriority="high" height="120" src="/zb_users/theme/xianbao_theme/image/newlogo.png?v=20261030082000" width="366"/></a><span class="logo-name">线报酷</span>
+<a class="logo-text xb-logo" draggable="false" href="/"><img alt="" class="logo-img xb-logo__star" draggable="false" fetchpriority="high" height="74" src="/design/logo/star.png?v=20261031" width="74"/><span class="logo-name xb-logo__name">线报酷</span></a>
 </div>
 <!-- mnav C2（20261005）：列表抽屉入口（m-nav-btn）下线；responsive-nav/pc-nav 保留在 DOM
     	     （其 data-* 页面上下文被 list.js/meta.php 消费，桌面端 CSS 恒 display:none，移动端无触发入口） -->
 <nav class="responsive-nav">
 <div class="pc-nav m-nav fl" data-cateid="16" data-catename="zuankeba" data-type="category">
-<ul class="nav-ul"><li class="" id="nvabar-item-index"><a href="/">首页</a></li><li class="active" id="navbar-category-zuankeba"><a href="/category-zuankeba/" title="赚客吧">赚客吧</a></li><li class="" id="navbar-category-xinzuanba"><a href="/category-xinzuanba/" title="新赚吧">新赚吧</a></li><li class="" id="navbar-category-xiaodigu"><a href="/category-xiaodigu/" title="小嘀咕">小嘀咕</a></li><li class="" id="navbar-category-huluxia"><a href="/category-huluxia/" title="葫芦侠三楼">葫芦侠三楼</a></li><li class="" id="navbar-category-xiaodao"><a href="/category-xiaodao/" title="小刀娱乐网">小刀娱乐网</a></li></ul>
+<ul class="nav-ul"><li id="nvabar-item-index"><a href="/">首页</a></li><li id="navbar-category-xianbaoku"><a href="/category-xianbaoku/">线报酷<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/category-gonggao/">本站公告区</a></li><li><a href="/docs/index.html">线报知识库</a></li><li><a href="/category-jiaocheng/">线报教学区</a></li><li><a href="/category-guidang/">文章归档区</a></li></ul></li><li id="navbar-category-guanzhu"><a href="/category-guanzhu1/">我的关注<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/yixiaoshi-hot.html">排行榜</a></li></ul></li><li class="active" id="navbar-category-zuankeba"><a href="/category-zuankeba/">赚客吧<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/zuankeba-hot.html">赚客吧排行榜</a></li></ul></li><li id="navbar-category-xinzuanba"><a href="/category-xinzuanba/">新赚吧<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/xinzuanba-hot.html">新赚吧排行榜</a></li></ul></li><li id="navbar-category-douban"><a href="/category-douban/">豆瓣线报<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/douban-hot.html">豆瓣线报排行榜</a></li><li><a href="/category-douban-maizu/">豆瓣买组</a></li><li><a href="/category-douban-pinzu/">豆瓣拼组</a></li><li><a href="/category-douban-fazu/">豆瓣发组</a></li><li><a href="/category-douban-gouzu/">豆瓣狗组</a></li><li><a href="/category-douban-maolife/">爱猫生活</a></li><li><a href="/category-douban-maobathtub/">爱猫澡盆</a></li></ul></li><li id="navbar-category-weibo"><a href="/category-weibo/">微博线报<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/weibo-hot.html">微博线报排行榜</a></li><li><a href="/category-weibo-chaohua/">微博超话</a></li></ul></li><li id="navbar-category-haodan"><a href="/category-haodan/">好单线报<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/haodan/tehuigou.html">好单特惠购</a></li></ul></li><li id="navbar-category-zhidemai"><a href="/category-zhidemai/">值得买<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/zhidemai-hot.html">值得买热帖</a></li></ul></li><li id="navbar-category-manmanmai"><a href="/category-manmanmai/">慢慢买<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/manmanmai-hot.html">慢慢买排行榜</a></li></ul></li><li id="navbar-category-xiaodigu"><a href="/category-xiaodigu/">小嘀咕</a></li><li id="navbar-category-qita"><a href="">其他区<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li id="navbar-category-kuan"><a href="/category-kuan/">酷安</a></li><li id="navbar-category-huluxia"><a href="/category-huluxia/">葫芦侠三楼</a></li><li id="navbar-category-man"><a href="/category-man/">更新较慢活动<span class="toggle-btn"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></span></a><ul class="dropdown-nav nav-sb br sub-nav animated-fast fadeInUpMenu clearfix"><li><a href="/category-xiaodao/">小刀娱乐网</a></li><li><a href="/category-iqnew/">爱Q生活网</a></li><li><a href="/category-mianfei/">免费赚钱中心</a></li></ul></li></ul></li><li id="navbar-shenghuo"><a href="/shenghuo.html">生活优惠</a></li></ul>
 </div>
 </nav>
 <!-- 方案 E 行一统一搜索条：logo 与图标间空位 = 搜索+屏蔽+价格一体条（仅桌面；移动端仍走右侧搜索按钮 + search-area + 内容区筛选卡） -->
 <div class="h-search">
-<form action="/search.html" class="hs-form" method="get" role="search">
+<form action="/category-zuankeba/" class="hs-form" method="get" role="search">
 <span class="hq-seg hq-seg--k">
 <span class="hq-ico"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-search"></use></svg></span>
 <input aria-label="搜索关键词，多个用 # 分隔" autocomplete="off" class="hs-input" id="hs-input" name="q" placeholder="搜索线报，多个用 # 分隔" type="text" value=""/>
 <span aria-hidden="true" class="hq-kbd" title="按 F 或 / 快速唤醒搜索框"><kbd>F</kbd><kbd>/</kbd></span>
 </span>
+<label class="hq-seg hq-seg--kp"><span class="hq-lb">屏蔽</span><input aria-label="屏蔽词" autocomplete="off" class="hq-input" name="kp" placeholder="不想看的词" type="text" value=""/></label>
+<label class="hq-seg hq-seg--price" title="价格区间仅对带价格的微博/好单/值得买/慢慢买内容生效"><span class="hq-lb">价格</span><input aria-label="最低价格" class="hq-input hq-input--num" inputmode="decimal" name="mip" placeholder="0" type="text" value=""/><span class="hq-sep">–</span><input aria-label="最高价格" class="hq-input hq-input--num" inputmode="decimal" name="mxp" placeholder="50" type="text" value=""/></label>
 <button class="hq-submit" type="submit">搜索</button>
 <button class="hq-clearbtn" title="清空搜索条件" type="button">清空</button>
 </form>
@@ -422,7 +433,7 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 </div>
 <div class="search-hot hidden" id="hs-hot">
 <p class="search-hot-title">热门搜索</p>
-<div class="search-hot-list" id="hs-hotlist"><a class="search-hot-chip" rel="nofollow">猫粮</a><a class="search-hot-chip" rel="nofollow">工行</a><a class="search-hot-chip" rel="nofollow">京东</a><a class="search-hot-chip" rel="nofollow">猫砂</a><a class="search-hot-chip" rel="nofollow">高德</a><a class="search-hot-chip" rel="nofollow">云包场</a><a class="search-hot-chip" rel="nofollow">山姆</a><a class="search-hot-chip" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" rel="nofollow">霸王茶姬</a><a class="search-hot-chip" rel="nofollow">饿了么</a></div>
+<div class="search-hot-list" id="hs-hotlist"><a class="search-hot-chip" href="/search.php?q=%E7%8C%AB%E7%B2%AE" rel="nofollow">猫粮</a><a class="search-hot-chip" href="/search.php?q=%E5%B7%A5%E8%A1%8C" rel="nofollow">工行</a><a class="search-hot-chip" href="/search.php?q=%E4%BA%AC%E4%B8%9C" rel="nofollow">京东</a><a class="search-hot-chip" href="/search.php?q=%E7%8C%AB%E7%A0%82" rel="nofollow">猫砂</a><a class="search-hot-chip" href="/search.php?q=%E9%AB%98%E5%BE%B7" rel="nofollow">高德</a><a class="search-hot-chip" href="/search.php?q=%E4%BA%91%E5%8C%85%E5%9C%BA" rel="nofollow">云包场</a><a class="search-hot-chip" href="/search.php?q=%E5%B1%B1%E5%A7%86" rel="nofollow">山姆</a><a class="search-hot-chip" href="/search.php?q=%E6%B7%98%E5%AE%9D%E9%97%AA%E8%B4%AD" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="/search.php?q=%E9%9C%B8%E7%8E%8B%E8%8C%B6%E5%A7%AC" rel="nofollow">霸王茶姬</a><a class="search-hot-chip" href="/search.php?q=%E9%A5%BF%E4%BA%86%E4%B9%88" rel="nofollow">饿了么</a></div>
 </div>
 <div class="fp-scope"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-info"></use></svg><span>提交后在「赚客吧」分类内搜索</span></div>
 <p class="fp-note"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-link"></use></svg><span>粘贴豆瓣 / 赚客吧链接可直达线报酷原文</span></p>
@@ -430,21 +441,26 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <p class="fp-note"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-search"></use></svg><span>按 <kbd>F</kbd> 或 <kbd>/</kbd> 快速唤醒搜索框</span></p>
 </div>
 </div>
+<div class="login fr">
+<span><a aria-label="登录 / 用户中心" class="xb-login" href="/login.html" rel="nofollow" target="_blank" title="登录 / 用户中心"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-user"></use></svg><span class="lt">登录</span></a></span>
+</div>
 <!-- 登录态纠偏已并入 meta.php 独立请求的服务端输出（no-store 实时执行），原 loginstate.php 轻接口与内联 fetch 于 20261005 移除 -->
 <!-- 多主题切换（20261006）：原「夜间」胶囊升级为「主题」菜单（15 项中文名，高对比度已否决不收录）。
              服务端直出菜单 DOM，激活勾选由 dark-mode.js 按 cookie xb_theme 客户端同步（页面缓存下 markup 固定，勾选态必须 JS 画）。
              触发键沿用 .dark-mode 类与定位（图标=调色板 i-palette，20261006 用户指认更换；dk-moon 类名遗留仅兼容旧 CSS）；
              夜间挂 html.night、其余挂 html[data-xb-theme]，白天=默认，跟随系统=prefers-color-scheme。 -->
 <a aria-expanded="false" aria-haspopup="true" aria-label="选择主题" class="dark-mode fr" href="javascript:;" id="xbThemeBtn" onclick="xbThemeMenuToggle(event);return false;" role="button" target="_self" title="选择主题"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-palette"></use></svg><span class="lt dk-lt">主题</span></a>
-<div aria-label="选择主题" class="xb-thememenu" hidden="" id="xbThemeMenu"><div class="xb-tm-grid"><button class="xb-tm-opt" data-t="system" type="button"><span class="xb-tm-sw" style="background:linear-gradient(90deg,#fafafa 50%,#18181b 50%)"></span><span class="xb-tm-cn">跟随系统</span><span class="xb-tm-en">自动深浅</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="day" type="button"><span class="xb-tm-sw" style="background:#fafafa"></span><span class="xb-tm-cn">白天模式</span><span class="xb-tm-en">清爽浅灰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="night" type="button"><span class="xb-tm-sw" style="background:#18181b"></span><span class="xb-tm-cn">夜间模式</span><span class="xb-tm-en">经典暗黑</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="eye" type="button"><span class="xb-tm-sw" style="background:#cfe6d0"></span><span class="xb-tm-cn">护眼模式</span><span class="xb-tm-en">豆沙绿</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="parchment" type="button"><span class="xb-tm-sw" style="background:#efe4cd"></span><span class="xb-tm-cn">羊皮纸模式</span><span class="xb-tm-en">暖褐纸色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="solarized" type="button"><span class="xb-tm-sw" style="background:#fdf6e3"></span><span class="xb-tm-cn">日光浅色</span><span class="xb-tm-en">米黄经典</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="sunset" type="button"><span class="xb-tm-sw" style="background:#241a1f"></span><span class="xb-tm-cn">日落模式</span><span class="xb-tm-en">暖暮棕紫</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="gray" type="button"><span class="xb-tm-sw" style="background:#2b2b2f"></span><span class="xb-tm-cn">深灰模式</span><span class="xb-tm-en">舒适中灰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="dracula" type="button"><span class="xb-tm-sw" style="background:#282a36"></span><span class="xb-tm-cn">德古拉</span><span class="xb-tm-en">深紫荧光</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="nord" type="button"><span class="xb-tm-sw" style="background:#2e3440"></span><span class="xb-tm-cn">北欧蓝</span><span class="xb-tm-en">冷调霜蓝</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="tokyo" type="button"><span class="xb-tm-sw" style="background:#1a1b26"></span><span class="xb-tm-cn">东京之夜</span><span class="xb-tm-en">深蓝霓虹</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="catppuccin" type="button"><span class="xb-tm-sw" style="background:#1e1e2e"></span><span class="xb-tm-cn">猫布奇诺</span><span class="xb-tm-en">粉彩可可</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="rosepine" type="button"><span class="xb-tm-sw" style="background:#191724"></span><span class="xb-tm-cn">玫瑰松</span><span class="xb-tm-en">紫夜玫瑰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="gruvbox" type="button"><span class="xb-tm-sw" style="background:#282828"></span><span class="xb-tm-cn">复古暖褐</span><span class="xb-tm-en">复古终端</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="everforest" type="button"><span class="xb-tm-sw" style="background:#2d353b"></span><span class="xb-tm-cn">永恒森林</span><span class="xb-tm-en">林绿深色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="one-dark" type="button"><span class="xb-tm-sw" style="background:#282c34"></span><span class="xb-tm-cn">One Dark</span><span class="xb-tm-en">经典编辑器</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><div class="xb-tm-sep"></div><p class="xb-tm-gt">字号大小</p><div class="xb-tm-grid"><button class="xb-tm-opt" data-fs="s" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:11px">A</span><span class="xb-tm-cn">小号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:13px">A</span><span class="xb-tm-cn">标准</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="l" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:15px">A</span><span class="xb-tm-cn">大号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="xl" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:17px">A</span><span class="xb-tm-cn">特大号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><div class="xb-tm-sep"></div><p class="xb-tm-gt">列表标题行数</p><div class="xb-tm-grid"><button class="xb-tm-opt" data-tl="" type="button"><span class="xb-tm-sw xb-tm-aa">单行省略</span><span class="xb-tm-cn">一行</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-tl="2" type="button"><span class="xb-tm-sw xb-tm-aa">折行显示</span><span class="xb-tm-cn">两行</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div></div> <span aria-label="打开搜索" class="search-button fr" id="search-button" role="button" tabindex="0" title="搜索"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use class="xb-ic-search" href="#i-search"></use><use class="xb-ic-close" href="#i-close"></use></svg></span>
+<div aria-label="选择主题" class="xb-thememenu" hidden="" id="xbThemeMenu"><div class="xb-tm-grid"><button class="xb-tm-opt" data-t="system" type="button"><span class="xb-tm-sw" style="background:linear-gradient(90deg,#fafafa 50%,#18181b 50%)"></span><span class="xb-tm-cn">跟随系统</span><span class="xb-tm-en">自动深浅</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="day" type="button"><span class="xb-tm-sw" style="background:#fafafa"></span><span class="xb-tm-cn">白天模式</span><span class="xb-tm-en">清爽浅灰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="night" type="button"><span class="xb-tm-sw" style="background:#18181b"></span><span class="xb-tm-cn">夜间模式</span><span class="xb-tm-en">经典暗黑</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="eye" type="button"><span class="xb-tm-sw" style="background:#cfe6d0"></span><span class="xb-tm-cn">护眼模式</span><span class="xb-tm-en">豆沙绿</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="parchment" type="button"><span class="xb-tm-sw" style="background:#efe4cd"></span><span class="xb-tm-cn">羊皮纸模式</span><span class="xb-tm-en">暖褐纸色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="solarized" type="button"><span class="xb-tm-sw" style="background:#fdf6e3"></span><span class="xb-tm-cn">日光浅色</span><span class="xb-tm-en">米黄经典</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="sunset" type="button"><span class="xb-tm-sw" style="background:#241a1f"></span><span class="xb-tm-cn">日落模式</span><span class="xb-tm-en">暖暮棕紫</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="gray" type="button"><span class="xb-tm-sw" style="background:#2b2b2f"></span><span class="xb-tm-cn">深灰模式</span><span class="xb-tm-en">舒适中灰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="dracula" type="button"><span class="xb-tm-sw" style="background:#282a36"></span><span class="xb-tm-cn">德古拉</span><span class="xb-tm-en">深紫荧光</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="nord" type="button"><span class="xb-tm-sw" style="background:#2e3440"></span><span class="xb-tm-cn">北欧蓝</span><span class="xb-tm-en">冷调霜蓝</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="tokyo" type="button"><span class="xb-tm-sw" style="background:#1a1b26"></span><span class="xb-tm-cn">东京之夜</span><span class="xb-tm-en">深蓝霓虹</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="catppuccin" type="button"><span class="xb-tm-sw" style="background:#1e1e2e"></span><span class="xb-tm-cn">猫布奇诺</span><span class="xb-tm-en">粉彩可可</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="rosepine" type="button"><span class="xb-tm-sw" style="background:#191724"></span><span class="xb-tm-cn">玫瑰松</span><span class="xb-tm-en">紫夜玫瑰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="gruvbox" type="button"><span class="xb-tm-sw" style="background:#282828"></span><span class="xb-tm-cn">复古暖褐</span><span class="xb-tm-en">复古终端</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="everforest" type="button"><span class="xb-tm-sw" style="background:#2d353b"></span><span class="xb-tm-cn">永恒森林</span><span class="xb-tm-en">林绿深色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="one-dark" type="button"><span class="xb-tm-sw" style="background:#282c34"></span><span class="xb-tm-cn">One Dark</span><span class="xb-tm-en">经典编辑器</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><div class="xb-tm-sep"></div><p class="xb-tm-gt">字号大小</p><div class="xb-tm-grid"><button class="xb-tm-opt" data-fs="s" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:11px">A</span><span class="xb-tm-cn">小号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:13px">A</span><span class="xb-tm-cn">标准</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="l" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:15px">A</span><span class="xb-tm-cn">大号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="xl" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:17px">A</span><span class="xb-tm-cn">特大号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><div class="xb-tm-sep"></div><p class="xb-tm-gt">列表标题行数</p><div class="xb-tm-grid"><button class="xb-tm-opt" data-tl="" type="button"><span class="xb-tm-sw xb-tm-aa">单行省略</span><span class="xb-tm-cn">一行</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-tl="2" type="button"><span class="xb-tm-sw xb-tm-aa">折行显示</span><span class="xb-tm-cn">两行</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div></div> <span aria-label="打开搜索" class="search-button fr" id="search-button" role="button" tabindex="0"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use class="xb-ic-search" href="#i-search"></use><use class="xb-ic-close" href="#i-close"></use></svg></span>
 <!-- 搜索×筛选融合面板（20261005 方案 A，仅移动端 ≤1100px 显示）：搜索即筛选——
              q/kp/mip/mxp 与桌面行一条同一套字段与提交规则（分类页就地筛、其余全站搜），
              服务端直出条件 chips（逐个×移除）与生效范围提示；内容区快速筛选卡已下线 -->
 <div class="search-area hidden br sb animated-fast fadeInUpMenu" id="search-area">
-<form action="/search.html" class="fp-form" method="get" role="search">
+<form action="/category-zuankeba/" class="fp-form" method="get" role="search">
 <!-- 条件 chips 行（xb-conds）20261018 移除：列表卡头 breadcrumb 已有同款，面板内重复 -->
 <div class="fp-kwrap"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-search"></use></svg><input aria-label="搜索关键词，多个用 # 分隔" autocomplete="off" class="fp-input" name="q" placeholder="搜索线报，多个用 # 分隔" type="text" value=""/></div>
 <div class="fp-sub">
+<label class="fp-fd fp-fd--kp">屏蔽 <input autocomplete="off" class="fp-in2" name="kp" placeholder="不想看的词" type="text" value=""/></label>
+<span class="fp-fd fp-fd--pr" title="价格区间仅对带价格的微博/好单/值得买/慢慢买内容生效">价格 <input aria-label="最低价格" class="fp-in2 fp-in2--num" inputmode="decimal" name="mip" placeholder="0" type="text" value=""/><span class="fp-sep">–</span><input aria-label="最高价格" class="fp-in2 fp-in2--num" inputmode="decimal" name="mxp" placeholder="50" type="text" value=""/></span>
 </div>
 <div class="fp-acts"><button class="fp-go" type="submit">搜索</button><button class="fp-clear" title="清空搜索条件" type="button">清空</button></div>
 <div class="fp-scope"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-info"></use></svg><span>提交后在「赚客吧」分类内搜索</span></div>
@@ -454,7 +470,7 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 </div>
 <div class="fp-hot" id="fp-hot">
 <p class="search-hot-title">热门搜索</p>
-<div class="search-hot-list"><a class="search-hot-chip" rel="nofollow">猫粮</a><a class="search-hot-chip" rel="nofollow">工行</a><a class="search-hot-chip" rel="nofollow">京东</a><a class="search-hot-chip" rel="nofollow">猫砂</a><a class="search-hot-chip" rel="nofollow">高德</a><a class="search-hot-chip" rel="nofollow">云包场</a><a class="search-hot-chip" rel="nofollow">山姆</a><a class="search-hot-chip" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" rel="nofollow">霸王茶姬</a><a class="search-hot-chip" rel="nofollow">饿了么</a></div>
+<div class="search-hot-list"><a class="search-hot-chip" href="/search.php?q=%E7%8C%AB%E7%B2%AE" rel="nofollow">猫粮</a><a class="search-hot-chip" href="/search.php?q=%E5%B7%A5%E8%A1%8C" rel="nofollow">工行</a><a class="search-hot-chip" href="/search.php?q=%E4%BA%AC%E4%B8%9C" rel="nofollow">京东</a><a class="search-hot-chip" href="/search.php?q=%E7%8C%AB%E7%A0%82" rel="nofollow">猫砂</a><a class="search-hot-chip" href="/search.php?q=%E9%AB%98%E5%BE%B7" rel="nofollow">高德</a><a class="search-hot-chip" href="/search.php?q=%E4%BA%91%E5%8C%85%E5%9C%BA" rel="nofollow">云包场</a><a class="search-hot-chip" href="/search.php?q=%E5%B1%B1%E5%A7%86" rel="nofollow">山姆</a><a class="search-hot-chip" href="/search.php?q=%E6%B7%98%E5%AE%9D%E9%97%AA%E8%B4%AD" rel="nofollow">淘宝闪购</a><a class="search-hot-chip" href="/search.php?q=%E9%9C%B8%E7%8E%8B%E8%8C%B6%E5%A7%AC" rel="nofollow">霸王茶姬</a><a class="search-hot-chip" href="/search.php?q=%E9%A5%BF%E4%BA%86%E4%B9%88" rel="nofollow">饿了么</a></div>
 </div>
 <p class="fp-note"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-link"></use></svg><span>粘贴豆瓣 / 赚客吧链接可直达线报酷原文</span></p>
 <p class="fp-note"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-info"></use></svg>价格区间仅对带价格的微博 / 好单 / 值得买 / 慢慢买内容生效。</p>
@@ -468,28 +484,940 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <div class="navstrip sb">
 <nav aria-label="频道导航" class="ns-wrap container">
 <ul class="ns-ul">
-<li><a class="t" href="/" title="首页-线报酷">首页</a></li><li><a class="t on" href="/category-zuankeba/" title="赚客吧-线报酷">赚客吧</a></li><li><a class="t" href="/category-xinzuanba/" title="新赚吧-线报酷">新赚吧</a></li><li><a class="t" href="/category-xiaodigu/" title="小嘀咕-线报酷">小嘀咕</a></li><li><a class="t" href="/category-huluxia/" title="葫芦侠三楼-线报酷">葫芦侠三楼</a></li><li><a class="t" href="/category-xiaodao/" title="小刀娱乐网-线报酷">小刀娱乐网</a></li> </ul>
+<li><a class="t" href="/" title="首页-线报酷">首页</a></li><li><a class="t has-dd" href="/category-xianbaoku/" title="线报酷-线报酷">线报酷<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/category-gonggao/">本站公告区</a><a href="/dingyue.html">订阅推送</a><a href="/docs/index.html">线报知识库</a><a href="/xccardindex.html">线报酷服务</a><a href="/extension.html">浏览器扩展</a></div></li><li><a class="t" href="/category-guanzhu1/" title="我的关注-线报酷">我的关注</a></li><li><a class="t has-dd" href="/yixiaoshi-hot.html" title="全站排行榜-线报酷">全站排行榜<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/zuankeba-hot.html">赚客吧排行榜</a><a href="/xinzuanba-hot.html">新赚吧排行榜</a><a href="/douban-hot.html">豆瓣线报排行榜</a><a href="/weibo-hot.html">微博线报排行榜</a><a href="/haodan-hot.html">好单线报排行榜</a><a href="/zhidemai-hot.html">值得买排行榜</a><a href="/manmanmai-hot.html">慢慢买排行榜</a></div></li><li><a class="t on has-dd" href="/category-zuankeba/" title="赚客吧-线报酷">赚客吧<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/zuankeba-hot.html">赚客吧排行榜</a></div></li><li><a class="t has-dd" href="/category-xinzuanba/" title="新赚吧-线报酷">新赚吧<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/xinzuanba-hot.html">新赚吧排行榜</a></div></li><li><a class="t has-dd" href="/category-douban/" title="豆瓣线报-线报酷">豆瓣线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/douban-hot.html">豆瓣线报排行榜</a><a href="/category-douban-maizu/">买组</a><a href="/category-douban-pinzu/">拼组</a><a href="/category-douban-fazu/">发组</a><a href="/category-douban-gouzu/">狗组</a><a href="/category-douban-maolife/">爱猫生活</a><a href="/category-douban-maobathtub/">爱猫澡盆</a></div></li><li><a class="t has-dd" href="/category-weibo/" title="微博线报-线报酷">微博线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/weibo-hot.html">微博线报排行榜</a></div></li><li><a class="t has-dd" href="/category-weibo-chaohua/" title="微博超话-线报酷">微博超话<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/weibo-chaohua-hot.html">微博超话排行榜</a></div></li><li><a class="t has-dd" href="/category-haodan/" title="好单线报-线报酷">好单线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/haodan-hot.html">好单线报排行榜</a></div></li><li><a class="t has-dd" href="/category-zhidemai/" title="值得买-线报酷">值得买<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/zhidemai-hot.html">值得买排行榜</a></div></li><li><a class="t has-dd" href="/category-manmanmai/" title="慢慢买-线报酷">慢慢买<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/manmanmai-hot.html">慢慢买排行榜</a></div></li><li><a class="t has-dd" href="/category-kuan/" title="酷安-线报酷">酷安<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/kuan-hot.html">酷安排行榜</a></div></li><li><a class="t has-dd" href="/category-xiaodigu/" title="小嘀咕-线报酷">小嘀咕<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-chevron-down"></use></svg></a><div class="ns-dd"><a href="/xiaodigu-hot.html">小嘀咕排行榜</a></div></li><li><a class="t" href="/shenghuo.html" title="生活优惠-线报酷">生活优惠</a></li><li><a class="t" href="/category-huluxia/" title="葫芦侠三楼-线报酷">葫芦侠三楼</a></li><li><a class="t" href="/category-xiaodao/" title="小刀娱乐网-线报酷">小刀娱乐网</a></li><li><a class="t" href="/category-iqnew/" title="爱Q生活网-线报酷">爱Q生活网</a></li><li><a class="t" href="/category-mianfei/" title="免费赚钱中心-线报酷">免费赚钱中心</a></li> </ul>
 </nav>
 </div>
 <div class="nav2-wrap sb hidden-xl">
 <ul class="nav2-ul sb" id="nav2-list">
-<li><a href="/" rel="nofollow" title="首页-线报酷">首页</a></li><li class="nav2-ul-li"><a href="/category-zuankeba/" rel="nofollow" title="赚客吧-线报酷">赚客吧</a></li><li><a href="/category-xinzuanba/" rel="nofollow" title="新赚吧-线报酷">新赚吧</a></li><li><a href="/category-xiaodigu/" rel="nofollow" title="小嘀咕-线报酷">小嘀咕</a></li><li><a href="/category-huluxia/" rel="nofollow" title="葫芦侠三楼-线报酷">葫芦侠三楼</a></li><li><a href="/category-xiaodao/" rel="nofollow" title="小刀娱乐网-线报酷">小刀娱乐网</a></li> </ul>
+<li><a href="/" rel="nofollow" title="首页-线报酷">首页</a></li><li><a href="/category-guanzhu1/" rel="nofollow" title="我的关注-线报酷">我的关注</a></li><li><a href="/yixiaoshi-hot.html" rel="nofollow" title="排行榜-线报酷">排行榜</a></li><li class="nav2-ul-li"><a href="/category-zuankeba/" rel="nofollow" title="赚客吧-线报酷">赚客吧</a></li><li><a href="/category-xinzuanba/" rel="nofollow" title="新赚吧-线报酷">新赚吧</a></li><li><a href="/category-weibo/" rel="nofollow" title="微博线报-线报酷">微博线报</a></li><li><a href="/category-weibo-chaohua/" rel="nofollow" title="微博超话-线报酷">微博超话</a></li><li><a href="/category-douban/" rel="nofollow" title="豆瓣线报-线报酷">豆瓣线报</a></li><li><a href="/category-haodan/" rel="nofollow" title="好单线报-线报酷">好单线报</a></li><li><a href="/category-zhidemai/" rel="nofollow" title="值得买-线报酷">值得买</a></li><li><a href="/category-manmanmai/" rel="nofollow" title="慢慢买-线报酷">慢慢买</a></li><li><a href="/category-kuan/" rel="nofollow" title="酷安-线报酷">酷安</a></li><li><a href="/category-xiaodigu/" rel="nofollow" title="小嘀咕-线报酷">小嘀咕</a></li><li><a href="/shenghuo.html" rel="nofollow" title="生活优惠-线报酷">生活优惠</a></li><li><a href="/category-huluxia/" rel="nofollow" title="葫芦侠三楼-线报酷">葫芦侠三楼</a></li><li><a href="/category-xiaodao/" rel="nofollow" title="小刀娱乐网-线报酷">小刀娱乐网</a></li><li><a href="/category-iqnew/" rel="nofollow" title="爱Q生活网-线报酷">爱Q生活网</a></li><li><a href="/category-mianfei/" rel="nofollow" title="免费赚钱中心-线报酷">免费赚钱中心</a></li> </ul>
 <!-- 28px 圆内字形校准（20261005 SVG 图标适配）：use 设 18px 视口居中（symbol 会撑满 use 视口，改 svg viewBox 无效），chevron 墨迹≈9px 对齐原 iconfont icon-down@14px；28px 圆仍由 .xb-ic 绘制 -->
 <button aria-controls="nav2-panel" aria-expanded="false" aria-label="展开分类" class="nav2-toggle" title="展开分类" type="button"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use height="15" href="#i-chevron-down" width="15" x="4.5" y="4.5"></use></svg></button>
 </div>
 <div class="nav2-panel hidden-xl" id="nav2-panel">
-<div class="nav2-gt">常用</div><div class="nav2-chips"><a class="" href="/" rel="nofollow" title="首页-线报酷">首页</a></div><div class="nav2-gt">线报频道</div><div class="nav2-chips"><a class="nav2-on" href="/category-zuankeba/" rel="nofollow" title="赚客吧-线报酷">赚客吧</a><a class="" href="/category-xinzuanba/" rel="nofollow" title="新赚吧-线报酷">新赚吧</a><a class="" href="/category-xiaodigu/" rel="nofollow" title="小嘀咕-线报酷">小嘀咕</a></div><div class="nav2-gt">其他站点</div><div class="nav2-chips"><a class="" href="/category-huluxia/" rel="nofollow" title="葫芦侠三楼-线报酷">葫芦侠三楼</a><a class="" href="/category-xiaodao/" rel="nofollow" title="小刀娱乐网-线报酷">小刀娱乐网</a></div> </div>
+<div class="nav2-gt">常用</div><div class="nav2-chips"><a href="/" rel="nofollow" title="首页-线报酷">首页</a><a href="/category-guanzhu1/" rel="nofollow" title="我的关注-线报酷">我的关注</a><a href="/yixiaoshi-hot.html" rel="nofollow" title="全站排行榜-线报酷">全站排行榜</a><a href="/category-xianbaoku/" rel="nofollow" title="线报酷-线报酷">线报酷</a><a href="/shenghuo.html" rel="nofollow" title="生活优惠-线报酷">生活优惠</a><a href="/docs/index.html" rel="nofollow" title="线报知识库-线报酷">线报知识库</a></div><div class="nav2-gt">线报频道</div><div class="nav2-chips"><a class="nav2-on" href="/category-zuankeba/" rel="nofollow" title="赚客吧-线报酷">赚客吧</a><a href="/category-xinzuanba/" rel="nofollow" title="新赚吧-线报酷">新赚吧</a><a href="/category-kuan/" rel="nofollow" title="酷安-线报酷">酷安</a><a href="/category-xiaodigu/" rel="nofollow" title="小嘀咕-线报酷">小嘀咕</a></div><div class="nav2-gt">购物频道</div><div class="nav2-chips"><a href="/category-douban/" rel="nofollow" title="豆瓣线报-线报酷">豆瓣线报</a><a href="/category-weibo/" rel="nofollow" title="微博线报-线报酷">微博线报</a><a href="/category-weibo-chaohua/" rel="nofollow" title="微博超话-线报酷">微博超话</a><a href="/category-haodan/" rel="nofollow" title="好单线报-线报酷">好单线报</a><a href="/category-zhidemai/" rel="nofollow" title="值得买-线报酷">值得买</a><a href="/category-manmanmai/" rel="nofollow" title="慢慢买-线报酷">慢慢买</a></div><div class="nav2-gt">排行榜</div><div class="nav2-chips"><a href="/zuankeba-hot.html" rel="nofollow" title="赚客吧排行榜-线报酷">赚客吧排行榜</a><a href="/xinzuanba-hot.html" rel="nofollow" title="新赚吧排行榜-线报酷">新赚吧排行榜</a><a href="/douban-hot.html" rel="nofollow" title="豆瓣线报排行榜-线报酷">豆瓣线报排行榜</a><a href="/weibo-hot.html" rel="nofollow" title="微博线报排行榜-线报酷">微博线报排行榜</a><a href="/haodan-hot.html" rel="nofollow" title="好单线报排行榜-线报酷">好单线报排行榜</a><a href="/zhidemai-hot.html" rel="nofollow" title="值得买排行榜-线报酷">值得买排行榜</a><a href="/manmanmai-hot.html" rel="nofollow" title="慢慢买排行榜-线报酷">慢慢买排行榜</a></div><div class="nav2-gt">其他站点</div><div class="nav2-chips"><a href="/category-huluxia/" rel="nofollow" title="葫芦侠三楼-线报酷">葫芦侠三楼</a><a href="/category-xiaodao/" rel="nofollow" title="小刀娱乐网-线报酷">小刀娱乐网</a><a href="/category-iqnew/" rel="nofollow" title="爱Q生活网-线报酷">爱Q生活网</a><a href="/category-mianfei/" rel="nofollow" title="免费赚钱中心-线报酷">免费赚钱中心</a></div><div class="nav2-gt">本站</div><div class="nav2-chips"><a href="/category-gonggao/" rel="nofollow" title="本站公告区-线报酷">本站公告区</a><a href="/dingyue.html" rel="nofollow" title="订阅推送-线报酷">订阅推送</a><a href="/docs/index.html" rel="nofollow" title="线报知识库-线报酷">线报知识库</a><a href="/xccardindex.html" rel="nofollow" title="线报酷服务-线报酷">线报酷服务</a><a href="/extension.html" rel="nofollow" title="浏览器扩展-线报酷">浏览器扩展</a></div> </div>
 <div class="content container clearfix" id="content">
 <div class="main-col">
 <main class="fl br mb sb" id="mainbox">
 <h1 style="position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;">赚客吧</h1>
-<div class="mianbaoxie article-mbx"><h2 class="mbx-title">赚客吧</h2><span class="sub">今天更新110条</span><span class="xb-monitor on"><i class="xb-monitor-dot"></i><em>监控中</em><span class="xb-monitor-tip">将在 5 秒后刷新</span></span><span class="pull-right fr shuatime"></span></div> <div class="listbox">
-<ul class="new-post"><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 18:46" title="2026年10月31日 18:46">18:46</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7351842.html" target="_blank" title="菜鸟收官">菜鸟收官</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 18:43" title="2026年10月31日 18:43">18:43</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7351829.html" target="_blank" title="我是个不合格的吧友">我是个不合格的吧友</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 18:38" title="2026年10月31日 18:38">18:38</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7351809.html" target="_blank" title="上次的京东鱼跃呼吸机是8秒？">上次的京东鱼跃呼吸机是8秒？</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 18:34" title="2026年10月31日 18:34">18:34</time><span class="badge com"><i class="iconfont icon-comment"></i>3</span><a data-catename="赚客吧" data-comments="3" href="/zuankeba/7351796.html" target="_blank" title="今晚最优惠吗？">今晚最优惠吗？</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 18:16" title="2026年10月31日 18:16">18:16</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7351724.html" target="_blank" title="南京银行20立减金">南京银行20立减金</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 18:07" title="2026年10月31日 18:07">18:07</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7351691.html" target="_blank" title="月底查漏补缺，至少找回几十大毛">月底查漏补缺，至少找回几十大毛</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 17:48" title="2026年10月31日 17:48">17:48</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7351623.html" target="_blank" title="支付宝xing/用卡还款 中信1000-x，自测">支付宝xing/用卡还款 中信1000-x，自测</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 17:34" title="2026年10月31日 17:34">17:34</time><span class="badge com"><i class="iconfont icon-comment"></i>33</span><a data-catename="赚客吧" data-comments="33" href="/zuankeba/7351570.html" target="_blank" title="中行没抽到，摇一摇抽到个大的">中行没抽到，摇一摇抽到个大的</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:27" title="2026年10月31日 16:27">16:27</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7351560.html" target="_blank" title="江苏银行45大毛（微信）">江苏银行45大毛（微信）</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 17:22" title="2026年10月31日 17:22">17:22</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7351530.html" target="_blank" title="中行白金199三笔这月还有吗">中行白金199三笔这月还有吗</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 17:12" title="2026年10月31日 17:12">17:12</time><span class="badge com"><i class="iconfont icon-comment"></i>7</span><a data-catename="赚客吧" data-comments="7" href="/zuankeba/7351477.html" target="_blank" title="什么情况，大疆4p怎么一直跌啊，亏麻了">什么情况，大疆4p怎么一直跌啊，亏麻了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:52" title="2026年10月31日 16:52">16:52</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7351404.html" target="_blank" title="不懂来问这两款吸顶灯忽略价格情况下换哪个好？">不懂来问这两款吸顶灯忽略价格情况下换哪个好？</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:46" title="2026年10月31日 16:46">16:46</time><span class="badge com"><i class="iconfont icon-comment"></i>5</span><a data-catename="赚客吧" data-comments="5" href="/zuankeba/7351383.html" target="_blank" title="想买个充电宝华为手机">想买个充电宝华为手机</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:44" title="2026年10月31日 16:44">16:44</time><span class="badge com"><i class="iconfont icon-comment"></i>8</span><a data-catename="赚客吧" data-comments="8" href="/zuankeba/7351374.html" target="_blank" title="有800-80帮我看看这个可以买吗？">有800-80帮我看看这个可以买吗？</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:38" title="2026年10月31日 16:38">16:38</time><span class="badge com"><i class="iconfont icon-comment"></i>4</span><a data-catename="赚客吧" data-comments="4" href="/zuankeba/7351356.html" target="_blank" title="虾滑小神价">虾滑小神价</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:32" title="2026年10月31日 16:32">16:32</time><span class="badge com"><i class="iconfont icon-comment"></i>5</span><a data-catename="赚客吧" data-comments="5" href="/zuankeba/7351334.html" target="_blank" title="新能源充电桩 有必要用原厂的吗">新能源充电桩 有必要用原厂的吗</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:26" title="2026年10月31日 16:26">16:26</time><span class="badge com"><i class="iconfont icon-comment"></i>3</span><a data-catename="赚客吧" data-comments="3" href="/zuankeba/7351308.html" target="_blank" title="红米k30pro还有必要修吗">红米k30pro还有必要修吗</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:15" title="2026年10月31日 16:15">16:15</time><span class="badge com"><i class="iconfont icon-comment"></i>5</span><a data-catename="赚客吧" data-comments="5" href="/zuankeba/7351270.html" target="_blank" title="WPS超级会员3年卡+京东plus会员年卡或优酷或芒果或喜马或网易云 = 168元">WPS超级会员3年卡+京东plus会员年卡或优酷或芒果或喜马或网易云 = 168元</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 16:02" title="2026年10月31日 16:02">16:02</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7351211.html" target="_blank" title="抖音买上周签收的荣耀winrt查询结果是不是没有空中激活啊彦祖们">抖音买上周签收的荣耀winrt查询结果是不是没有空中激活啊彦祖们</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 15:53" title="2026年10月31日 15:53">15:53</time><span class="badge com"><i class="iconfont icon-comment"></i>14</span><a data-catename="赚客吧" data-comments="14" href="/zuankeba/7351154.html" target="_blank" title="我一个朋友删我朋友圈了">我一个朋友删我朋友圈了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 15:22" title="2026年10月31日 15:22">15:22</time><span class="badge com"><i class="iconfont icon-comment"></i>11</span><a data-catename="赚客吧" data-comments="11" href="/zuankeba/7351013.html" target="_blank" title="安踏儿童羽绒服有800-80可以做到90多">安踏儿童羽绒服有800-80可以做到90多</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 15:13" title="2026年10月31日 15:13">15:13</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7350975.html" target="_blank" title="问个微信的问题">问个微信的问题</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 15:13" title="2026年10月31日 15:13">15:13</time><span class="badge com"><i class="iconfont icon-comment"></i>3</span><a data-catename="赚客吧" data-comments="3" href="/zuankeba/7350974.html" target="_blank" title="知道">知道</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 15:11" title="2026年10月31日 15:11">15:11</time><span class="badge com"><i class="iconfont icon-comment"></i>5</span><a data-catename="赚客吧" data-comments="5" href="/zuankeba/7350968.html" target="_blank" title="农夫山泉刚需价">农夫山泉刚需价</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 15:01" title="2026年10月31日 15:01">15:01</time><span class="badge com"><i class="iconfont icon-comment"></i>5</span><a data-catename="赚客吧" data-comments="5" href="/zuankeba/7350919.html" target="_blank" title="智能门锁有没有好价推荐！">智能门锁有没有好价推荐！</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:58" title="2026年10月31日 14:58">14:58</time><span class="badge com"><i class="iconfont icon-comment"></i>8</span><a data-catename="赚客吧" data-comments="8" href="/zuankeba/7350911.html" target="_blank" title="经常走烂路的还是尽量老油车接着开吧">经常走烂路的还是尽量老油车接着开吧</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:55" title="2026年10月31日 14:55">14:55</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7350898.html" target="_blank" title="我说一个打卡的活动，平安的">我说一个打卡的活动，平安的</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:36" title="2026年10月31日 14:36">14:36</time><span class="badge com"><i class="iconfont icon-comment"></i>9</span><a data-catename="赚客吧" data-comments="9" href="/zuankeba/7350837.html" target="_blank" title="跑AI得买一台笔记本">跑AI得买一台笔记本</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:34" title="2026年10月31日 14:34">14:34</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7350829.html" target="_blank" title="急急急 招行分期取消收费吗">急急急 招行分期取消收费吗</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:25" title="2026年10月31日 14:25">14:25</time><span class="badge com"><i class="iconfont icon-comment"></i>19</span><a data-catename="赚客吧" data-comments="19" href="/zuankeba/7350786.html" target="_blank" title="初中，高中的男生的胡须/胡子，都是怎么弄的？电动剃须刀吗">初中，高中的男生的胡须/胡子，都是怎么弄的？电动剃须刀吗</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:25" title="2026年10月31日 14:25">14:25</time><span class="badge com"><i class="iconfont icon-comment"></i>11</span><a data-catename="赚客吧" data-comments="11" href="/zuankeba/7350785.html" target="_blank" title="太久没有取消分期了，建行还是免费取消吧？">太久没有取消分期了，建行还是免费取消吧？</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:20" title="2026年10月31日 14:20">14:20</time><span class="badge com"><i class="iconfont icon-comment"></i>8</span><a data-catename="赚客吧" data-comments="8" href="/zuankeba/7350773.html" target="_blank" title="京东健康免单你们参与了吗？搜福利天天领734">京东健康免单你们参与了吗？搜福利天天领734</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:13" title="2026年10月31日 14:13">14:13</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7350750.html" target="_blank" title="新的打卡车">新的打卡车</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:12" title="2026年10月31日 14:12">14:12</time><span class="badge com"><i class="iconfont icon-comment"></i>4</span><a data-catename="赚客吧" data-comments="4" href="/zuankeba/7350747.html" target="_blank" title="苹果18退款招行也给了150红包">苹果18退款招行也给了150红包</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 14:05" title="2026年10月31日 14:05">14:05</time><span class="badge com"><i class="iconfont icon-comment"></i>10</span><a data-catename="赚客吧" data-comments="10" href="/zuankeba/7350715.html" target="_blank" title="极狐T1这车咋样，看的450pro版本">极狐T1这车咋样，看的450pro版本</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 13:54" title="2026年10月31日 13:54">13:54</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7350687.html" target="_blank" title="速度，淘金币官方红包万能叠">速度，淘金币官方红包万能叠</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 13:48" title="2026年10月31日 13:48">13:48</time><span class="badge com"><i class="iconfont icon-comment"></i>16</span><a data-catename="赚客吧" data-comments="16" href="/zuankeba/7350671.html" target="_blank" title="前边预测黄金1000的大神，说说啊">前边预测黄金1000的大神，说说啊</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 13:12" title="2026年10月31日 13:12">13:12</time><span class="badge com"><i class="iconfont icon-comment"></i>13</span><a data-catename="赚客吧" data-comments="13" href="/zuankeba/7350539.html" target="_blank" title="淘宝小时达，2下1">淘宝小时达，2下1</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 13:06" title="2026年10月31日 13:06">13:06</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7350512.html" target="_blank" title="有没创维电视版本的红果tv 没地方下载">有没创维电视版本的红果tv 没地方下载</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 13:06" title="2026年10月31日 13:06">13:06</time><span class="badge com"><i class="iconfont icon-comment"></i>10</span><a data-catename="赚客吧" data-comments="10" href="/zuankeba/7350506.html" target="_blank" title="别买了，强制激活！！坑爹">别买了，强制激活！！坑爹</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 12:24" title="2026年10月31日 12:24">12:24</time><span class="badge com"><i class="iconfont icon-comment"></i>8</span><a data-catename="赚客吧" data-comments="8" href="/zuankeba/7350373.html" target="_blank" title="JD 6-5好去处">JD 6-5好去处</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 12:24" title="2026年10月31日 12:24">12:24</time><span class="badge com"><i class="iconfont icon-comment"></i>3</span><a data-catename="赚客吧" data-comments="3" href="/zuankeba/7350372.html" target="_blank" title="小米云服务200多g白菜价">小米云服务200多g白菜价</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 12:21" title="2026年10月31日 12:21">12:21</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7350362.html" target="_blank" title="吧友发的这个超级红包入口找不到了">吧友发的这个超级红包入口找不到了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 12:20" title="2026年10月31日 12:20">12:20</time><span class="badge com"><i class="iconfont icon-comment"></i>12</span><a data-catename="赚客吧" data-comments="12" href="/zuankeba/7350356.html" target="_blank" title="准备去国际庄把18pro出掉">准备去国际庄把18pro出掉</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 12:15" title="2026年10月31日 12:15">12:15</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7350340.html" target="_blank" title="支付宝理财体验金的收益可以领了（最高1.18元）">支付宝理财体验金的收益可以领了（最高1.18元）</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 12:08" title="2026年10月31日 12:08">12:08</time><span class="badge com"><i class="iconfont icon-comment"></i>9</span><a data-catename="赚客吧" data-comments="9" href="/zuankeba/7350309.html" target="_blank" title="新规">新规</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:58" title="2026年10月31日 11:58">11:58</time><span class="badge com"><i class="iconfont icon-comment"></i>7</span><a data-catename="赚客吧" data-comments="7" href="/zuankeba/7350266.html" target="_blank" title="这次双11，难道就没好价打印机？">这次双11，难道就没好价打印机？</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:51" title="2026年10月31日 11:51">11:51</time><span class="badge com"><i class="iconfont icon-comment"></i>15</span><a data-catename="赚客吧" data-comments="15" href="/zuankeba/7350234.html" target="_blank" title="支付宝买的基金已经亏50%了">支付宝买的基金已经亏50%了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:50" title="2026年10月31日 11:50">11:50</time><span class="badge com"><i class="iconfont icon-comment"></i>23</span><a data-catename="赚客吧" data-comments="23" href="/zuankeba/7350231.html" target="_blank" title="抖音小时达可以看看18max银色256  刚下了2台 支付宝交通减200">抖音小时达可以看看18max银色256  刚下了2台 支付宝交通减200</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:49" title="2026年10月31日 11:49">11:49</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7350220.html" target="_blank" title="反撸红茶车">反撸红茶车</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:46" title="2026年10月31日 11:46">11:46</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7350207.html" target="_blank" title="追涨杀跌在赚吧表现得淋漓尽致">追涨杀跌在赚吧表现得淋漓尽致</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:44" title="2026年10月31日 11:44">11:44</time><span class="badge com"><i class="iconfont icon-comment"></i>4</span><a data-catename="赚客吧" data-comments="4" href="/zuankeba/7350199.html" target="_blank" title="淘宝授权店国补店也要激活，已经拒收了">淘宝授权店国补店也要激活，已经拒收了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:41" title="2026年10月31日 11:41">11:41</time><span class="badge com"><i class="iconfont icon-comment"></i>17</span><a data-catename="赚客吧" data-comments="17" href="/zuankeba/7350185.html" target="_blank" title="中行第7笔出的300">中行第7笔出的300</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:41" title="2026年10月31日 11:41">11:41</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7350184.html" target="_blank" title="这个洗衣机转的话能赚钱吗">这个洗衣机转的话能赚钱吗</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:30" title="2026年10月31日 11:30">11:30</time><span class="badge com"><i class="iconfont icon-comment"></i>29</span><a data-catename="赚客吧" data-comments="29" href="/zuankeba/7350126.html" target="_blank" title="打算把剩下的黄金卖了，中鑫金可靠吗">打算把剩下的黄金卖了，中鑫金可靠吗</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:27" title="2026年10月31日 11:27">11:27</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7350113.html" target="_blank" title="微信转账怎么报名全国？没参与过的微信进入小程序报名默认选归属地省份，没法改">微信转账怎么报名全国？没参与过的微信进入小程序报名默认选归属地省份，没法改</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:22" title="2026年10月31日 11:22">11:22</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7350085.html" target="_blank" title="浦大喜奔周六1元奈雪的还有">浦大喜奔周六1元奈雪的还有</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:21" title="2026年10月31日 11:21">11:21</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7350077.html" target="_blank" title="国网电费缴费减1.5">国网电费缴费减1.5</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:12" title="2026年10月31日 11:12">11:12</time><span class="badge com"><i class="iconfont icon-comment"></i>7</span><a data-catename="赚客吧" data-comments="7" href="/zuankeba/7350042.html" target="_blank" title="请帮忙看看这个轮胎历史最低价是多少？他们说算好价">请帮忙看看这个轮胎历史最低价是多少？他们说算好价</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 11:05" title="2026年10月31日 11:05">11:05</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7350021.html" target="_blank" title="云闪付48">云闪付48</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:57" title="2026年10月31日 10:57">10:57</time><span class="badge com"><i class="iconfont icon-comment"></i>4</span><a data-catename="赚客吧" data-comments="4" href="/zuankeba/7349976.html" target="_blank" title="速度 易捷">速度 易捷</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:51" title="2026年10月31日 10:51">10:51</time><span class="badge com"><i class="iconfont icon-comment"></i>18</span><a data-catename="赚客吧" data-comments="18" href="/zuankeba/7349944.html" target="_blank" title="中行确实可以，也中了一个">中行确实可以，也中了一个</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:47" title="2026年10月31日 10:47">10:47</time><span class="badge com"><i class="iconfont icon-comment"></i>10</span><a data-catename="赚客吧" data-comments="10" href="/zuankeba/7349932.html" target="_blank" title="关于洗衣机">关于洗衣机</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:46" title="2026年10月31日 10:46">10:46</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7349926.html" target="_blank" title="昨晚的大米好价还有">昨晚的大米好价还有</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:42" title="2026年10月31日 10:42">10:42</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7349911.html" target="_blank" title="其实洗衣机我昨晚就看到了只下了一单">其实洗衣机我昨晚就看到了只下了一单</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:32" title="2026年10月31日 10:32">10:32</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7349857.html" target="_blank" title="一号店会员废了啊">一号店会员废了啊</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:31" title="2026年10月31日 10:31">10:31</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7349854.html" target="_blank" title="河南交行xing/用卡20大毛">河南交行xing/用卡20大毛</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:29" title="2026年10月31日 10:29">10:29</time><span class="badge com"><i class="iconfont icon-comment"></i>22</span><a data-catename="赚客吧" data-comments="22" href="/zuankeba/7349840.html" target="_blank" title="别死磕手机数码，给大家无脑赚钱的建议">别死磕手机数码，给大家无脑赚钱的建议</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:27" title="2026年10月31日 10:27">10:27</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7349833.html" target="_blank" title="100362409556   2.2左右一斤大米">100362409556   2.2左右一斤大米</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:12" title="2026年10月31日 10:12">10:12</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7349756.html" target="_blank" title="移动号码7天打卡领5元话费，新一期">移动号码7天打卡领5元话费，新一期</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:08" title="2026年10月31日 10:08">10:08</time><span class="badge com"><i class="iconfont icon-comment"></i>8</span><a data-catename="赚客吧" data-comments="8" href="/zuankeba/7349724.html" target="_blank" title="海信貌似黄了">海信貌似黄了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:02" title="2026年10月31日 10:02">10:02</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7349686.html" target="_blank" title="京东红包加码">京东红包加码</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 10:02" title="2026年10月31日 10:02">10:02</time><span class="badge com"><i class="iconfont icon-comment"></i>5</span><a data-catename="赚客吧" data-comments="5" href="/zuankeba/7349685.html" target="_blank" title="800-80还有">800-80还有</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 09:57" title="2026年10月31日 09:57">09:57</time><span class="badge com"><i class="iconfont icon-comment"></i>10</span><a data-catename="赚客吧" data-comments="10" href="/zuankeba/7349644.html" target="_blank" title="中行转账必须是全国才行">中行转账必须是全国才行</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 09:57" title="2026年10月31日 09:57">09:57</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7349643.html" target="_blank" title="6-5继续">6-5继续</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 09:52" title="2026年10月31日 09:52">09:52</time><span class="badge com"><i class="iconfont icon-comment"></i>11</span><a data-catename="赚客吧" data-comments="11" href="/zuankeba/7349612.html" target="_blank" title="中行转账 有10次机会会中大的 只有4次的就散了吧">中行转账 有10次机会会中大的 只有4次的就散了吧</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 09:51" title="2026年10月31日 09:51">09:51</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7349611.html" target="_blank" title="有没有好价的洗碗机和空调啊？大佬们发一发">有没有好价的洗碗机和空调啊？大佬们发一发</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 09:38" title="2026年10月31日 09:38">09:38</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7349560.html" target="_blank" title="建行生活的中石化600-56，200-16劵太难了吧">建行生活的中石化600-56，200-16劵太难了吧</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 09:12" title="2026年10月31日 09:12">09:12</time><span class="badge com"><i class="iconfont icon-comment"></i>30</span><a data-catename="赚客吧" data-comments="30" href="/zuankeba/7349463.html" target="_blank" title="洗衣机，快，又成立了，价格。 479">洗衣机，快，又成立了，价格。 479</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 09:06" title="2026年10月31日 09:06">09:06</time><span class="badge com"><i class="iconfont icon-comment"></i>4</span><a data-catename="赚客吧" data-comments="4" href="/zuankeba/7349455.html" target="_blank" title="plus续费还是等过期再开好">plus续费还是等过期再开好</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 09:04" title="2026年10月31日 09:04">09:04</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7349449.html" target="_blank" title="微信转账怎么直接转到经营账户里去了">微信转账怎么直接转到经营账户里去了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 08:56" title="2026年10月31日 08:56">08:56</time><span class="badge com"><i class="iconfont icon-comment"></i>19</span><a data-catename="赚客吧" data-comments="19" href="/zuankeba/7349430.html" target="_blank" title="真有人给狗买30一斤的狗粮吗   好奇">真有人给狗买30一斤的狗粮吗   好奇</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 08:30" title="2026年10月31日 08:30">08:30</time><span class="badge com"><i class="iconfont icon-comment"></i>5</span><a data-catename="赚客吧" data-comments="5" href="/zuankeba/7349380.html" target="_blank" title="有果！移动网龄计划30元票现在出票速度快吗？">有果！移动网龄计划30元票现在出票速度快吗？</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 08:25" title="2026年10月31日 08:25">08:25</time><span class="badge com"><i class="iconfont icon-comment"></i>11</span><a data-catename="赚客吧" data-comments="11" href="/zuankeba/7349367.html" target="_blank" title="清风抽纸12块买48包">清风抽纸12块买48包</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 08:25" title="2026年10月31日 08:25">08:25</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7349365.html" target="_blank" title="微信中行提现券">微信中行提现券</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 08:16" title="2026年10月31日 08:16">08:16</time><span class="badge com"><i class="iconfont icon-comment"></i>7</span><a data-catename="赚客吧" data-comments="7" href="/zuankeba/7349344.html" target="_blank" title="破红米昨天卡住，强制重启只有声音不显示，你们撸毛都用什么手机啊">破红米昨天卡住，强制重启只有声音不显示，你们撸毛都用什么手机啊</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 08:09" title="2026年10月31日 08:09">08:09</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7349331.html" target="_blank" title="周六部分羊毛">周六部分羊毛</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 08:06" title="2026年10月31日 08:06">08:06</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7349329.html" target="_blank" title="家电都滞销了吧">家电都滞销了吧</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 08:02" title="2026年10月31日 08:02">08:02</time><span class="badge com"><i class="iconfont icon-comment"></i>3</span><a data-catename="赚客吧" data-comments="3" href="/zuankeba/7349319.html" target="_blank" title="微信摇一摇，大概率中中石油200-20-15优惠">微信摇一摇，大概率中中石油200-20-15优惠</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 07:53" title="2026年10月31日 07:53">07:53</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7349309.html" target="_blank" title="10:00浦大喜奔APP1元奶茶，这个月最后一场">10:00浦大喜奔APP1元奶茶，这个月最后一场</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 07:43" title="2026年10月31日 07:43">07:43</time><span class="badge com"><i class="iconfont icon-comment"></i>11</span><a data-catename="赚客吧" data-comments="11" href="/zuankeba/7349296.html" target="_blank" title="洗衣机，用旧的波轮抵扣200+66，rt">洗衣机，用旧的波轮抵扣200+66，rt</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 07:29" title="2026年10月31日 07:29">07:29</time><span class="badge com"><i class="iconfont icon-comment"></i>6</span><a data-catename="赚客吧" data-comments="6" href="/zuankeba/7349288.html" target="_blank" title="摇一摇收益超1k送5张瑞幸">摇一摇收益超1k送5张瑞幸</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 06:53" title="2026年10月31日 06:53">06:53</time><span class="badge com"><i class="iconfont icon-comment"></i>8</span><a data-catename="赚客吧" data-comments="8" href="/zuankeba/7349260.html" target="_blank" title="洗衣机，车来了">洗衣机，车来了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 06:33" title="2026年10月31日 06:33">06:33</time><span class="badge com"><i class="iconfont icon-comment"></i>20</span><a data-catename="赚客吧" data-comments="20" href="/zuankeba/7349248.html" target="_blank" title="洗衣机，速来">洗衣机，速来</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 06:33" title="2026年10月31日 06:33">06:33</time><span class="badge com"><i class="iconfont icon-comment"></i>8</span><a data-catename="赚客吧" data-comments="8" href="/zuankeba/7349247.html" target="_blank" title="中行转账又有大的了。这个月中了二次大的">中行转账又有大的了。这个月中了二次大的</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 06:24" title="2026年10月31日 06:24">06:24</time><span class="badge com"><i class="iconfont icon-comment"></i>17</span><a data-catename="赚客吧" data-comments="17" href="/zuankeba/7349243.html" target="_blank" title="洗衣机的车都没消息？">洗衣机的车都没消息？</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 06:21" title="2026年10月31日 06:21">06:21</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7349242.html" target="_blank" title="中银财富节1块钱">中银财富节1块钱</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 01:45" title="2026年10月31日 01:45">01:45</time><span class="badge com"><i class="iconfont icon-comment"></i>0</span><a data-catename="赚客吧" data-comments="0" href="/zuankeba/7349171.html" target="_blank" title="超市向前冲 新一期又开始了">超市向前冲 新一期又开始了</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 01:17" title="2026年10月31日 01:17">01:17</time><span class="badge com"><i class="iconfont icon-comment"></i>2</span><a data-catename="赚客吧" data-comments="2" href="/zuankeba/7349135.html" target="_blank" title="看错型号了无语">看错型号了无语</a></p></li><li class="article-list"><span class="figure cg16"></span><p class="title"><time class="badge red" datetime="2026年10月31日 01:05" title="2026年10月31日 01:05">01:05</time><span class="badge com"><i class="iconfont icon-comment"></i>1</span><a data-catename="赚客吧" data-comments="1" href="/zuankeba/7349110.html" target="_blank" title="今天小米净烟机p1 bug价1100元？">今天小米净烟机p1 bug价1100元？</a></p></li></ul>
+<div class="mianbaoxie article-mbx"><h2 class="mbx-title">赚客吧</h2><span class="sub">今天更新70条</span><span class="xb-monitor on"><i class="xb-monitor-dot"></i><em>监控中</em><span class="xb-monitor-tip">将在 5 秒后刷新</span></span><span class="pull-right fr shuatime"></span></div> <div class="listbox">
+<ul class="new-post">
+<li class="article-list top xb-st-chk xb-done">
+<span class="figure cg2"></span> <p class="title"><span class="istop">置顶</span><span class="badge-cat">线报酷-公告</span>
+<a data-catename="线报酷-公告" data-content="" data-louzhu="" href="/gonggao/7351762.html" target="_blank" title="线报酷 10 月下旬更新汇总：搜索默认全含、首页多选筛选、评论配图、推送与转链强化">线报酷 10 月下旬更新汇总：搜索默认全含、首页多选筛选、评论配图、推送与转链强化</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 03:57">03:57</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="civ" data-louzhuregtime="2013-12-2" href="/zuankeba/7353808.html" target="_blank" title="沪上阿姨小bug">沪上阿姨小bug</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 03:45">03:45</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>5</span><a data-catename="赚客吧" data-comments="5" data-content="" data-louzhu="98526359" data-louzhuregtime="2026-9-24" href="/zuankeba/7353802.html" target="_blank" title="速度 深夜沪上阿姨bug了">速度 深夜沪上阿姨bug了</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 03:36">03:36</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="jiunuan" data-louzhuregtime="2021-3-16" href="/zuankeba/7353799.html" target="_blank" title="支付宝 5元到店支付红包">支付宝 5元到店支付红包</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 02:57">02:57</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="1104" data-louzhuregtime="2014-6-15" href="/zuankeba/7353785.html" target="_blank" title="招行4个基金号红包+体验金">招行4个基金号红包+体验金</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:42">01:42</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="陈大卫" data-louzhuregtime="2017-7-20" href="/zuankeba/7353725.html" target="_blank" title="微信提现券-湖北农信6666元">微信提现券-湖北农信6666元</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge red" datetime="2026-11-01" title="2026-11-01 01:39">01:39</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="wazaza" data-louzhuregtime="2012-10-6" href="/zuankeba/7353721.html" target="_blank" title="建行抽立减金">建行抽立减金</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:24">01:24</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="兔豆丁" data-louzhuregtime="2023-1-20" href="/zuankeba/7353695.html" target="_blank" title="移动手机人人5元话费">移动手机人人5元话费</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:24">01:24</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="yang5565955" data-louzhuregtime="2021-2-13" href="/zuankeba/7353694.html" target="_blank" title="云闪付搜权益精选，大水">云闪付搜权益精选，大水</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:22">01:22</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="Chevrolet" data-louzhuregtime="2020-1-9" href="/zuankeba/7353691.html" target="_blank" title="买的中行连续3个月微信还款券，这会竟不让用了">买的中行连续3个月微信还款券，这会竟不让用了</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:21">01:21</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="让子弹飞！" data-louzhuregtime="2018-3-8" href="/zuankeba/7353687.html" target="_blank" title="河南工行5000豆子">河南工行5000豆子</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:20">01:20</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="兔豆丁" data-louzhuregtime="2023-1-20" href="/zuankeba/7353682.html" target="_blank" title="建行6元毛，速度领">建行6元毛，速度领</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:18">01:18</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="薅完就跑" data-louzhuregtime="2016-11-2" href="/zuankeba/7353674.html" target="_blank" title="农行过期40块钱">农行过期40块钱</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:02">01:02</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="wazaza" data-louzhuregtime="2012-10-6" href="/zuankeba/7353630.html" target="_blank" title="交行的碳星荣耀可以领了">交行的碳星荣耀可以领了</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:02">01:02</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="ssiteeqlin" data-louzhuregtime="2017-3-15" href="/zuankeba/7353628.html" target="_blank" title="微信支付12大毛">微信支付12大毛</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 01:02">01:02</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="actua" data-louzhuregtime="2018-3-30" href="/zuankeba/7353625.html" target="_blank" title="农行xing/用卡微信5000返15领取">农行xing/用卡微信5000返15领取</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:55">00:55</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="zhang2017" data-louzhuregtime="2017-6-28" href="/zuankeba/7353603.html" target="_blank" title="微信免费提现50000，这个活动风险大吗">微信免费提现50000，这个活动风险大吗</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:53">00:53</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="zzsscxw" data-louzhuregtime="2018-10-18" href="/zuankeba/7353595.html" target="_blank" title="支付宝首页天猫活动，怎么买苹果？">支付宝首页天猫活动，怎么买苹果？</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:53">00:53</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="1104" data-louzhuregtime="2014-6-15" href="/zuankeba/7353589.html" target="_blank" title="支付宝中行和建行还款1000">支付宝中行和建行还款1000</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:46">00:46</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="让子弹飞！" data-louzhuregtime="2018-3-8" href="/zuankeba/7353562.html" target="_blank" title="建设月月享100报名路径">建设月月享100报名路径</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:45">00:45</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="0120964410a" data-louzhuregtime="2017-4-16" href="/zuankeba/7353555.html" target="_blank" title="交行xing/用卡消费报名">交行xing/用卡消费报名</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:40">00:40</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="actua" data-louzhuregtime="2018-3-30" href="/zuankeba/7353536.html" target="_blank" title="支付宝还款光大5000-10，3000-6">支付宝还款光大5000-10，3000-6</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:40">00:40</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="人生若只如初贱" data-louzhuregtime="2013-2-4" href="/zuankeba/7353535.html" target="_blank" title="求问下券来路">求问下券来路</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:39">00:39</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="helloworld2" data-louzhuregtime="2014-4-2" href="/zuankeba/7353528.html" target="_blank" title="JD小金库5元超市支付券 又可以领了">JD小金库5元超市支付券 又可以领了</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:39">00:39</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="超人小豆" data-louzhuregtime="2019-8-9" href="/zuankeba/7353524.html" target="_blank" title="兴业和交行小毛，冲！">兴业和交行小毛，冲！</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:38">00:38</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="samchem" data-louzhuregtime="2011-8-19" href="/zuankeba/7353522.html" target="_blank" title="dy招行继续。。。">dy招行继续。。。</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge red" datetime="2026-11-01" title="2026-11-01 00:36">00:36</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="海的另一边" data-louzhuregtime="2023-2-1" href="/zuankeba/7353516.html" target="_blank" title="微信免费提现券一万">微信免费提现券一万</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:35">00:35</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="联邦调查局" data-louzhuregtime="2015-2-26" href="/zuankeba/7353506.html" target="_blank" title="京东E卡等级V6领5E卡">京东E卡等级V6领5E卡</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:33">00:33</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="34899091" data-louzhuregtime="2015-6-7" href="/zuankeba/7353500.html" target="_blank" title="zfb还款邮储1000-3.88">zfb还款邮储1000-3.88</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:32">00:32</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="联邦调查局" data-louzhuregtime="2015-2-26" href="/zuankeba/7353490.html" target="_blank" title="工商visaxing/用卡1买15E卡">工商visaxing/用卡1买15E卡</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:31">00:31</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="让子弹飞！" data-louzhuregtime="2018-3-8" href="/zuankeba/7353483.html" target="_blank" title="河南建设银行5立减金">河南建设银行5立减金</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:30">00:30</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="海的另一边" data-louzhuregtime="2023-2-1" href="/zuankeba/7353479.html" target="_blank" title="中行银联退款大法，京东买东西云闪付跳中行，收货日期设置靠后几天">中行银联退款大法，京东买东西云闪付跳中行，收货日期设置靠后几天</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:30">00:30</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="让子弹飞！" data-louzhuregtime="2018-3-8" href="/zuankeba/7353478.html" target="_blank" title="中行xing/用卡20毛，云闪付这里看">中行xing/用卡20毛，云闪付这里看</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:29">00:29</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="zzzxxxccc" data-louzhuregtime="2017-3-26" href="/zuankeba/7353473.html" target="_blank" title="云闪付 中行那个500元的完不成的  可以交电费凑数">云闪付 中行那个500元的完不成的  可以交电费凑数</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:27">00:27</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>12</span><a data-catename="赚客吧" data-comments="12" data-content="" data-louzhu="hufei19870902" data-louzhuregtime="2016-5-10" href="/zuankeba/7353467.html" target="_blank" title="中行用拉卡拉银联二维码付了501">中行用拉卡拉银联二维码付了501</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:26">00:26</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="slsll1" data-louzhuregtime="2012-8-29" href="/zuankeba/7353462.html" target="_blank" title="上海农商银行支付宝还款1000-10">上海农商银行支付宝还款1000-10</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:25">00:25</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="q276046897" data-louzhuregtime="2014-2-17" href="/zuankeba/7353459.html" target="_blank" title="zfb中行3000-3 转账">zfb中行3000-3 转账</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:25">00:25</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="含情小小脉" data-louzhuregtime="2018-7-30" href="/zuankeba/7353458.html" target="_blank" title="交行2元">交行2元</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:24">00:24</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="chengzhuo" data-louzhuregtime="2026-6-23" href="/zuankeba/7353453.html" target="_blank" title="交行2元支付券">交行2元支付券</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:22">00:22</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="兔豆丁" data-louzhuregtime="2023-1-20" href="/zuankeba/7353433.html" target="_blank" title="兴业xing/用卡刷卡金试试">兴业xing/用卡刷卡金试试</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:20">00:20</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="xiaxiamia" data-louzhuregtime="2014-10-19" href="/zuankeba/7353419.html" target="_blank" title="小米手机每天赚钱">小米手机每天赚钱</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge red" datetime="2026-11-01" title="2026-11-01 00:18">00:18</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="兔豆丁" data-louzhuregtime="2023-1-20" href="/zuankeba/7353413.html" target="_blank" title="京东买了抽奖退款">京东买了抽奖退款</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:17">00:17</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="兔豆丁" data-louzhuregtime="2023-1-20" href="/zuankeba/7353405.html" target="_blank" title="兴业立减金，人人可以玩">兴业立减金，人人可以玩</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:17">00:17</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="liangzhiwei123" data-louzhuregtime="2017-11-18" href="/zuankeba/7353404.html" target="_blank" title="上周五真惨">上周五真惨</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:17">00:17</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>8</span><a data-catename="赚客吧" data-comments="8" data-content="" data-louzhu="a137157006" data-louzhuregtime="2017-12-6" href="/zuankeba/7353402.html" target="_blank" title="中行xing/用卡消费这是啥意思">中行xing/用卡消费这是啥意思</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:17">00:17</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="xixibb" data-louzhuregtime="2018-3-9" href="/zuankeba/7353399.html" target="_blank" title="支付宝还款">支付宝还款</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:17">00:17</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="hzfyzf" data-louzhuregtime="2014-10-14" href="/zuankeba/7353394.html" target="_blank" title="11.1京东拍卖">11.1京东拍卖</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:16">00:16</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="shx337a" data-louzhuregtime="2016-12-27" href="/zuankeba/7353391.html" target="_blank" title="江苏银行10大毛">江苏银行10大毛</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:16">00:16</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="xulei123abc" data-louzhuregtime="2016-7-25" href="/zuankeba/7353385.html" target="_blank" title="中行20毛">中行20毛</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:15">00:15</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>11</span><a data-catename="赚客吧" data-comments="11" data-content="" data-louzhu="bpdbl" data-louzhuregtime="2014-5-9" href="/zuankeba/7353378.html" target="_blank" title="6-5能买啥？一张没用">6-5能买啥？一张没用</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge red" datetime="2026-11-01" title="2026-11-01 00:12">00:12</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="ppzz12" data-louzhuregtime="2014-9-11" href="/zuankeba/7353357.html" target="_blank" title="农行-热门活动-小豆乐园，刚中3000小豆">农行-热门活动-小豆乐园，刚中3000小豆</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:12">00:12</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="夏橘吧" data-louzhuregtime="2019-2-27" href="/zuankeba/7353354.html" target="_blank" title="北京邮储每月福利2，5微信立减金">北京邮储每月福利2，5微信立减金</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:12">00:12</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="hzfyzf" data-louzhuregtime="2014-10-14" href="/zuankeba/7353353.html" target="_blank" title="4块 新">4块 新</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:11">00:11</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="vothinh" data-louzhuregtime="2016-11-27" href="/zuankeba/7353348.html" target="_blank" title="建行惠省钱有道具">建行惠省钱有道具</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:11">00:11</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="夏橘吧" data-louzhuregtime="2019-2-27" href="/zuankeba/7353346.html" target="_blank" title="北京邮储每月福利1福袋">北京邮储每月福利1福袋</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:10">00:10</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="hpgz99" data-louzhuregtime="2018-9-29" href="/zuankeba/7353340.html" target="_blank" title="建行xing/用卡消费100京东e卡报名">建行xing/用卡消费100京东e卡报名</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:10">00:10</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="TOY2012" data-louzhuregtime="2015-5-19" href="/zuankeba/7353339.html" target="_blank" title="上了一个京东健康打卡免单">上了一个京东健康打卡免单</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:09">00:09</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>7</span><a data-catename="赚客吧" data-comments="7" data-content="" data-louzhu="让子弹飞！" data-louzhuregtime="2018-3-8" href="/zuankeba/7353335.html" target="_blank" title="暖气缴费农行-50！">暖气缴费农行-50！</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:09">00:09</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="emptysea" data-louzhuregtime="2019-6-11" href="/zuankeba/7353333.html" target="_blank" title="支付宝工行立减5元">支付宝工行立减5元</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:09">00:09</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="wt028" data-louzhuregtime="2026-1-5" href="/zuankeba/7353328.html" target="_blank" title="四川中行">四川中行</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:08">00:08</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="ambiding" data-louzhuregtime="2019-2-17" href="/zuankeba/7353325.html" target="_blank" title="湖南农信月月刷10元微信立减金">湖南农信月月刷10元微信立减金</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:07">00:07</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="shx337a" data-louzhuregtime="2016-12-27" href="/zuankeba/7353317.html" target="_blank" title="江苏工行">江苏工行</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:06">00:06</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="chengzhuo" data-louzhuregtime="2026-6-23" href="/zuankeba/7353313.html" target="_blank" title="微信 工行转账提现券">微信 工行转账提现券</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:05">00:05</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="xixibb" data-louzhuregtime="2018-3-9" href="/zuankeba/7353303.html" target="_blank" title="支付宝大小号收款江苏银行">支付宝大小号收款江苏银行</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:03">00:03</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="夏橘吧" data-louzhuregtime="2019-2-27" href="/zuankeba/7353284.html" target="_blank" title="中行xin用卡20毛，每月">中行xin用卡20毛，每月</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge red" datetime="2026-11-01" title="2026-11-01 00:03">00:03</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="Silently〃" data-louzhuregtime="2018-6-24" href="/zuankeba/7353280.html" target="_blank" title="支付宝转账 工行2000-3">支付宝转账 工行2000-3</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:02">00:02</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="qq95242433" data-louzhuregtime="2018-11-26" href="/zuankeba/7353275.html" target="_blank" title="建行11月份100来了">建行11月份100来了</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge red" datetime="2026-11-01" title="2026-11-01 00:02">00:02</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="luoke5716697" data-louzhuregtime="2015-10-8" href="/zuankeba/7353269.html" target="_blank" title="快 6-5超市券">快 6-5超市券</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:02">00:02</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="伴你一生" data-louzhuregtime="2013-12-4" href="/zuankeba/7353267.html" target="_blank" title="湖南农信月月刷">湖南农信月月刷</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:01">00:01</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="shx337a" data-louzhuregtime="2016-12-27" href="/zuankeba/7353264.html" target="_blank" title="支付宝银行卡大水">支付宝银行卡大水</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge red" datetime="2026-11-01" title="2026-11-01 00:01">00:01</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="薄情郎" data-louzhuregtime="2016-12-21" href="/zuankeba/7353258.html" target="_blank" title="江苏农信月月刷">江苏农信月月刷</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:59">10-31 23:59</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="wt028" data-louzhuregtime="2026-1-5" href="/zuankeba/7353245.html" target="_blank" title="四川5立减金">四川5立减金</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:47">10-31 23:47</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="余聪聪" data-louzhuregtime="2016-2-15" href="/zuankeba/7353197.html" target="_blank" title="5元粮油红包好去处">5元粮油红包好去处</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:47">10-31 23:47</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>5</span><a data-catename="赚客吧" data-comments="5" data-content="" data-louzhu="qing885" data-louzhuregtime="2014-11-26" href="/zuankeba/7353195.html" target="_blank" title="昨天的美孚机油活动没赶上，后续还会有吗">昨天的美孚机油活动没赶上，后续还会有吗</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:43">10-31 23:43</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="L_chen" data-louzhuregtime="2020-12-9" href="/zuankeba/7353176.html" target="_blank" title="建行 惠省钱">建行 惠省钱</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:41">10-31 23:41</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="qq86690373" data-louzhuregtime="2018-9-8" href="/zuankeba/7353169.html" target="_blank" title="每月一号就紧张，真累">每月一号就紧张，真累</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:37">10-31 23:37</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="骑自行车的鱼" data-louzhuregtime="2024-5-25" href="/zuankeba/7353158.html" target="_blank" title="中信抽奖有水">中信抽奖有水</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:17">10-31 23:17</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>4</span><a data-catename="赚客吧" data-comments="4" data-content="" data-louzhu="ut卿ing" data-louzhuregtime="2021-1-22" href="/zuankeba/7353083.html" target="_blank" title="什么地方可以便宜开云闪付的62会员呀？菓熟">什么地方可以便宜开云闪付的62会员呀？菓熟</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge" datetime="2026-10-31" title="2026-10-31 23:17">10-31 23:17</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>5</span><a data-catename="赚客吧" data-comments="5" data-content="" data-louzhu="yy1808" data-louzhuregtime="2020-5-14" href="/zuankeba/7353081.html" target="_blank" title="强势领取京东6减5超市券的方法（一共3张）">强势领取京东6减5超市券的方法（一共3张）</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:15">10-31 23:15</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="让子弹飞！" data-louzhuregtime="2018-3-8" href="/zuankeba/7353071.html" target="_blank" title="速度，京东5元粮油红包">速度，京东5元粮油红包</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge" datetime="2026-10-31" title="2026-10-31 23:14">10-31 23:14</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="zwl96212" data-louzhuregtime="2013-11-9" href="/zuankeba/7353063.html" target="_blank" title="建融家园刚中88，没抽的去试试">建融家园刚中88，没抽的去试试</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge" datetime="2026-10-31" title="2026-10-31 23:12">10-31 23:12</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>7</span><a data-catename="赚客吧" data-comments="7" data-content="" data-louzhu="专业撸毛" data-louzhuregtime="2019-3-6" href="/zuankeba/7353055.html" target="_blank" title="速度 白嫖">速度 白嫖</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:05">10-31 23:05</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>4</span><a data-catename="赚客吧" data-comments="4" data-content="" data-louzhu="头疼的穿山甲" data-louzhuregtime="2017-6-19" href="/zuankeba/7353029.html" target="_blank" title="撸毛的时代结束了，今晚刚看在线16655 人。">撸毛的时代结束了，今晚刚看在线16655 人。</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 23:04">10-31 23:04</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="x2365762" data-louzhuregtime="2014-1-29" href="/zuankeba/7353025.html" target="_blank" title="建融家园 两户都是2  有水？">建融家园 两户都是2  有水？</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:57">10-31 22:57</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="毅种快乐" data-louzhuregtime="2015-11-29" href="/zuankeba/7352997.html" target="_blank" title="抖音的红包怎么没人买手机">抖音的红包怎么没人买手机</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:56">10-31 22:56</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="没有梦的天堂" data-louzhuregtime="2010-8-25" href="/zuankeba/7352986.html" target="_blank" title="一号店鸡蛋可以这个月不买下个月买吗？">一号店鸡蛋可以这个月不买下个月买吗？</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:52">10-31 22:52</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="8732353" data-louzhuregtime="2015-4-8" href="/zuankeba/7352975.html" target="_blank" title="东哥不让下单怎么办">东哥不让下单怎么办</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:52">10-31 22:52</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>5</span><a data-catename="赚客吧" data-comments="5" data-content="" data-louzhu="linchaoyu000" data-louzhuregtime="2016-10-13" href="/zuankeba/7352974.html" target="_blank" title="老哥们，有没有好价电动车推荐">老哥们，有没有好价电动车推荐</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:48">10-31 22:48</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="刘强东" data-louzhuregtime="2026-9-6" href="/zuankeba/7352956.html" target="_blank" title="既然撸毛的时代结束，为啥不去上班？">既然撸毛的时代结束，为啥不去上班？</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:45">10-31 22:45</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="James丶Young" data-louzhuregtime="2017-4-27" href="/zuankeba/7352947.html" target="_blank" title="JD 羽绒服5折券">JD 羽绒服5折券</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:39">10-31 22:39</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="云飞扬666" data-louzhuregtime="2019-5-14" href="/zuankeba/7352917.html" target="_blank" title="大米">大米</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:37">10-31 22:37</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="zhuoyue119" data-louzhuregtime="2015-5-16" href="/zuankeba/7352900.html" target="_blank" title="鞋靴采销领到了，但下单显示 红包未抵扣是咋回事呢">鞋靴采销领到了，但下单显示 红包未抵扣是咋回事呢</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:36">10-31 22:36</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>1</span><a data-catename="赚客吧" data-comments="1" data-content="" data-louzhu="zhunyangmingqi" data-louzhuregtime="2019-12-11" href="/zuankeba/7352892.html" target="_blank" title="民生银行APP缴费获得0.01g黄金">民生银行APP缴费获得0.01g黄金</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:28">10-31 22:28</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>9</span><a data-catename="赚客吧" data-comments="9" data-content="" data-louzhu="eagleyjf" data-louzhuregtime="2010-11-24" href="/zuankeba/7352852.html" target="_blank" title="懂笔记本电脑的老哥帮忙看下">懂笔记本电脑的老哥帮忙看下</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:25">10-31 22:25</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>5</span><a data-catename="赚客吧" data-comments="5" data-content="" data-louzhu="云飞扬666" data-louzhuregtime="2019-5-14" href="/zuankeba/7352842.html" target="_blank" title="大米20.76">大米20.76</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:22">10-31 22:22</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="98526359" data-louzhuregtime="2026-9-24" href="/zuankeba/7352824.html" target="_blank" title="月底最后时刻">月底最后时刻</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:22">10-31 22:22</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>2</span><a data-catename="赚客吧" data-comments="2" data-content="" data-louzhu="乐安少侠" data-louzhuregtime="2016-2-18" href="/zuankeba/7352821.html" target="_blank" title="今年没有福袋吗？">今年没有福袋吗？</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:21">10-31 22:21</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>0</span><a data-catename="赚客吧" data-comments="0" data-content="" data-louzhu="可乐先生吧" data-louzhuregtime="2017-11-5" href="/zuankeba/7352819.html" target="_blank" title="小家电8折">小家电8折</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-st-dead xb-done">
+<span class="figure cg16"></span> <p class="title">
+<span class="xb-st-flag">已失效</span> <time class="badge" datetime="2026-10-31" title="2026-10-31 22:20">10-31 22:20</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>8</span><a data-catename="赚客吧" data-comments="8" data-content="" data-louzhu="xumin284447223" data-louzhuregtime="2017-8-19" href="/zuankeba/7352809.html" target="_blank" title="撸毛的时代结束了">撸毛的时代结束了</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:18">10-31 22:18</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>3</span><a data-catename="赚客吧" data-comments="3" data-content="" data-louzhu="civ" data-louzhuregtime="2013-12-2" href="/zuankeba/7352806.html" target="_blank" title="京东赛博联欢会红包作业">京东赛博联欢会红包作业</a>
+</p>
+</li>
+<li class="article-list xb-st-chk xb-done">
+<span class="figure cg16"></span> <p class="title">
+<time class="badge" datetime="2026-10-31" title="2026-10-31 22:03">10-31 22:03</time> <span class="badge-cat">赚客吧</span><span class="badge com"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-comment"></use></svg>6</span><a data-catename="赚客吧" data-comments="6" data-content="" data-louzhu="ut卿ing" data-louzhuregtime="2021-1-22" href="/zuankeba/7352739.html" target="_blank" title="京东app搜索栏入口很多1元或0.01分的实物，大家可以去搜试一下">京东app搜索栏入口很多1元或0.01分的实物，大家可以去搜试一下</a>
+</p>
+</li>
+</ul>
 </div>
-<div class="pagebar"><div class="nav-links"><span class="br page-numbers current">1</span><a class="br page-numbers" href="/category-zuankeba/2/" title="第2页">2</a><a class="br page-numbers" href="/category-zuankeba/3/" title="第3页">3</a><a class="br page-numbers" href="/category-zuankeba/4/" title="第4页">4</a><a class="br page-numbers" href="/category-zuankeba/5/" title="第5页">5</a><a class="br page-numbers" href="/category-zuankeba/2/" title="下一页">下一页</a><a class="br page-numbers" href="/category-zuankeba/228/" title="最后一页">尾页</a><span class="br page-numbers page-total">1 / 228 页</span></div></div>
+<div class="pagebar">
+<div class="nav-links">
+<span class="br page-numbers current">1</span>
+<a class="br page-numbers" href="/category-zuankeba/2/" title="第2页">2</a>
+<a class="br page-numbers" href="/category-zuankeba/3/" title="第3页">3</a>
+<a class="br page-numbers" href="/category-zuankeba/4/" title="第4页">4</a>
+<a class="br page-numbers" href="/category-zuankeba/5/" title="第5页">5</a>
+<span class="next"><a class="br page-numbers" href="/category-zuankeba/2/" title="下一页">›</a></span>
+<label><input oninput="value=value.replace(/[^\d]/g,'')" onkeydown="if(event.keyCode==13) {window.location = '/category-zuankeba.html'+'/'+this.value+'/';}" placeholder="1" size="4" title="输入页码，按回车快速跳转" type="text" value=""/><span title="共 160 页">回车跳页</span></label>
+</div>
+</div>
 </main>
 </div>
+<aside class="fr" id="sidebar" style="top: -1552px;">
+<div class="theiaStickySidebar celan"><div aria-hidden="true" class="xb-sb-skel" style="min-height:2400px"></div><noscript><style>.xb-sb-skel{display:none}</style></noscript><div data-sbfrag="1" data-sbmods='[{"k":"notice","ck":"xb_sb4_v1_g_g_category_notice"},{"k":"dingyue","ck":"xb_sb4_v1_g_g_category_dingyue"},{"k":"catehot","ck":"xb_sb4_v1_g_g_category_cate_16"},{"k":"rank","ck":"xb_sb4_v1_g_g_category_rank"},{"k":"guanzhu","ck":"xb_sb4_v1_g_g_category_gz"},{"k":"picks","ck":"xb_sb4_v1_g_g_category_picks"}]' data-sburl="/plus/json/sidebar_frag.php?type=category&amp;cateid=16&amp;catename=zuankeba&amp;cate-name=%E8%B5%9A%E5%AE%A2%E5%90%A7" hidden=""></div><script>(function(){
+try{
+var root=document.getElementById("sidebar");
+if(!root)return;
+var car=root.querySelector("[data-sbmods]");
+if(!car)return;
+var celan=root.querySelector(".celan");
+if(!celan)return;
+var mraw=car.getAttribute("data-sbmods")||"";
+if(mraw.length<8)return;
+var mods=null;
+try{mods=JSON.parse(mraw);}catch(e0){return;}
+if(!mods||!mods.push||mods.length<1)return;
+function lsGet(ck){
+var raw=localStorage.getItem("lscacfhe-"+ck);
+if(typeof raw!=="string")return null;
+var exp=parseInt(localStorage.getItem("lscacfhe-"+ck+"-cacheexpiration"),10);
+if(!exp||exp<1)return null;
+var nowMs=(new Date()).getTime();
+if(exp>1e12){if(exp<=nowMs)return null;}
+else if(exp>4e8){if(exp<=Math.floor(nowMs/1000))return null;}
+else{if(exp<=Math.floor(nowMs/60000))return null;}
+var v=null;
+try{v=JSON.parse(raw);}catch(e1){return null;}
+if(typeof v!=="string")return null;
+return v;
+}
+var reM=/<\!--xbm:[a-zA-Z0-9_\-]+-->/g;
+var parts=[];
+for(var i=0;i<mods.length;i++){
+var it=mods[i];
+if(!it||typeof it!=="object")return;
+var ck=(typeof it.ck==="string")?it.ck:"";
+if(ck.indexOf("xb_sb4_v1_")!==0)return;
+var seg=lsGet(ck);
+if(seg===null)return;
+parts.push(seg);
+}
+var html="";
+for(var j=0;j<parts.length;j++){html+=parts[j].replace(reM,"");}
+if(html.length<32||html.indexOf("<")<0)return;
+celan.innerHTML=html;
+var n=document.getElementById("xb-notice");
+var d=document.getElementById("xb-dycard");
+var ver=(n&&n.getAttribute("data-ver"))?n.getAttribute("data-ver"):"1";
+var closed=null;
+try{closed=localStorage.getItem("xb_notice_x");}catch(e2){}
+if(closed&&closed===ver){
+if(n)n.style.display="none";
+if(d)d.style.display="none";
+}
+}catch(e){}
+})();
+</script></div>
+</aside>
 </div>
+<footer class="footer">
+<div class="main container">
+<div class="f-about fl">
+<h2 class="title pb1">关于本站</h2>
+<div class="intro">线报酷仅收集分享各类项目和活动信息，不参与任何平台相关运营事宜，请自行判断各平台和项目的信誉度，如觉有风险，请勿参与。如用户在浏览过程发现违规文章，可使用举报功能进行通知本站处理，我们会及时处理举报文章，谢谢合作。</div>
+<small><span>Copyright © 2018-2026 本站由<a href="https://www.zblogcn.com/" rel="noopener nofollow" target="_blank">Z-BlogPHP</a>强力驱动</span><span class="icp"><a href="https://beian.miit.gov.cn/" rel="noopener nofollow" target="_blank">粤ICP备18140255号-1 | 粤ICP备18140255号-4 | 粤ICP备18140255号-5</a></span></small>
+</div>
+<div class="f-nav fl">
+<h2 class="title pb1">频道导航</h2>
+<div>
+<p><a href="/category-haodan/" title="好单线报">好单线报</a></p><p><a href="/category-weibo/" title="微博线报">微博线报</a></p><p><a href="/category-zhidemai/" title="值得买">值得买</a></p><p><a href="/category-douban-maizu/" title="豆瓣买组">豆瓣买组</a></p><p><a href="/category-zuankeba/" title="赚客吧">赚客吧</a></p><p><a href="/yixiaoshi-hot.html" title="排行榜">排行榜</a></p><p><a href="/qun.html" title="QQ推送群">QQ推送群</a></p></div>
+</div>
+<div class="f-contact fl">
+<h2 class="title pb1">联系我们</h2>
+<div><p>合作或咨询可通过如下方式：</p>
+<p><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-qq"></use></svg>QQ：2771128168</p>
+<p><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-wechat"></use></svg>微信：xianbao_fun</p>
+<p><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-weibo"></use></svg>微博：线报酷官方</p></div>
+</div>
+<div class="f-qr fr">
+<h2 class="title pb1">关注我们</h2>
+<div><img alt="二维码" class="img br" decoding="async" loading="lazy" src="/zb_users/theme/xianbao_theme/image/qr.jpg"/></div>
+</div>
+<div class="clear"></div>
+</div>
+<!-- 搜索×筛选融合（20261005 方案 A）：Esc 关闭 / 快捷键 / 或 F 召回（均指无修饰键的单键；Ctrl+F 留给浏览器原生查找）/ #qf 直开。
+         桌面 ≥1101px：快捷键聚焦行一统一搜索条（内容区筛选卡已下线）；
+         移动端：开合顶栏搜索键的融合面板（#search-area，经 #search-button 复用
+         navigation.js 的开合：xb-on 类 + 遮罩 + fadeToggle）。
+         桌面 hs-form 与移动端 fp-form 同一提交规则：原生 GET 提交，空字段剔除防 URL 污染；
+         「清空」键：URL 带搜索参数→回干净路径（搜索页回首页），否则仅清空输入框（不跳转）。 -->
+<script data-xb-inline="A">(function(){var o=window.matchMedia("(min-width:1101px)"),n=document.getElementById("hs-input"),i=document.getElementById("search-button");function f(){return!!i&&i.classList.contains("xb-on")}function c(e){i&&e!==f()&&i.click()}function l(){n&&(n.focus(),n.select&&n.select())}document.addEventListener("keydown",function(e){var t=(e.target.tagName||"").toLowerCase();if(e.key==="Escape"){f()&&c(!1);return}if(!(e.ctrlKey||e.metaKey||e.altKey)&&!(t==="input"||t==="textarea"||e.target.isContentEditable)&&(e.key==="/"||e.key==="f")){if(e.preventDefault(),o.matches&&n){l();return}c(!0);var r=document.querySelector(".fp-input");r&&setTimeout(function(){r.focus()},80)}}),location.hash==="#qf"&&(o.matches&&n?l():c(!0)),[".hs-form",".fp-form"].forEach(function(e){var t=document.querySelector(e);if(t){var r=function(){return t.querySelectorAll('input[name="q"],input[name="kp"],input[name="mip"],input[name="mxp"],input[name="ecate"]')},s=t.querySelector(e===".hs-form"?".hq-clearbtn":".fp-clear");s&&s.addEventListener("click",function(){if(/[?&](q|kp|mip|mxp|ecate|op)=/.test(location.search)){location.href=location.pathname==="/search.php"?"/":location.pathname;return}r().forEach(function(h){h.value=""});for(var a=t.querySelectorAll('input[name="ecate[]"]'),u=0;u<a.length;u++)a[u].checked=!1;var m=t.querySelector('input[name="op"]');m&&(m.checked=!1);var p=t.querySelector('input[name="q"]');p&&p.focus()}),t.addEventListener("submit",function(){r().forEach(function(a){(a.value||"").trim()||(a.disabled=!0)})})}})})();
+</script>
+<!-- 融合面板热词已由 header.php 服务端直出（hot_keywords.json 300s 缓存），
+         原搜索面板懒加载块于 20261005 移除 -->
+<script data-xb-inline="B">(function(){function u(){var d=document.getElementById("hs-input"),a=document.getElementById("hs-panel"),m=!1,h="xb_srch_hist_v1",I=8,B=43200;function v(){if(!(window.lscache&&window.lscache.get))return[];try{var e=window.lscache.get(h);return e&&Array.isArray(e)?e:[]}catch(t){return[]}}function k(e){if(window.lscache&&window.lscache.set)try{window.lscache.set(h,e,B)}catch(t){}}function q(){if(window.lscache&&window.lscache.remove)try{window.lscache.remove(h)}catch(e){}}function b(){if(window.lscache&&window.lscache.set){var e=location.pathname;if(!(!/^\/search\.php$/.test(e)&&!/^\/category-[a-z0-9-]+\/?$/.test(e))){var t;try{t=new URLSearchParams(location.search)}catch(f){return}var r=(t.get("q")||"").trim();if(r){for(var n=[],s=["q","kp","mip","mxp","ecate","op"],i=0;i<s.length;i++){var o=(t.get(s[i])||"").trim();o&&n.push(s[i]+"="+encodeURIComponent(o))}var c={q:r.slice(0,50),p:e,s:n.join("&")},L=v().filter(function(f){return f&&f.q!==c.q});L.unshift(c),k(L.slice(0,I))}}}}function H(e){var t=document.createElement("a");return t.className="search-hot-chip",t.rel="nofollow",t.href=e.p+(e.s?"?"+e.s:""),t.textContent=e.q,t}function p(e,t){var r=document.getElementById(e),n=document.getElementById(t);if(!r||!n)return!1;var s=v();if(!s.length)return!1;n.innerHTML="";for(var i=0;i<s.length;i++)n.appendChild(H(s[i]));return!0}function y(){var e=document.getElementById("hs-hist"),t=document.getElementById("hs-hot");e&&e.classList.add("hidden"),t&&t.classList.remove("hidden");var r=document.getElementById("hs-hotlist");r&&r.children.length||m||(m=!0,fetch("/zb_users/theme/xianbao_theme/script/hot_keywords.php").then(function(n){return n.json()}).then(function(n){var s=n&&n.hot||[],i=document.getElementById("hs-hot");if(i){if(!s.length){i.style.display="none";return}for(var o="",c=0;c<s.length;c++)o+='<a class="search-hot-chip" href="/search.php?q='+encodeURIComponent(s[c].k)+'" rel="nofollow">'+s[c].k+"</a>";document.getElementById("hs-hotlist").innerHTML=o,i.classList.remove("hidden")}}).catch(function(){var n=document.getElementById("hs-hot");n&&(n.style.display="none")}))}if(d&&a){var x=function(){a.classList.add("open")},g=function(){a.classList.remove("open")};d.addEventListener("focus",function(){if(x(),p("hs-hist","hs-histlist")){var e=document.getElementById("hs-hist"),t=document.getElementById("hs-hot");e&&e.classList.remove("hidden"),t&&t.classList.add("hidden");return}y()}),document.addEventListener("click",function(e){e.target!==d&&!a.contains(e.target)&&g()}),document.addEventListener("keydown",function(e){e.key==="Escape"&&g()})}var w=document.getElementById("search-button");w&&w.addEventListener("click",function(){var e=document.getElementById("fp-hist"),t=document.getElementById("fp-hot");!e||!t||(p("fp-hist","fp-histlist")?(e.classList.remove("hidden"),t.classList.add("hidden")):(e.classList.add("hidden"),t.classList.remove("hidden")))},!0);for(var E=document.querySelectorAll("[data-xbhistclear]"),l=0;l<E.length;l++)E[l].addEventListener("click",function(e){e.preventDefault(),q();var t=document.getElementById("hs-histlist"),r=document.getElementById("fp-histlist");t&&(t.innerHTML=""),r&&(r.innerHTML="");var n=document.getElementById("fp-hist"),s=document.getElementById("fp-hot");n&&n.classList.add("hidden"),s&&s.classList.remove("hidden"),y()});b()}document.readyState==="loading"?document.addEventListener("DOMContentLoaded",u):u()})();
+</script>
+<script data-xb-inline="C">(function(){var d="xb_cf_mem_v2",L=2592e3,C="xb_cf_go",T=["home","weibo","haodan","douban","zhidemai","manmanmai"],U={home:["cate","fc","fcat","mip","mxp"],weibo:["fc","mip","mxp"],haodan:["fc","mip","mxp"],zhidemai:["fc","mip","mxp"],manmanmai:["fc","mip","mxp"],douban:["fcat"]},Y=["mip","mxp"],j=["weibo","haodan","zhidemai","manmanmai"],y=["weibo","haodan","douban","zhidemai","manmanmai"],g=["cate","fc","fcat","mip","mxp"],S="xb_cf_r:",z=(function(){try{return window.__xbCfTags||{}}catch(e){return{}}})();function $(e){var n=z.f||[],t=z.s||[],r=String(e).split("-"),a,o;function i(c,f){for(a=0;a<c.length;a++)if(c[a]===f)return!0;return!1}return r.length===1?(o=r[0],i(n,o)||i(t,o)):r.length===2?i(n,r[0])&&i(t,r[1]):!1}function M(e){for(var n=0;n<j.length;n++){var t=j[n]+"-";if(e.indexOf(t)===0){var r=e.slice(t.length);return $(r)?e:""}}return""}function x(e){return U[e]||Y}function R(){return window.lscache&&window.lscache.get&&window.lscache.set?window.lscache:null}function w(){var e=R();if(!e)return{};try{var n=e.get(d);return n&&typeof n=="object"&&!Array.isArray(n)?n:{}}catch(t){return{}}}function _(e){var n=R();if(n){try{n.set(d,e,L)}catch(t){}B(e)}}function u(e){if(!e)return"";if(e==="/"||e==="/index.php"||/^\/(page\/\d+|\d+)\/?$/.test(e))return"home";var n=/^\/category-([a-z0-9-]+)(?:\/\d+)?\/?$/i.exec(e);if(!n)return"";for(var t=n[1].toLowerCase(),r=0;r<y.length;r++)if(t===y[r])return y[r];return M(t)}function m(e){return String(e==null?"":e).replace(/^\s+|\s+$/g,"")}function K(e){var n=String(e).split(","),t=[],r={},a,o,i;for(a=0;a<n.length;a++)o=m(n[a]),/^\d+$/.test(o)&&(i=parseInt(o,10),i>0&&!r[i]&&(r[i]=1,t.push(i)));return t.sort(function(c,f){return c-f}),t}function q(e){var n=String(e).split(","),t=[],r={},a,o;for(a=0;a<n.length;a++)o=m(n[a]).toLowerCase(),!(!/^[a-z][a-z0-9_]*$/.test(o)||r[o])&&(r[o]=1,t.push(o));return t.slice(0,8)}function A(e,n){var t={},r=x(e),a,o,i,c,f,l,E;try{a=new URLSearchParams(n==null?location.search:n)}catch(F){return t}for(o=0;o<r.length;o++){i=r[o],c=null;try{var I=a.getAll(i);I&&I.length&&(c=I.join(","))}catch(F){}c===null&&(c=a.get(i)),!(c===null||m(c)==="")&&(i==="cate"||i==="fcat"?(f=K(c),f.length&&(t[i]=f)):i==="fc"?(l=q(c),l.length&&(t[i]=l)):(E=m(c).replace(/[^\d.]/g,""),E!==""&&(t[i]=E)))}return t}function s(e){if(!e)return!1;for(var n in e)if(Object.prototype.hasOwnProperty.call(e,n)&&e[n]&&String(e[n]).length)return!0;return!1}function v(e){var n=[],t,r,a;for(t=0;t<g.length;t++)r=g[t],a=e[r],!(!a||!String(a).length)&&(r==="mip"||r==="mxp"?n.push(r+"="+encodeURIComponent(a)):n.push(r+"="+(Array.isArray(a)?a.join(","):a)));return(e.mip&&String(e.mip).length||e.mxp&&String(e.mxp).length)&&n.push("pf=1"),n.length?"?"+n.join("&"):""}function B(e){var n={},t,r,a,o=!1,i=T.slice();try{for(r in e)Object.prototype.hasOwnProperty.call(e,r)&&i.indexOf(r)===-1&&i.push(r);for(t=0;t<i.length;t++)r=i[t],a=v(e[r]||{}),a&&(n[r]={q:a,k:x(r),e:Date.now()+L*1e3},o=!0);o?localStorage.setItem(C,JSON.stringify(n)):localStorage.removeItem(C)}catch(c){}}function h(e){var n=w(),t=n[e],r=x(e),a={},o,i,c,f,l;if(!t||typeof t!="object")return a;for(o=0;o<r.length;o++)i=r[o],!(t[i]===void 0||t[i]===null)&&(i==="cate"||i==="fcat"?(c=K(Array.isArray(t[i])?t[i].join(","):t[i]),c.length&&(a[i]=c)):i==="fc"?(f=q(Array.isArray(t[i])?t[i].join(","):t[i]),f.length&&(a[i]=f)):(l=m(t[i]).replace(/[^\d.]/g,""),l!==""&&(a[i]=l)));return a}function p(e,n){var t=w();if(!s(n)){t[e]!==void 0&&(delete t[e],_(t));return}t[e]=n,_(t)}function b(e){var n=w();n[e]!==void 0&&(delete n[e],_(n))}function D(e){var n={},t,r,a;for(t=0;t<g.length;t++){r=g[t];try{a=e.searchParams.get(r)}catch(o){a=null}a!==null&&a!==""&&(n[r]=a)}return n}function O(){var e=document.querySelectorAll("a[href]"),n,t,r,a,o,i;for(n=0;n<e.length;n++)if(t=e[n],t.target!=="_blank"&&!(t.getAttribute("data-xbcf-all")!==null||t.getAttribute("data-xbfc-all")!==null)&&!(t.closest&&(t.closest("#xb-cf")||t.closest("#xb-fc")||t.closest(".xb-conds")))){try{r=new URL(t.getAttribute("href"),location.href)}catch(c){continue}r.host===location.host&&r.pathname.indexOf("/zb_users/")!==0&&(a=u(r.pathname),a&&(s(D(r))||(o=h(a),s(o)&&(t.setAttribute("href",r.pathname+v(o)+r.hash),i=r.pathname+v(o)+r.hash))))}}function k(){document.addEventListener("click",function(e){var n=e.target;if(!(!n||!n.closest)){var t=u(location.pathname);if(t){if(n.closest("[data-xbcf-all]")||n.closest("[data-xbfc-all]")){b(t);return}var r=n.closest("a");if(!(!r||!r.closest(".xb-conds"))){var a;try{a=new URL(r.getAttribute("href")||"",location.href)}catch(c){return}var o=u(a.pathname);if(o){var i=A(o,a.search);s(i)?p(o,i):b(o)}}}}},!0)}function P(){var e=u(location.pathname);if(!e){O(),k();return}var n=A(e);if(s(n)){p(e,n);try{sessionStorage.removeItem(S+e)}catch(l){}O(),k();return}var t=null;try{t=new URLSearchParams(location.search)}catch(l){}var r=!1;if(t){var a=["q","k","kp","xbq"],o;for(o=0;o<a.length;o++)if(t.get(a[o])!==null&&t.get(a[o])!==""){r=!0;break}}var i=h(e);if(!r&&s(i)){var c=location.pathname+v(i)+location.hash,f="";try{f=sessionStorage.getItem(S+e)||""}catch(l){}if(f===c)b(e);else{try{sessionStorage.setItem(S+e,c)}catch(l){}location.replace(c);return}}O(),k()}window.xbCateMem={key:d,get:function(){var e=h("home");return e.cate||[]},del:function(){var e=h("home");delete e.cate,p("home",e)},rm:function(e){var n=h("home"),t=n.cate||[],r=[],a;for(a=0;a<t.length;a++)t[a]!==parseInt(e,10)&&r.push(t[a]);r.length?n.cate=r:delete n.cate,p("home",n)}},window.xbCfMem={key:d,scope:function(){return u(location.pathname)},scopeOf:function(e){return u(e)},get:h,set:p,del:b,state:function(){return A(u(location.pathname))}},document.readyState==="loading"?document.addEventListener("DOMContentLoaded",P):P()})();
+</script>
+<script>
+    (function(){
+        /* 模块清单解析：null=载体无 data-sbmods（skel 保底形态，由调用方决定旧整包路径/收缩）；
+         * false=有清单但不可用（解析失败/为空/非法项）→ 收缩不回退（无清单无法保证模块顺序）；
+         * 数组=有序清单，顺序即服务端 plan 顺序，原样使用。 */
+        var MK_RE=/^[a-z0-9_\-]{1,32}$/, CK_RE=/^xb_sb4_v1_[A-Za-z0-9_]{1,128}$/;
+        function parseMods(car){
+            var raw=car.getAttribute('data-sbmods');
+            if(raw===null||raw==='')return null;
+            var arr=null;
+            try{arr=JSON.parse(raw);}catch(e){return false;}
+            if(!arr||typeof arr!=='object'||typeof arr.length!=='number'||arr.length<1)return false;
+            var mods=[];
+            for(var i=0;i<arr.length;i++){
+                var it=arr[i];
+                if(!it||typeof it!=='object')return false;
+                var k=(typeof it.k==='string')?it.k:'';
+                var ck=(typeof it.ck==='string')?it.ck:'';
+                if(!MK_RE.test(k)||!CK_RE.test(ck))return false;
+                mods.push({k:k,ck:ck});
+            }
+            return mods;
+        }
+        /* 分块切分：端点按 plan 顺序输出的 xbm 标记连接体 → {k:html}（重复 k 首现为准；
+         * 顺序语义不在此处持有，拼装顺序一律来自清单）。 */
+        function splitMods(html){
+            var re=/<\!--xbm:([a-zA-Z0-9_\-]+)-->/g,marks=[],m;
+            while((m=re.exec(html))!==null){
+                marks.push({k:m[1],s:m.index,e:m.index+m[0].length});
+                if(marks.length>96)break;
+            }
+            if(marks.length<1)return null;
+            var map={};
+            for(var i=0;i<marks.length;i++){
+                var end=(i+1<marks.length)?marks[i+1].s:html.length;
+                if(map[marks[i].k]===undefined){map[marks[i].k]=html.slice(marks[i].e,end);}
+            }
+            return map;
+        }
+        function stripMarkers(s){return s.replace(/<\!--xbm:[a-zA-Z0-9_\-]+-->/g,'');}
+        /* 按清单顺序拼装：只取清单列出的模块（缺失跳过），清单外模块一律不进结果。 */
+        function assemble(mods,map){
+            var out='';
+            for(var i=0;i<mods.length;i++){
+                var seg=map[mods[i].k];
+                if(typeof seg!=='string')continue;
+                out+=stripMarkers(seg);
+            }
+            return out;
+        }
+        /* 逐模块写缓存（TTL 1800 秒=30 分钟）；tags 键单独限额 50 篇（见 tagIdxTouch）。 */
+        function cacheMods(mods,map){
+            if(!window.lscache||!window.lscache.set)return;
+            for(var i=0;i<mods.length;i++){
+                var it=mods[i],seg=map[it.k],okSet=true;
+                if(typeof seg!=='string')continue;
+                try{window.lscache.set(it.ck,seg,1800);}catch(e){okSet=false;}
+                if(okSet&&it.k==='tags')tagIdxTouch(it.ck);
+            }
+        }
+        /* tags 限额索引：原始 localStorage JSON（键 xb_sb4_idx_tags，无 TTL）；LRU——新键插头、
+         * 超 50 从尾淘汰，并删除该键的数据与过期两个原始键。 */
+        function tagIdxTouch(ck){
+            try{
+                var idx=null;
+                try{idx=JSON.parse(localStorage.getItem('xb_sb4_idx_tags'));}catch(e1){idx=null;}
+                if(!idx||typeof idx.push!=='function')idx=[];
+                var out=[];
+                for(var i=0;i<idx.length;i++){if(idx[i]!==ck)out.push(idx[i]);}
+                out.unshift(ck);
+                while(out.length>50){
+                    var old=out.pop();
+                    if(typeof old==='string'&&old.indexOf('xb_sb4_v1_')===0){
+                        try{localStorage.removeItem('lscacfhe-'+old);}catch(e2){}
+                        try{localStorage.removeItem('lscacfhe-'+old+'-cacheexpiration');}catch(e3){}
+                    }
+                }
+                localStorage.setItem('xb_sb4_idx_tags',JSON.stringify(out));
+            }catch(e4){}
+        }
+        /* fetch 脚手架：3s 超时/网络错→fail；非 200（204/304/429/404…）/空体→fail。 */
+        function fetchBody(url,ok,fail){
+            var done=false,ac=null,timer=null;
+            var stop=function(){
+                if(done)return;
+                done=true;
+                if(timer)clearTimeout(timer);
+                if(ac){try{ac.abort();}catch(e){}}
+                fail();
+            };
+            try{ac=new AbortController();}catch(e){ac=null;}
+            timer=setTimeout(stop,3000);
+            fetch(url,ac?{signal:ac.signal}:{}).then(function(r){
+                if(done)return;
+                if(r.status!==200){done=true;clearTimeout(timer);fail();return;}
+                return r.text().then(function(body){
+                    if(done)return;
+                    done=true;clearTimeout(timer);
+                    if(typeof body!=='string'||body.length<32||body.indexOf('<')<0){fail();return;}
+                    ok(body);
+                });
+            }).catch(function(){stop();});
+        }
+        function shrinkSkel(skel){try{skel.style.minHeight='600px';}catch(e){}}
+        /* 新路径：分块切分 → 逐模块缓存 → 按清单拼装 → 填充 → 重放。 */
+        function modernRun(url,mods,celan,skel){
+            fetchBody(url,function(body){
+                var map=splitMods(body),html;
+                if(map===null){
+                    /* 部署偏斜兜底：端点尚未输出分块标记 → 整包渲染不写缓存（本身即 plan 顺序）。 */
+                    try{console.warn('[xbsb] frag response has no xbm markers; rendered uncached');}catch(e0){}
+                    html=body;
+                }else{
+                    html=assemble(mods,map);
+                    if(typeof html!=='string'||html.length<32||html.indexOf('<')<0){shrinkSkel(skel);return;}
+                    cacheMods(mods,map);
+                }
+                try{celan.innerHTML=html;}catch(e2){return;}
+                replay();
+                try{window.dispatchEvent(new Event('resize'));}catch(e3){}
+            },function(){shrinkSkel(skel);});
+        }
+        /* 旧整包保底路径（skel 在 modkeys 缺席时的 data-sbkey 形态）：行为与 v3 一致。 */
+        function legacyRun(url,key,celan,skel){
+            fetchBody(url,function(body){
+                try{celan.innerHTML=body;}catch(e){return;}
+                if(window.lscache&&window.lscache.set){
+                    try{window.lscache.set(key,body,1800);}catch(e1){}
+                }
+                replay();
+                try{window.dispatchEvent(new Event('resize'));}catch(e2){}
+            },function(){shrinkSkel(skel);});
+        }
+        function init(){
+            var car=document.querySelector('#sidebar [data-sbfrag]');
+            if(!car)return;
+            var celan=document.querySelector('#sidebar .celan')||car.parentElement;
+            if(!celan)return;
+            var skel=celan.querySelector('.xb-sb-skel');
+            if(!skel)return;
+            var url=String(car.getAttribute('data-sburl')||'');
+            if(url.indexOf('/plus/json/sidebar_frag.php')!==0)return;
+            var mods=parseMods(car);
+            if(mods===false){
+                /* 清单解析失败：无清单无法保证模块顺序 → 不回退旧逻辑，收缩留痕。 */
+                try{console.warn('[xbsb] data-sbmods invalid; skeleton kept');}catch(e0){}
+                shrinkSkel(skel);
+                return;
+            }
+            if(mods===null){
+                var key=String(car.getAttribute('data-sbkey')||'');
+                if(key.indexOf('xb_sb3_v1_')===0){legacyRun(url,key,celan,skel);return;}
+                try{console.warn('[xbsb] no data-sbmods; skeleton kept');}catch(e1){}
+                shrinkSkel(skel);
+                return;
+            }
+            modernRun(url,mods,celan,skel);
+        }
+        /* ===== 片段重放 ===== */
+        function replay(){
+            /* ① 公告卡/订阅推送卡：关闭记忆 + × 绑定（等价 sidebar.js initNoticeCard） */
+            var n=document.getElementById('xb-notice');
+            var d=document.getElementById('xb-dycard');
+            var ver=(n&&n.getAttribute('data-ver'))?n.getAttribute('data-ver'):'1';
+            var closed=null;
+            try{closed=localStorage.getItem('xb_notice_x');}catch(e){}
+            if(closed&&closed===ver){
+                if(n)n.style.display='none';
+                if(d)d.style.display='none';
+            }
+            var onClose=function(card){
+                card.style.display='none';
+                try{localStorage.setItem('xb_notice_x',ver);}catch(e){}
+                if(n&&card!==n)n.style.display='none';
+                if(d&&card!==d)d.style.display='none';
+            };
+            var x=n?n.querySelector('.xb-notice-x'):null;
+            if(x&&!x.getAttribute('data-xbb')){
+                x.setAttribute('data-xbb','1');
+                x.addEventListener('click',function(e){e.preventDefault();onClose(n);});
+            }
+            var dx=d?d.querySelector('.xb-dycard-x'):null;
+            if(dx&&!dx.getAttribute('data-xbb')){
+                dx.setAttribute('data-xbb','1');
+                dx.addEventListener('click',function(e){e.preventDefault();onClose(d);});
+            }
+            /* ② 全局筛选（同 sidebar.js applyGlobalFilters 的侧栏两点位） */
+            applyFilters();
+            /* ③ 标红（同 applyListRed 的 bangdan 点位） */
+            if(window.xbSideRedStr&&typeof window.list_red==='function'){
+                try{window.list_red(window.xbSideRedStr,'bangdan');}catch(e){}
+            }
+            /* ④ swiper+tab 联动（同 initSwiperCard 的两个选择器） */
+            bindCard('.theiaStickySidebar .guanzhu','g-tabs');
+            bindCard('.theiaStickySidebar .rank-list','r-tabs');
+        }
+        function applyFilters(){
+            if(typeof window.xb_global_listfilter==='function'){
+                var g=document.querySelectorAll('.theiaStickySidebar .guanzhu .article-list');
+                for(var i=0;i<g.length;i++){
+                    try{window.xb_global_listfilter(g[i],['侧栏我的关注','我的关注']);}catch(e){}
+                }
+                var rk=document.querySelectorAll('.theiaStickySidebar .rank-list .article-list');
+                for(var j=0;j<rk.length;j++){
+                    try{window.xb_global_listfilter(rk[j],'排行榜');}catch(e){}
+                }
+            }
+            if(typeof window.xb_global_fe_listfilter==='function'){
+                var g2=document.querySelectorAll('.theiaStickySidebar .guanzhu .article-list');
+                for(var i2=0;i2<g2.length;i2++){
+                    try{window.xb_global_fe_listfilter(g2[i2],['侧栏我的关注','我的关注']);}catch(e){}
+                }
+                var rk2=document.querySelectorAll('.theiaStickySidebar .rank-list .article-list');
+                for(var j2=0;j2<rk2.length;j2++){
+                    try{window.xb_global_fe_listfilter(rk2[j2],'排行榜');}catch(e){}
+                }
+            }
+        }
+        /* swiper/tab 联动（照抄 sidebar.js createSwiperInstance/updateTabs，vanilla 实现） */
+        function isTouch(){
+            return ('ontouchstart' in window)||(navigator.maxTouchPoints>0);
+        }
+        function updateTabs(root,tabCls,idx){
+            var tabs=root.querySelectorAll('.'+tabCls+' span');
+            var i;
+            for(i=0;i<tabs.length;i++){tabs[i].classList.remove('active');}
+            var t=tabs[idx];
+            if(!t)return;
+            t.classList.add('active');
+            var ft=t.getAttribute('data-ft');
+            if(ft){
+                var fl=root.querySelectorAll('.xb-rk-ftlink');
+                for(i=0;i<fl.length;i++){fl[i].setAttribute('href',ft);}
+            }
+            var gzid=parseInt(t.getAttribute('data-gzid'),10);
+            if(gzid>0){
+                var gl=root.querySelectorAll('.xb-gz-ftlink');
+                for(i=0;i<gl.length;i++){gl[i].setAttribute('href','/category-guanzhu'+gzid+'/');}
+            }
+            var gzft=root.querySelector('.xb-gz-ftlink');
+            if(gzft){
+                var slides=root.querySelectorAll('.swiper .swiper-slide');
+                var slide=slides[idx];
+                var rows=slide?slide.querySelectorAll('li.article-list').length:0;
+                var ftbox=gzft.closest?gzft.closest('.side-ft'):null;
+                if(ftbox){
+                    if(rows<10){ftbox.classList.add('xb-fthide');}
+                    else{ftbox.classList.remove('xb-fthide');}
+                }
+            }
+        }
+        function bindCard(rootSel,tabCls){
+            var roots=document.querySelectorAll(rootSel);
+            for(var r=0;r<roots.length;r++){bindOne(roots[r],tabCls);}
+        }
+        function bindOne(root,tabCls){
+            var el=root.querySelector('.swiper');
+            if(!el||el.swiperInstance||typeof window.Swiper==='undefined')return;
+            try{
+                var my=new window.Swiper(el,{autoHeight:true,speed:300,on:{
+                    slideChange:function(){updateTabs(root,tabCls,this.activeIndex);}
+                }});
+                el.swiperInstance=my;
+                var tabs=root.querySelectorAll('.'+tabCls+' span');
+                var touch=isTouch();
+                for(var i=0;i<tabs.length;i++){
+                    (function(tab){
+                        var handler=function(e){
+                            if(e.type==='mouseenter'&&tab.classList.contains('active'))return;
+                            e.preventDefault();
+                            var idx=parseInt(tab.getAttribute('data-index'),10)||0;
+                            updateTabs(root,tabCls,idx);
+                            my.slideTo(idx);
+                        };
+                        tab.addEventListener('click',handler);
+                        if(!touch)tab.addEventListener('mouseenter',handler);
+                    })(tabs[i]);
+                }
+                updateTabs(root,tabCls,0);
+            }catch(e){}
+        }
+        if(document.readyState==='loading'){
+            document.addEventListener('DOMContentLoaded',init);
+        }else{
+            init();
+        }
+    })();
+</script>
+<div class="toolbar" id="toolbar">
+<div class="hidden-sm-md-lg btn sb br" id="qr">
+<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-qr"></use></svg>
+<img alt="本页二维码" class="br sb" decoding="async" id="qr-img" loading="lazy" src="https://qrickit.com/api/qr.php?qrsize=200&amp;d=/category-zuankeba/"/>
+</div>
+<div class="btn hidden sb br" id="totop">
+<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="#i-totop"></use></svg>
+</div>
+<div class="btn sb br" id="xb-favbtn" tabindex="0" title="浏览历史 · 我的收藏">
+<svg aria-hidden="true" viewbox="0 0 24 24"><use href="#i-history"></use></svg>
+</div>
+</div>
+</footer>
 <script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-layer.min.js?v=20261016233500"></script><script defer="" src="/zb_users/plugin/mochu_us/style/mochu_us.js?r=20261005200000&amp;v=20261027045102"></script>
 <link href="/zb_users/plugin/mochu_us/style/mochu_us.css?r=20261005200000" rel="stylesheet"/>
 <!--黑色透明遮罩-->
@@ -505,5 +1433,7 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
        app/xb-extra.min.js    = zhuanlian + comment（仅文章页/独立页面；zhuanlian 顶层只有函数声明，在页面惰性无害）
      逐个 *.min.js 仍在产出（回滚与 md5 对账用），但线上不再引用。改 app/*.js 后必须重跑 build-min.sh。 -->
 <script defer="" src="/zb_users/theme/xianbao_theme/script/vendor/xb-libs.min.js?v=20261016233500"></script>
-<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-app.min.js?v=20261029224132"></script>
-<div class="ck-link-pop"></div><!--xianbao-darkmode-override--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"&&document.body)document.body.classList.add("night");}catch(e){}})();function switchNightMode(){var m=document.cookie.match(/(?:^|; )night=([^;]*)/),night=(m&&decodeURIComponent(m[1])==="1")?"1":"0",next=night==="1"?"0":"1",d=new Date();d.setTime(d.getTime()+6048e5);document.cookie="night="+next+";expires="+d.toUTCString()+";path=/";document.documentElement.classList.toggle("night",next==="1");if(document.body)document.body.classList.toggle("night",next==="1");}</script><script id="xianbao-hs-tools">(function(){document.querySelectorAll('form').forEach(function(f){  var q=f.querySelector('input[name=q]');  if(!q){return;}  f.addEventListener('submit',function(e){    if(!q.value.trim()){e.preventDefault();q.focus();}  });  var btns=f.querySelectorAll('button, [role=button]');  btns.forEach(function(b){    var t=(b.innerText||'').trim();    if(t==='清空'||t==='清除'){      b.addEventListener('click',function(){q.value='';q.focus();});    }  });});})();</script><script id="xianbao-nav2-tools">(function(){if(document.getElementById('nav2-list')){return;}var b=document.querySelector('.nav2-toggle');var p=document.getElementById('nav2-panel');if(!b||!p){return;}b.addEventListener('click',function(e){  e.preventDefault();  var open=p.classList.toggle('open');  b.setAttribute('aria-expanded',open?'true':'false');  b.classList.toggle('expanded',open);});})();</script><script id="xianbao-nav-tools">(function(){function t(){var a=document.getElementById('search-area');if(!a)return;var h=a.classList.contains('hidden');var d=a.style.display==='none'||window.getComputedStyle(a).display==='none';if(h||d){a.classList.remove('hidden');a.style.display='block';}else{a.classList.add('hidden');a.style.display='none';}}function m(){var n=document.querySelector('.responsive-nav');var i=document.querySelector('.m-nav-btn i.iconfont');if(!n)return;var o=n.style.display==='block';n.style.display=o?'none':'block';if(i)i.classList.toggle('active',!o);}var b=document.querySelector('.m-nav-btn');if(b)b.addEventListener('click',m);var s=document.getElementById('search-button');if(s)s.addEventListener('click',t);})();</script></body></html>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-app.min.js?v=20261031220941"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/pwa-reg.js?v=20261017092904"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/meta.php?type=category&amp;cateid=16&amp;catename=zuankeba&amp;cate-name=赚客吧&amp;pagination=1"></script>
+<div class="ck-link-pop"></div><!--xianbao-darkmode-override--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"&&document.body)document.body.classList.add("night");}catch(e){}})();function switchNightMode(){var m=document.cookie.match(/(?:^|; )night=([^;]*)/),night=(m&&decodeURIComponent(m[1])==="1")?"1":"0",next=night==="1"?"0":"1",d=new Date();d.setTime(d.getTime()+6048e5);document.cookie="night="+next+";expires="+d.toUTCString()+";path=/";document.documentElement.classList.toggle("night",next==="1");if(document.body)document.body.classList.toggle("night",next==="1");}</script></body></html>
