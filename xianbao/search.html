@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html class="" lang="zh-CN"><head><script id="xianbao-common-shim">(function(){if(typeof window.isWebapp!=="function"){window.isWebapp=function(){return false;};}if(typeof window.huanyuanurl!=="function"){window.huanyuanurl=function(){};}})();</script><!--xianbao-darkmode-sync--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"){document.documentElement.classList.add("night");if(document.body)document.body.classList.add("night");}}catch(e){}})();</script>
+<html class="xb-boot theme-switching" lang="zh-CN"><head><script id="xianbao-common-shim">(function(){if(typeof window.isWebapp!=="function"){window.isWebapp=function(){return false;};}if(typeof window.huanyuanurl!=="function"){window.huanyuanurl=function(){};}})();</script><!--xianbao-darkmode-sync--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"){document.documentElement.classList.add("night");if(document.body)document.body.classList.add("night");}}catch(e){}})();</script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="webkit" name="renderer"/>
@@ -8,20 +8,35 @@
 <meta content="webkit" name="force-rendering"/>
 <meta content="IE=edge,Chrome=1" http-equiv="X-UA-Compatible"/>
 <meta content="pc,mobile" name="applicable-device"/>
-<script>
+<script>window.__xbCfTags={"f":["xianbao","shipin","guoshu","yinliao","danrou","liangyou","riyong","fushi","meizhuang","shuma","jiayong","muying","yule","yundong","jiankang","chongwu","qita"],"s":["tb","jd","pdd","tuan","other","zhengdian","maochao"]};</script><script>
 /* 筛选记忆「首绘前恢复」（20261030）：判定只读 localStorage，必须同步、早于 body 解析。
    数据由 footer.php 的 bootMirror() 写入（localStorage['xb_cf_go']）；这里只读，不改状态。
    与 footer.php 的 scopeOf / 干净判定同口径——改一处必须同步另一处（台架 K6 比对）。 */
 (function(){
     try{
         var KEY='xb_cf_go', SK='xb_cf_r:';
+        /* 子分类页（20261031）：微博/好单/值得买/慢慢买的子页各自独立作用域
+           （scope=完整别名，如 weibo-shuma），只记价格。标签表由上面的 __xbCfTags 提供，
+           与 footer partC / PHP xb_fcatefilter_subpage_ctx 同口径。 */
+        var T=window.__xbCfTags||{}, TF=T.f||[], TS=T.s||[];
+        function hasTag(a,v){ for(var i=0;i<a.length;i++){ if(a[i]===v)return true } return false }
+        function tagOk(rest){
+            var p=String(rest).split('-');
+            if(p.length===1)return hasTag(TF,p[0])||hasTag(TS,p[0]);
+            if(p.length===2)return hasTag(TF,p[0])&&hasTag(TS,p[1]);
+            return false;
+        }
         function scopeOf(path){
             if(!path)return '';
             if(path==='/'||path==='/index.php'||/^\/(page\/\d+|\d+)\/?$/.test(path))return 'home';
             var m=/^\/category-([a-z0-9-]+)(?:\/\d+)?\/?$/i.exec(path);
             if(!m)return '';
-            var a=m[1].toLowerCase(), CH=['weibo','haodan','douban','zhidemai','manmanmai'], i;
+            var a=m[1].toLowerCase(), CH=['weibo','haodan','douban','zhidemai','manmanmai'], SB=['weibo','haodan','zhidemai','manmanmai'], i, pre, rest;
             for(i=0;i<CH.length;i++){ if(a===CH[i])return CH[i] }
+            for(i=0;i<SB.length;i++){
+                pre=SB[i]+'-';
+                if(a.indexOf(pre)===0){ rest=a.slice(pre.length); return tagOk(rest)?a:'' }
+            }
             return '';
         }
         var sc=scopeOf(location.pathname);
@@ -149,7 +164,6 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <meta content="赚客吧" name="keywords"/>
 <meta content="赚客吧——最新线报实时更新，聚合优质线报与优惠活动。" name="description"/>
 <link href="/category-zuankeba/" rel="canonical"/>
-<meta content="noindex,nofollow" name="robots"/>
 <link href="/category-zuankeba/2/" rel="next"/>
 <meta content="website" property="og:type"/>
 <meta content="赚客吧 - 线报酷" property="og:title"/>
@@ -159,7 +173,7 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 <meta content="线报酷" property="og:site_name"/>
 <meta content="summary" name="twitter:card"/>
 <script type="application/ld+json">[{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"}]},{"@context":"https://schema.org","@type":"CollectionPage","name":"赚客吧","url":"/category-zuankeba/","isPartOf":{"@type":"WebSite","name":"线报酷","url":"/"},"inLanguage":"zh-CN"}]</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷 10 月下旬更新汇总：搜索默认全含、首页多选筛选、评论配图、推送与转链强化","url":"/gonggao/7351762.html"},{"@type":"ListItem","position":2,"name":"菜鸟收官","url":"/zuankeba/7351842.html"},{"@type":"ListItem","position":3,"name":"我是个不合格的吧友","url":"/zuankeba/7351829.html"},{"@type":"ListItem","position":4,"name":"上次的京东鱼跃呼吸机是8秒？","url":"/zuankeba/7351809.html"},{"@type":"ListItem","position":5,"name":"今晚最优惠吗？","url":"/zuankeba/7351796.html"},{"@type":"ListItem","position":6,"name":"南京银行20立减金","url":"/zuankeba/7351724.html"},{"@type":"ListItem","position":7,"name":"月底查漏补缺，至少找回几十大毛","url":"/zuankeba/7351691.html"},{"@type":"ListItem","position":8,"name":"支付宝xing/用卡还款 中信1000-x，自测","url":"/zuankeba/7351623.html"},{"@type":"ListItem","position":9,"name":"中行没抽到，摇一摇抽到个大的","url":"/zuankeba/7351570.html"},{"@type":"ListItem","position":10,"name":"中行白金199三笔这月还有吗","url":"/zuankeba/7351530.html"},{"@type":"ListItem","position":11,"name":"什么情况，大疆4p怎么一直跌啊，亏麻了","url":"/zuankeba/7351477.html"},{"@type":"ListItem","position":12,"name":"不懂来问这两款吸顶灯忽略价格情况下换哪个好？","url":"/zuankeba/7351404.html"},{"@type":"ListItem","position":13,"name":"想买个充电宝华为手机","url":"/zuankeba/7351383.html"},{"@type":"ListItem","position":14,"name":"有800-80帮我看看这个可以买吗？","url":"/zuankeba/7351374.html"},{"@type":"ListItem","position":15,"name":"虾滑小神价","url":"/zuankeba/7351356.html"},{"@type":"ListItem","position":16,"name":"新能源充电桩 有必要用原厂的吗","url":"/zuankeba/7351334.html"},{"@type":"ListItem","position":17,"name":"江苏银行45大毛（微信）","url":"/zuankeba/7351560.html"},{"@type":"ListItem","position":18,"name":"红米k30pro还有必要修吗","url":"/zuankeba/7351308.html"},{"@type":"ListItem","position":19,"name":"WPS超级会员3年卡+京东plus会员年卡或优酷或芒果或喜马或网易云 = 168元","url":"/zuankeba/7351270.html"},{"@type":"ListItem","position":20,"name":"抖音买上周签收的荣耀winrt查询结果是不是没有空中激活啊彦祖们","url":"/zuankeba/7351211.html"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷 10 月下旬更新汇总：搜索默认全含、首页多选筛选、评论配图、推送与转链强化","url":"/gonggao/7351762.html"},{"@type":"ListItem","position":2,"name":"沪上阿姨小bug","url":"/zuankeba/7353808.html"},{"@type":"ListItem","position":3,"name":"速度 深夜沪上阿姨bug了","url":"/zuankeba/7353802.html"},{"@type":"ListItem","position":4,"name":"支付宝 5元到店支付红包","url":"/zuankeba/7353799.html"},{"@type":"ListItem","position":5,"name":"招行4个基金号红包+体验金","url":"/zuankeba/7353785.html"},{"@type":"ListItem","position":6,"name":"微信提现券-湖北农信6666元","url":"/zuankeba/7353725.html"},{"@type":"ListItem","position":7,"name":"建行抽立减金","url":"/zuankeba/7353721.html"},{"@type":"ListItem","position":8,"name":"移动手机人人5元话费","url":"/zuankeba/7353695.html"},{"@type":"ListItem","position":9,"name":"云闪付搜权益精选，大水","url":"/zuankeba/7353694.html"},{"@type":"ListItem","position":10,"name":"买的中行连续3个月微信还款券，这会竟不让用了","url":"/zuankeba/7353691.html"},{"@type":"ListItem","position":11,"name":"河南工行5000豆子","url":"/zuankeba/7353687.html"},{"@type":"ListItem","position":12,"name":"建行6元毛，速度领","url":"/zuankeba/7353682.html"},{"@type":"ListItem","position":13,"name":"农行过期40块钱","url":"/zuankeba/7353674.html"},{"@type":"ListItem","position":14,"name":"交行的碳星荣耀可以领了","url":"/zuankeba/7353630.html"},{"@type":"ListItem","position":15,"name":"微信支付12大毛","url":"/zuankeba/7353628.html"},{"@type":"ListItem","position":16,"name":"农行xing/用卡微信5000返15领取","url":"/zuankeba/7353625.html"},{"@type":"ListItem","position":17,"name":"微信免费提现50000，这个活动风险大吗","url":"/zuankeba/7353603.html"},{"@type":"ListItem","position":18,"name":"支付宝首页天猫活动，怎么买苹果？","url":"/zuankeba/7353595.html"},{"@type":"ListItem","position":19,"name":"支付宝中行和建行还款1000","url":"/zuankeba/7353589.html"},{"@type":"ListItem","position":20,"name":"建设月月享100报名路径","url":"/zuankeba/7353562.html"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"}]}</script>
 <link href="/favicon.ico" rel="shortcut icon"/>
 <link href="/rss.php" rel="alternate" title="线报酷 RSS 订阅" type="application/rss+xml"/>
@@ -222,8 +236,9 @@ if(tl==='2'){h.className+=' xb-tl2'}})();
 })();
 </script>
 <!-- 图标体系（20261005）：Lucide v1.52.0（ISC）+ simple-icons（CC0）共 34 枚线性 SVG symbol，内联于 body 开头（xb-icon-sprite），iconfont 字体退役，本页零字体请求 -->
-<link href="/design/tokens.css?v=20261019235000" rel="stylesheet"/>
-<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261031092500" rel="stylesheet"/>
+<link as="font" crossorigin="" href="/design/fonts/pangmen-logo.woff2?v=20261031" rel="preload" type="font/woff2"/>
+<link href="/design/tokens.css?v=20261031202200" rel="stylesheet"/>
+<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261031184103" rel="stylesheet"/>
 <!-- 20261016 带宽优化：fancybox.css（24KB）不再直出，随 vendor/fancybox.js 同批懒注入（footer.php xbLazyFancybox.load） -->
 <!-- 20261015：jQuery/zblogphp 改 defer——zblogphp.js 顶层为纯定义 IIFE（0 处解析期 DOM 访问），
      全站模板内联脚本扫描确认无解析期顶级 $() 调用（唯一 tool.php 的 $ 为 ready 包裹）；
@@ -403,7 +418,7 @@ html.night .search-top input:focus{border-color:#5c7cfa}
 <header class="header sb">
 <div class="h-wrap container clearfix">
 <div class="logo-area fl">
-<a class="logo-text" draggable="false" href="/"><img alt="线报酷" class="logo-img" draggable="false" fetchpriority="high" height="120" src="/zb_users/theme/xianbao_theme/image/newlogo.png?v=20261030082000" width="366"/></a><span class="logo-name">线报酷</span>
+<a class="logo-text xb-logo" draggable="false" href="/"><img alt="" class="logo-img xb-logo__star" draggable="false" fetchpriority="high" height="74" src="/design/logo/star.png?v=20261031" width="74"/><span class="logo-name xb-logo__name">线报酷</span></a>
 </div>
 <!-- mnav C2（20261005）：列表抽屉入口（m-nav-btn）下线；responsive-nav/pc-nav 保留在 DOM
     	     （其 data-* 页面上下文被 list.js/meta.php 消费，桌面端 CSS 恒 display:none，移动端无触发入口） -->
@@ -512,13 +527,13 @@ html.night .search-top input:focus{border-color:#5c7cfa}
        app/xb-extra.min.js    = zhuanlian + comment（仅文章页/独立页面；zhuanlian 顶层只有函数声明，在页面惰性无害）
      逐个 *.min.js 仍在产出（回滚与 md5 对账用），但线上不再引用。改 app/*.js 后必须重跑 build-min.sh。 -->
 <script defer="" src="/zb_users/theme/xianbao_theme/script/vendor/xb-libs.min.js?v=20261016233500"></script>
-<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-app.min.js?v=20261029224132"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-app.min.js?v=20261031220941"></script>
 <div class="ck-link-pop"></div><!--xianbao-darkmode-override--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"&&document.body)document.body.classList.add("night");}catch(e){}})();function switchNightMode(){var m=document.cookie.match(/(?:^|; )night=([^;]*)/),night=(m&&decodeURIComponent(m[1])==="1")?"1":"0",next=night==="1"?"0":"1",d=new Date();d.setTime(d.getTime()+6048e5);document.cookie="night="+next+";expires="+d.toUTCString()+";path=/";document.documentElement.classList.toggle("night",next==="1");if(document.body)document.body.classList.toggle("night",next==="1");}</script><script>
 (function(){
   var q = document.getElementById('q');
   var ul = document.querySelector('ul.new-post');
   if (!q || !ul) return;
-  var LITE_URL = '/search-lite.json?v=1793446481';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
+  var LITE_URL = '/search-lite.json?v=1793481373';  // 带版本号：配合 immutable 缓存，版本不变则浏览器零请求
   function escapeHtml(s){
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
