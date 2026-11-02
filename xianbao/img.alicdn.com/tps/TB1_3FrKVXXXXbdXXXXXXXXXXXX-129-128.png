@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>访问确认 - 线报酷</title>
+<!-- 线报酷 WAF 页面（20261031 版式 B/D，骨架与另两页共用） -->
+<style>
+:root{
+  --bg:#fafafa;--surface:#fff;--surface-2:#f4f4f5;--border:#e4e4e7;--border-2:#d4d4d8;
+  --text:#09090b;--body:#3f3f46;--muted:#52525b;--faint:#6b6b73;
+  --primary:#18181b;--primary-hover:#27272a;--on-primary:#fff;--danger:#dc2626;
+  --warning:#f59e0b;--warning-text:#b45309;
+  --ink:#101012;--on-ink:#fafafa;--on-ink-2:rgba(250,250,250,.58);--on-ink-3:rgba(250,250,250,.34);
+  --ring:rgba(24,24,27,.10);
+  --r:8px;--r-lg:12px;--r-pill:999px;
+  --font:-apple-system,BlinkMacSystemFont,"PingFang SC","MiSans","HarmonyOS Sans SC","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --ease:cubic-bezier(.2,.7,.3,1);
+  --card-h:560px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0e0e10;--surface:#17171a;--surface-2:#1f1f23;--border:#2a2a2f;--border-2:#3f3f46;
+    --text:#fafafa;--body:#d4d4d8;--muted:#a1a1aa;--faint:#8f8f98;
+    --primary:#fafafa;--primary-hover:#e4e4e7;--on-primary:#18181b;
+    --danger:#f87171;--warning-text:#fbbf24;--ring:rgba(250,250,250,.14);}
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px;
+  font-family:var(--font);font-size:13.5px;line-height:1.6;background:var(--bg);color:var(--body);
+  -webkit-font-smoothing:antialiased;
+}
+@font-face{font-family:PMZD;src:url("data:font/woff2;base64,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") format("woff2");font-display:block}
+
+/* ===== 三页共用骨架 ===== */
+.shell{
+  display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);
+  width:100%;max-width:900px;height:var(--card-h);
+  background:var(--surface);border-radius:var(--r-lg);overflow:hidden;position:relative;
+  box-shadow:0 0 0 1px var(--border),0 30px 70px -34px rgba(0,0,0,.35);
+  animation:rise .42s var(--ease) both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.wall{position:relative;display:flex;flex-direction:column;justify-content:space-between;
+  padding:32px;background:var(--ink);color:var(--on-ink);overflow:hidden}
+.wall::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.045) 0 1px,transparent 1px 30px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.045) 0 1px,transparent 1px 30px);
+}
+.wall::after{content:"";position:absolute;right:-64px;bottom:-64px;width:190px;height:190px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.10)}
+.brand{position:relative;display:inline-flex;align-items:center;gap:7px;text-decoration:none;line-height:0}
+.brand img{width:27px;height:27px;display:block}
+.brand .name{font-family:PMZD,"PingFang SC","Microsoft YaHei",sans-serif;font-size:33px;line-height:1;color:#14a3ef;white-space:nowrap}
+.wall-mid{position:relative}
+.wkick{margin:0 0 14px;font:500 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--on-ink-3)}
+.wmain{margin:0;font-size:26px;line-height:1.4;font-weight:600;letter-spacing:-.01em;color:var(--on-ink)}
+.wsub{margin:12px 0 0;font-size:13px;line-height:1.7;color:var(--on-ink-2)}
+.wallfoot{position:relative;display:flex;align-items:center;gap:8px;
+  font:500 11.5px/1 var(--mono);color:var(--on-ink-3)}
+.wdot{width:6px;height:6px;border-radius:50%;background:var(--on-ink-2)}
+
+.pane{display:flex;flex-direction:column;min-width:0;padding:32px 34px 26px}
+.hd{display:flex;align-items:center;gap:9px;flex:none}
+.tag{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--r-pill);
+  border:1px solid var(--border-2);font:600 11px/1 var(--mono);letter-spacing:.1em;color:var(--body)}
+.tag i{width:6px;height:6px;border-radius:50%;background:var(--text)}
+.tag.warn i{background:var(--warning)}
+.code{font:500 11px/1 var(--mono);letter-spacing:.14em;color:var(--faint)}
+.pane h1{margin:14px 0 0;font-size:22px;line-height:1.3;font-weight:600;letter-spacing:-.01em;color:var(--text)}
+.desc{margin:8px 0 0;font-size:13.5px;line-height:1.72;color:var(--muted);max-width:36ch}
+.main{margin-top:22px}
+.contact{margin-top:auto;padding-top:18px;border-top:1px solid var(--border)}
+.ct{margin:0;font-size:12px;color:var(--faint)}
+.cgrid{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin-top:8px;font-size:12.5px;line-height:1.7}
+.ck{color:var(--faint)}
+.cv{color:var(--body);font-weight:600}
+.cv.ip{font-family:var(--mono);font-weight:500}
+
+@media (max-width:759px){
+  /* 手机：整屏出血，深色墙变页头 */
+  body{display:block;padding:0}
+  .shell{display:flex;flex-direction:column;grid-template-columns:none;height:auto;
+    min-height:100vh;min-height:100dvh;border-radius:0;box-shadow:none}
+  .wall{flex:none;justify-content:flex-start;padding:20px 20px 22px}
+  .brand img{width:23px;height:23px}
+  .brand .name{font-size:27px}
+  .wall-mid{margin:18px 0 0}
+  .wkick{margin-bottom:10px}
+  .wmain{font-size:20px;line-height:1.5}
+  .wsub{font-size:12.5px}
+  .wall::after{display:none}
+  .wallfoot{display:none}
+  .pane{flex:1;justify-content:flex-start;padding:24px 20px 28px}
+  .pane h1{font-size:20px}
+  .desc{max-width:none}
+  .contact{margin-top:24px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* 状态进度条（左墙） */
+.track{position:relative;width:100%;max-width:240px;height:2px;margin:20px 0 0;
+  background:rgba(255,255,255,.14);border-radius:var(--r-pill);overflow:hidden}
+.track i{position:absolute;inset:0;background:var(--on-ink);border-radius:var(--r-pill);
+  transform-origin:left center;animation:fill 1.2s var(--ease) both}
+@keyframes fill{from{transform:scaleX(.04)}to{transform:scaleX(1)}}
+.wmain.fade{opacity:0;transition:opacity .25s var(--ease)}
+
+/* 说明清单 */
+.steps{margin:0;padding:0;list-style:none;border-top:1px solid var(--border)}
+.steps li{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--border)}
+.steps b{flex:none;width:20px;font:600 11px/1 var(--mono);letter-spacing:.06em;color:var(--faint);padding-top:2px}
+.steps span{font-size:12.5px;line-height:1.7;color:var(--muted)}
+.steps strong{display:block;margin-bottom:1px;font-size:12.5px;font-weight:600;color:var(--text)}
+.note{margin:14px 0 0;font-size:12px;line-height:1.7;color:var(--faint)}
+.retry{display:none;width:100%;height:44px;margin-top:14px;border:0;border-radius:var(--r-pill);cursor:pointer;
+  font:600 14px/1 var(--font);color:var(--on-primary);background:var(--primary);appearance:none}
+.retry:hover{background:var(--primary-hover)}
+.is-err .retry{display:block}
+.is-err .note{display:none}
+.err{display:none;margin:14px 0 0;font-size:12.5px;line-height:1.75;color:var(--danger)}
+.is-err .err{display:block}
+
+@media (max-width:759px){
+  /* 手机上进度条跟桌面同构：跟在文案下方，不做贴边（贴边那 2px 会和页面白底糊在一起） */
+  .track{max-width:180px;margin-top:14px}
+  .steps li{padding:10px 0}
+}
+</style>
+</head>
+<body>
+<main class="shell" id="shell">
+  <aside class="wall">
+    <a class="brand" href="/" aria-label="线报酷首页">
+      <img src="/design/logo/star.png?v=20261031" onerror="this.style.display='none'" alt="" width="74" height="74">
+      <span class="name">线报酷</span>
+    </a>
+    <div class="wall-mid">
+      <p class="wkick">Access gate</p>
+      <p class="wmain" id="wstatus">正在确认浏览器环境</p>
+      <p class="wsub">通过后将自动继续，无需任何操作。</p>
+      <div class="track" aria-hidden="true"><i></i></div>
+    </div>
+    <div class="wallfoot"><span class="wdot" aria-hidden="true"></span>Access gate · xianbao.fun</div>
+  </aside>
+
+  <section class="pane">
+    <div class="hd">
+      <span class="tag"><i aria-hidden="true"></i>校验中</span>
+      <span class="code">VERIFYING</span>
+    </div>
+    <h1>访问确认</h1>
+    <p class="desc">检测到当前访问频率异常，正在确认浏览器环境，通常一秒内完成。</p>
+
+    <div class="main">
+      <ul class="steps">
+        <li><b>01</b><span><strong>确认浏览器环境</strong>检查 UA 与 Cookie 是否可用，区分真人与脚本。</span></li>
+        <li><b>02</b><span><strong>写入通行凭证</strong>通过后在本机写入 30 天有效的 Cookie。</span></li>
+        <li><b>03</b><span><strong>自动返回原页面</strong>无需任何操作，之后正常浏览。</span></li>
+      </ul>
+      <p class="note">若长时间停留在此页，多半是浏览器禁用了 Cookie 或 JavaScript。</p>
+      <p class="err" id="err">自动跳转未完成，请点击下方按钮重试；多次无效请联系客服。</p>
+      <button class="retry" type="button" onclick="location.reload()">点此重试</button>
+    </div>
+
+    <div class="contact">
+      <p class="ct">一直停留在此页？联系线报酷客服</p>
+      <div class="cgrid">
+        <span class="ck">您的 IP</span><span class="cv ip">4.150.183.182</span>
+        <span class="ck">QQ</span><span class="cv">2771128168</span>
+        <span class="ck">微信</span><span class="cv">xianbao_fun</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+/* 挑战门：种 xb_hpass（30 天）→ reload 一次；60 秒内最多 3 次，防死循环 */
+(function(){
+var shell = document.getElementById('shell');
+var statusEl = document.getElementById('wstatus');
+var exp = new Date(Date.now() + 2592000000).toUTCString();
+document.cookie = 'xb_hpass=1; expires=' + exp + '; path=/; SameSite=Lax';
+if (!/(?:^|;)\s*xb_hpass=/.test(document.cookie)) {
+  shell.classList.add('is-err');
+  statusEl.textContent = '浏览器未启用 Cookie';
+  document.getElementById('err').textContent = '请在浏览器设置中允许本站使用 Cookie，然后刷新页面。';
+  return;
+}
+try {
+  var now = Date.now(), last = parseInt(sessionStorage.getItem('xb_g_t') || '0', 10);
+  var n = (now - last < 60000) ? parseInt(sessionStorage.getItem('xb_g_n') || '0', 10) + 1 : 1;
+  sessionStorage.setItem('xb_g_t', String(now));
+  sessionStorage.setItem('xb_g_n', String(n));
+  if (n <= 3) { location.replace(location.href); }
+  else { shell.classList.add('is-err'); statusEl.textContent = '自动跳转未完成'; }
+} catch (e) { location.replace(location.href); }
+})();
+</script>
+</body>
+</html>
