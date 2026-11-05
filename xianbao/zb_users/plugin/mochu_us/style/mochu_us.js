@@ -1,6 +1,9 @@
-/* 20261027：CSRF token 通道——function_user.php 资金/状态类 act 服务端已对登录用户
-   强制校验。token 唯一真源是 json/csrf.php（页面注入值是二次 md5，不能回传），取一次
-   缓存 20 分钟（token 按小时轮换）。游客取不到 token：服务端对游客跳过校验，行为不变。 */
+/*!
+ * @author Mochu
+ * @copyright (C) http://www.73so.com
+ * @Buyurl https://app.zblogcn.com/?id=1712
+ */
+
 window.mochuUsCsrf = '';
 function mochuUsCsrfRefresh() {
     if (typeof $ === 'undefined' || typeof bloghost === 'undefined') { return; }
@@ -18,11 +21,7 @@ if (typeof window.mochuUsCsrfStarted === 'undefined') {
     setInterval(mochuUsCsrfRefresh, 20 * 60 * 1000);
 }
 
-/**
- * @author Mochu
- * @copyright (C) http://www.73so.com
- * @Buyurl https://app.zblogcn.com/?id=1712
- */
+
 
 (function(){
     if($('#mochu_us_post_article').length > 0 || $("#mochu_us_post_shoucang").length > 0){
@@ -53,7 +52,7 @@ if (typeof window.mochuUsCsrfStarted === 'undefined') {
     }
 }());
 
-/* ################################ */
+
 window.mochu_us_arthides = function(aid)
 {
     var inde = layer.load(2);
@@ -129,17 +128,13 @@ window.mochu_us_arthidevipfree = function(aid)
 }
 
 
-/* ################################ */
 
-//no data sta
+
 $("body").on("click", "#mochu-us-xubuy", function () { var inde = layer.load(2); var id = $(this).attr("data-type"); $.post(bloghost + "zb_users/plugin/mochu_us/function_user.php?act=buyxuweizhang", { "id": id, "csrfToken": window.mochuUsCsrf }, function (res) { layer.closeAll(); if (res.code == 1) { layer.alert(res.msg, { icon: 0 }) } else { layer.msg(res.msg, { icon: 1 }); $('.mochu_us_article_buy_content').html(res.centent);} }, "json") });
-//no data end
 
 
 $("body").on('click', '.Sign', function () { Sign(); }); function Sign() { var index = layer.load(2); $.getJSON(bloghost +"zb_users/plugin/mochu_us/cmd.php?act=qiandao", {}, function (res) { layer.closeAll(); if (res.code == 1) { layer.alert(res.msg, { icon: 0 }) } else { layer.alert(res.msg, { icon: 1 }) } }) };
-/* 收藏状态桥（20261016）：主用原生 CustomEvent；同时保留 jQuery trigger，兼容仍缓存旧 xbstore.js 的用户
-   （jQuery 的 trigger 不触发原生 addEventListener 监听；而原生派发会命中 jQuery 注册的监听
-     → 消费端 xbstore.js 双注册 + 去重，两种组合都不丢事件） */
+
 function xbCollNotify(id, on, size) {
     try { document.dispatchEvent(new CustomEvent("xbcolltoggle", { detail: { id: id, on: !!on, size: size } })); } catch (e) {}
     if (window.jQuery) { try { jQuery(document).trigger("xbcolltoggle", [id, !!on, size]); } catch (e) {} }
@@ -150,13 +145,11 @@ $('body').on('click','.mochu-us-shangbutton',function(){ $('.mochu-us-shangbutto
 $('body').on('click', '.mochu-us-shang', function () { var index = layer.load(2); var id = $(this).attr('date-acid'); $.ajax({ type: "POST", url: bloghost +"zb_users/plugin/mochu_us/function_user.php?act=shanghtml", data: { 'id': id }, dataType: "json", success: function (res) {layer.closeAll(); if(res.code == 1){ layer.alert(res.msg, { icon: 0 }); }else{ layer.open({ title:['打赏作者：'], type: 1, area: ['350px', 'auto'], content: res.html  }); } }, error: function () { layer.closeAll(); layer.alert('数据获取失败', { icon: 0 }); } }); });
 $('body').on('click','.mochu-us-shang-div-span',function(){ var index = layer.load(2); var id = $('.mochu-us-shang').attr('date-acid'); var giod = $('.mochu-us-shangbuttons').attr('data-d'); $.ajax({ type: "POST", url: bloghost+"zb_users/plugin/mochu_us/function_user.php?act=shang", data: { 'id': id,'giod':giod,'csrfToken':window.mochuUsCsrf }, dataType: "json", success: function (res) { layer.closeAll(); if (res.code == 1) { layer.msg(res.msg, { icon: 5 });} else { layer.msg(res.msg, { icon: 6}); } },error: function () {layer.closeAll();layer.alert('数据获取失败', { icon: 0 });}});});
 
-//no data sta
 $('body').on('click','.mochu_us_article_buy_cha',function(){ var index = layer.load(2); var id = $(this).attr('data-type'); $.ajax({ type: "POST", url: bloghost + "zb_users/plugin/mochu_us/function_user.php?act=article_vip_cha", data: { 'id': id}, dataType: "json", success: function (res) { layer.closeAll(); if (res.code == 1) { layer.alert(res.msg, { icon: 0 }); } else { layer.alert(res.msg, { icon: 1 }); $('.mochu_us_article_buy_content').html(res.html); }}, error: function () {layer.closeAll(); layer.alert('数据获取失败', { icon: 0 });}});});
 $('body').on('click','#mochu-us-xubuy_rmb',function(){ var pay_type = $(this).attr('data-pay'); var articleid = $(this).attr('data-type'); if(pay_type == 1){article_paytype();}else{ pay_article(pay_type);}});
 function article_paytype() { var jine = $('#mochu-us-xubuy_rmb').attr('data-jine'); var jine = '需要支付<span style="color: #FF5722; margin: 0 5px;">' + jine + '元</span>购买此内容'; var paytype = '<div data-type="2" class="mochu_upvippaytype mochu_upvippay"><img class="mochu_zhifuing" src="/zb_users/plugin/mochu_us/src/style/img/zhifubaopay.png">支付宝</div> <div data-type="3" class="mochu_upvippaytype"><img class="mochu_zhifuing" src="/zb_users/plugin/mochu_us/src/style/img/weixinpay.png">微信支付</div>'; var html = '<div class="mochu_upvippaycentent"><div style="height: 40px; line-height: 40px; font-size: 16px; margin-bottom: 0px; margin-top: 5px;">' + jine + '</div>' + paytype + '</div>'; layer.open({ title: ['支付选择：', 'font-size:14px;'], type: 1, area: ['300px', '200px'], content: html, id: 'mochu_us_article_buys_alert', btn: ['立即支付','取消支付'], btnAlign: 'c', skin: 'layer-zidong', yes: function (index, layero) { var type = $('.mochu_upvippay').attr('data-type');pay_article(type);}});}
 function pay_article(type){ var id = $('#mochu-us-xubuy_rmb').attr('data-type'); var url = bloghost + 'zb_users/plugin/mochu_us/page/pay.php?type=BuyArticle&buytype=' + id + '&paytype=' + type ; window.open(url, "_blank"); layer.alert('你已发起支付请求<br/>支付成功后,请刷新此页面!', { icon: 3 }, function () {window.location.reload()}); }
 $('body').on('click', '.mochu_upvippaytype', function () {$('.mochu_upvippaytype').removeClass('mochu_upvippay');$(this).addClass('mochu_upvippay');});
-//no data end
 
 $("body").on("click",".mochu_us_baochi_login",function(){if ($(".mochu_us_baochi_login").is(":checked")) {logindata = $(".mochu_us_baochi_login").val();} else {logindata = 1;}});$('body').on('click', '.mochu_us_login_page_button', function () { var username = $('#mochu_us_Name').val(); var userpass = $('#mochu_us_password').val(); if (username.length < 1 || userpass.length < 1) { layer.alert('账号或密码不能为空', { icon: 0 }); return false; } var index = layer.msg('正在登录中，请稍候', { icon: 16, time: false, shade: 0.01 }); $.ajax({ type: "POST", url: bloghost + "zb_users/plugin/mochu_us/cmd.php?act=themelogins", data: {'savedate':logindata,'username': username, 'password': MD5(userpass), }, dataType: "json", success: function (res) { layer.closeAll(); if (res.code == 1) { layer.alert(res.msg, { icon: 0 }); } else { layer.msg('登录成功!', { icon: 1 }, function () { window.location.reload()});}}, error: function () {  layer.closeAll();  layer.alert('数据获取失败', { icon: 0 }); } }); });
 
