@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+
+<html class="" lang="zh-CN"><head><!--xianbao-darkmode-sync--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"){document.documentElement.classList.add("night");if(document.body)document.body.classList.add("night");}}catch(e){}})();</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="webkit" name="renderer"/>
+<meta content="no-referrer" name="referrer"/>
+<meta content="webkit" name="force-rendering"/>
+<meta content="IE=edge,Chrome=1" http-equiv="X-UA-Compatible"/>
+<meta content="pc,mobile" name="applicable-device"/>
+<script>window.__xbCfTags={"f":["xianbao","shipin","guoshu","yinliao","danrou","liangyou","riyong","fushi","meizhuang","shuma","jiayong","muying","yule","yundong","jiankang","chongwu","qiche","zhubao","fuwu","wenjiao","qita"],"s":["tb","jd","pdd","tuan","other","zhengdian","maochao"]};</script><script>
+
+(function(){
+    try{
+        var KEY='xb_cf_go', SK='xb_cf_r:';
+        
+        var T=window.__xbCfTags||{}, TF=T.f||[], TS=T.s||[];
+        function hasTag(a,v){ for(var i=0;i<a.length;i++){ if(a[i]===v)return true } return false }
+        function tagOk(rest){
+            var p=String(rest).split('-');
+            if(p.length===1)return hasTag(TF,p[0])||hasTag(TS,p[0]);
+            if(p.length===2)return hasTag(TF,p[0])&&hasTag(TS,p[1]);
+            return false;
+        }
+        function scopeOf(path){
+            if(!path)return '';
+            if(path==='/'||path==='/index.php'||/^\/(page\/\d+|\d+)\/?$/.test(path))return 'home';
+            var m=/^\/category-([a-z0-9-]+)(?:\/\d+)?\/?$/i.exec(path);
+            if(!m)return '';
+            var a=m[1].toLowerCase(), CH=['weibo','haodan','douban','zhidemai','manmanmai'], SB=['weibo','haodan','zhidemai','manmanmai'], i, pre, rest;
+            for(i=0;i<CH.length;i++){ if(a===CH[i])return CH[i] }
+            for(i=0;i<SB.length;i++){
+                pre=SB[i]+'-';
+                if(a.indexOf(pre)===0){ rest=a.slice(pre.length); return tagOk(rest)?a:'' }
+            }
+            return '';
+        }
+        var sc=scopeOf(location.pathname);
+        
+        try{ window.__xbCfBootScope=sc }catch(e){}
+        if(!sc)return;
+        var all=null;
+        try{ all=JSON.parse(localStorage.getItem(KEY)||'null') }catch(e){ return }
+        var it=all&&all[sc];
+        if(!it||typeof it.q!=='string'||!it.q||!it.k||!it.k.length)return;
+        if(it.e&&+it.e<Date.now())return;
+        var sp=null,i;
+        try{ sp=new URLSearchParams(location.search) }catch(e){ return }
+        
+        for(i=0;i<it.k.length;i++){
+            if(sp.get(it.k[i])!==null&&sp.get(it.k[i])!=='')return;
+        }
+        
+        var guard=['q','k','kp','xbq'];
+        for(i=0;i<guard.length;i++){
+            if(sp.get(guard[i])!==null&&sp.get(guard[i])!=='')return;
+        }
+        var target=location.pathname+it.q+location.hash, last='';
+        try{ last=sessionStorage.getItem(SK+sc)||'' }catch(e){}
+        
+        if(last===target)return;
+        try{ sessionStorage.setItem(SK+sc,target) }catch(e){}
+        location.replace(target);
+    }catch(e){}
+})();
+</script><style>
+html.xb-boot{background:#fafafa}
+html.xb-boot>body{visibility:hidden}
+html.night{background:#18181b;color:#fafafa}
+html.night body{background:#18181b;color:#fafafa}
+html.night .header,html.night .footer{background:#1f1f23;border-color:#2e2e33}
+html.night .sb,html.night .xb-crumbs,html.night .pagebar .nav-links{background:#1f1f23}
+html.night .tip-nav,html.night .guanlian,html.night .mochu-us-colluser,html.night .sort-row .cate-btn{background:#1f1f23}
+html.night .nav2-panel{background:#1f1f23}
+html.night .nav2-toggle{background:transparent}
+
+html[data-xb-theme="sunset"]{background:#241a1f;color:#f7ebe0}
+html[data-xb-theme="sunset"] body,html[data-xb-theme="sunset"] .header,html[data-xb-theme="sunset"] .footer{background:#241a1f;color:#f7ebe0}
+html[data-xb-theme="gray"]{background:#2b2b2f;color:#f4f4f5}
+html[data-xb-theme="gray"] body,html[data-xb-theme="gray"] .header,html[data-xb-theme="gray"] .footer{background:#2b2b2f;color:#f4f4f5}
+html[data-xb-theme="dracula"]{background:#282a36;color:#f8f8f2}
+html[data-xb-theme="dracula"] body,html[data-xb-theme="dracula"] .header,html[data-xb-theme="dracula"] .footer{background:#282a36;color:#f8f8f2}
+html[data-xb-theme="nord"]{background:#2e3440;color:#eceff4}
+html[data-xb-theme="nord"] body,html[data-xb-theme="nord"] .header,html[data-xb-theme="nord"] .footer{background:#2e3440;color:#eceff4}
+html[data-xb-theme="tokyo"]{background:#1a1b26;color:#c0caf5}
+html[data-xb-theme="tokyo"] body,html[data-xb-theme="tokyo"] .header,html[data-xb-theme="tokyo"] .footer{background:#1a1b26;color:#c0caf5}
+html[data-xb-theme="catppuccin"]{background:#1e1e2e;color:#cdd6f4}
+html[data-xb-theme="catppuccin"] body,html[data-xb-theme="catppuccin"] .header,html[data-xb-theme="catppuccin"] .footer{background:#1e1e2e;color:#cdd6f4}
+html[data-xb-theme="rosepine"]{background:#191724;color:#e0def4}
+html[data-xb-theme="rosepine"] body,html[data-xb-theme="rosepine"] .header,html[data-xb-theme="rosepine"] .footer{background:#191724;color:#e0def4}
+html[data-xb-theme="gruvbox"]{background:#282828;color:#ebdbb2}
+html[data-xb-theme="gruvbox"] body,html[data-xb-theme="gruvbox"] .header,html[data-xb-theme="gruvbox"] .footer{background:#282828;color:#ebdbb2}
+html[data-xb-theme="everforest"]{background:#2d353b;color:#d3c6aa}
+html[data-xb-theme="everforest"] body,html[data-xb-theme="everforest"] .header,html[data-xb-theme="everforest"] .footer{background:#2d353b;color:#d3c6aa}
+html[data-xb-theme="one-dark"]{background:#282c34;color:#f7f7fb}
+html[data-xb-theme="one-dark"] body,html[data-xb-theme="one-dark"] .header,html[data-xb-theme="one-dark"] .footer{background:#282c34;color:#f7f7fb}
+</style>
+<script>
+(function () {
+var d = document.documentElement;
+d.className += ' xb-boot';
+function r() {
+if (d.classList) { d.classList.remove('xb-boot') }
+else { d.className = d.className.replace(/(^| )xb-boot( |$)/, ' ') }
+}
+window.xbBootRelease = r;
+setTimeout(r, 3500);
+function afterParse() { setTimeout(r, 1200) }
+if (document.readyState === 'loading') {
+document.addEventListener('readystatechange', function h() {
+if (document.readyState !== 'loading') { document.removeEventListener('readystatechange', h); afterParse() }
+});
+} else { afterParse() }
+if (document.readyState !== 'loading') { r() }
+else { document.addEventListener('DOMContentLoaded', function () { requestAnimationFrame(function () { requestAnimationFrame(r) }) }) }
+window.addEventListener('load', r);
+})();
+</script>
+<script>
+(function(){function gt(n){var m=document.cookie.match(new RegExp('(?:^|;\\s*)'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null}
+var t=gt('xb_theme');
+if(t===null){var ck=gt('night');t=ck==='1'?'night':(ck==='0'?'day':'system')}
+if(t==='system'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'night':'day'}
+if(t==='night'){document.documentElement.className+=' night'}
+else if(t!=='day'){document.documentElement.setAttribute('data-xb-theme',t);
+
+var l=document.createElement('link');l.id='xb-theme-css';l.rel='stylesheet';
+l.href='/design/tokens-themes.css?v=2026101901';document.documentElement.appendChild(l)}})();
+
+(function(){var m=document.cookie.match(/(?:^|;\s*)density=([^;]*)/);if(m&&decodeURIComponent(m[1])==='compact'){document.documentElement.className+=' density-compact';}})();
+
+(function(){function gt(n){var m=document.cookie.match(new RegExp('(?:^|;\\s*)'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null}
+var h=document.documentElement,fs=gt('xb_fs'),tl=gt('xb_tlines');
+if(fs==='s'||fs==='l'||fs==='xl'){h.className+=' xb-fs-'+fs}
+if(tl==='2'){h.className+=' xb-tl2'}})();
+</script>
+<title>1320张抽纸，3.9元/提。速度！！！ - 线报酷</title>
+<meta content="新赚吧" name="keywords"/>
+<meta content="1320张抽纸，3.9元/提。速度。实时分享最新优惠线报、好价商品与促销活动。" name="description"/>
+<link href="/xinzuanba/7470933.html" rel="canonical"/>
+<meta content="noindex,nofollow" name="robots"/>
+<meta content="article" property="og:type"/>
+<meta content="1320张抽纸，3.9元/提。速度！！！" property="og:title"/>
+<meta content="1320张抽纸，3.9元/提。速度。实时分享最新优惠线报、好价商品与促销活动。" property="og:description"/>
+<meta content="/xinzuanba/7470933.html" property="og:url"/>
+<meta content="/zb_users/theme/xianbao_theme/image/og-cover.png" property="og:image"/>
+<meta content="线报酷" property="og:site_name"/>
+<meta content="2026-11-12T20:41:00+08:00" property="article:published_time"/>
+<meta content="summary" name="twitter:card"/>
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"Article","headline":"1320张抽纸，3.9元/提。速度！！！","datePublished":"2026-11-12T20:41:00+08:00","dateModified":"2026-11-12T20:41:49+08:00","author":{"@type":"Person","name":"淘淘365","url":"/record/xinzuanba/%E6%B7%98%E6%B7%98365.html"},"publisher":{"@type":"Organization","name":"线报酷","url":"/","logo":{"@type":"ImageObject","url":"/zb_users/theme/xianbao_theme/image/newlogo.png"}},"mainEntityOfPage":{"@type":"WebPage","@id":"/xinzuanba/7470933.html"},"image":"/zb_users/theme/xianbao_theme/image/newlogo.png","inLanguage":"zh-CN"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷","item":"/"},{"@type":"ListItem","position":2,"name":"新赚吧","item":"/category-xinzuanba/"},{"@type":"ListItem","position":3,"name":"1320张抽纸，3.9元/提。速度！！！","item":"/xinzuanba/7470933.html"}]}]</script>
+<link href="/favicon.ico" rel="shortcut icon"/>
+<link href="/rss.php" rel="alternate" title="线报酷 RSS 订阅" type="application/rss+xml"/>
+
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"or":[{"href_matches":"/search.php*"},{"href_matches":"/Ucenter*"},{"href_matches":"/extension.html*"},{"href_matches":"/plus/*"},{"href_matches":"/api/*"},{"href_matches":"/zb_system/*"},{"href_matches":"/zb_users/*"},{"href_matches":"/feed.php*"},{"href_matches":"/rss.php*"},{"href_matches":"/cmd.php*"},{"href_matches":"/api.php*"},{"selector_matches":"a[rel=nofollow], a[target=_blank], a[download], a[href*=\"?\"], a[href*=\"#\"]"}]}}]},"eagerness":"moderate"}]}
+</script>
+<script>
+
+(function () {
+  try {
+    var st = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+             window.navigator.standalone === true;
+    if (!st) return;
+  } catch (e) { return; }
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0) return;
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var a = t.closest('a[target]');
+    if (!a || a.hasAttribute('download')) return;
+    var tg = (a.getAttribute('target') || '').toLowerCase();
+    if (tg === '_self' || tg === '_top' || tg === '_parent') return;
+    a.removeAttribute('target');
+  }, true);
+  var _xbOpen = window.open;
+  window.open = function (u, n) {
+    n = (n || '').toLowerCase();
+    if (!u || n === '_self' || n === '_top' || n === '_parent') return _xbOpen.apply(window, arguments);
+    try { window.location.href = u; } catch (e) { return _xbOpen.apply(window, arguments); }
+    return null;
+  };
+})();
+</script>
+<script>
+
+(function () {
+  try {
+    if (!/(?:Mobile|Android|Phone|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi)/.test(navigator.userAgent)) return;
+  } catch (e) { return; }
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var a = t.closest('a[target]');
+    if (!a || a.hasAttribute('download')) return;
+    var href = a.getAttribute('href') || '';
+    if (href.charAt(0) !== '/') return;
+    a.removeAttribute('target');
+  }, true);
+})();
+</script>
+<link as="font" crossorigin="" href="/design/fonts/pangmen-logo.woff2?v=20261031" rel="preload" type="font/woff2"/>
+<link href="/design/tokens.css?v=20261108120000" rel="stylesheet"/>
+<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261110160730" rel="stylesheet"/>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-jq.min.js?v=20261017010000"></script><script defer="" src="/zb_system/script/zblogphp.js?v=5e8d86eb"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/dark-mode.min.js?v=20261019235100"></script>
+<script defer="" src="/zb_system/script/c_html_js_add.php"></script>
+<script>
+(function () {
+  try {
+    if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) return;
+    if (!('IntersectionObserver' in window)) return;
+    var c = navigator.connection || {};
+    if (c.saveData || /2g/i.test(c.effectiveType || '')) return;
+    var seen = {}, n = 0, queue = [];
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var a = en.target, href = a.getAttribute('href') || '';
+        io.unobserve(a);
+        if (!href || href.charAt(0) !== '/' || href.indexOf('//') === 0) return;
+        if (href.indexOf('#') === 0 || a.hash) return;
+        if (href.indexOf('?') !== -1) return; // 带参数（?cate=/?fc=/搜索）不预取，与 Speculation Rules 同口径
+        if (/(^|\/)(search\.php|Ucenter|tuisong\.html|extension\.html|feed\.php|rss\.php|cmd\.php|api\.php)([?/]|$)/.test(href)) return;
+        if (/^\/(plus|api|zb_system|zb_users)\//.test(href)) return;
+        if (a.rel && /nofollow/.test(a.rel)) return;
+        if (seen[href]) return; seen[href] = 1;
+        if (n >= 8) return; n++;
+        queue.push(href);
+      });
+      if (queue.length) schedule();
+    }, { rootMargin: '200px' });
+    var scheduled = false;
+    function schedule() {
+      if (scheduled) return; scheduled = true;
+      (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(flush);
+    }
+    function flush() {
+      var frag = document.createDocumentFragment();
+      queue.splice(0).forEach(function (h) {
+        var l = document.createElement('link');
+        l.rel = 'prefetch'; l.href = h; l.as = 'document';
+        frag.appendChild(l);
+      });
+      document.head.appendChild(frag);
+      scheduled = false;
+    }
+    function scan() {
+      var as = document.querySelectorAll('a[href^="/"]');
+      for (var i = 0; i < as.length && i < 120; i++) io.observe(as[i]);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan);
+    else scan();
+  } catch (e) { }
+})();
+</script>
+<link href="/zb_users/plugin/xc_report/style/style.css?r=20230523095540" media="all" rel="stylesheet" type="text/css"/><meta content="线报酷" name="apple-mobile-web-app-title"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon.png" rel="apple-touch-icon"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-57.png" rel="apple-touch-icon-precomposed" sizes="57x57"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-72.png" rel="apple-touch-icon-precomposed" sizes="72x72"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-114.png" rel="apple-touch-icon-precomposed" sizes="114x114"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-144.png" rel="apple-touch-icon-precomposed" sizes="144x144"/>
+<link href="/zb_users/plugin/mochu_us/layer/theme/default/layer.css?v=3.5.1" id="layuicss-layer" rel="stylesheet"/><style id="ck-link-style">.ck-link-pop{position:fixed;z-index:99999;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.15);min-width:140px;max-width:90vw;overflow:hidden;display:none;animation:ckFadeIn .15s ease-out}@keyframes ckFadeIn{from{opacity:0;transform:translateY(-4px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}.ck-link-pop .ck-link-item{display:flex;align-items:center;padding:10px 15px;color:#333;font-size:14px;cursor:pointer;user-select:none;transition:background .15s;white-space:nowrap}.ck-link-pop .ck-link-item + .ck-link-item{border-top:1px solid #f0f0f0}.ck-link-pop .ck-link-item:hover,.ck-link-pop .ck-link-item:active{background:#f7f8fa}.ck-link-pop .ck-link-item svg.xb-ic{font-size:16px;margin-right:10px;flex:none;}.ck-layer.msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:100000;display:none}.ck-qrcode-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.2);text-align:center;z-index:100001;display:none}.ck-qrcode-box .ck-qrcode-tip{margin-top:10px;font-size:12px;color:#999}.ck-qrcode-box .ck-qrcode-close{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;color:#999}</style></head>
+<body><!--xianbao-chrome-stripped--><header class="header sb xianbao-article-nav"><div class="h-wrap container clearfix"><div class="logo-area fl"><a href="/" title="线报酷"><img alt="线报酷" class="img" src="/zb_users/theme/xianbao_theme/image/newlogo.png" title="线报酷"/></a></div><nav class="responsive-nav"><div class="pc-nav m-nav fl" data-cateid="16" data-catename="xinzuanba" data-type="category"><ul class="nav-ul"><li id="nvabar-item-index"><a href="/">首页</a></li><li class="" id="navbar-category-zuankeba"><a href="/category-zuankeba/">赚客吧</a></li><li class="active" id="navbar-category-xinzuanba"><a href="/category-xinzuanba/">新赚吧</a></li><li class="" id="navbar-category-xiaodigu"><a href="/category-xiaodigu/">小嘀咕</a></li><li class="" id="navbar-category-huluxia"><a href="/category-huluxia/">葫芦侠三楼</a></li><li class="" id="navbar-category-xiaodao"><a href="/category-xiaodao/">小刀娱乐网</a></li></ul></div></nav><a aria-expanded="false" aria-haspopup="true" aria-label="选择主题" class="dark-mode fr" href="javascript:;" id="xbThemeBtn" onclick="xbThemeMenuToggle(event);return false;" role="button" target="_self" title="选择主题"><svg aria-hidden="true" class="xb-ic" height="18" viewbox="0 0 24 24" width="18"><path d="M12 2a10 10 0 1 0 0 20 2.5 2.5 0 0 0 2.5-2.5c0-.6-.2-1.1-.6-1.5-.4-.4-.6-.9-.6-1.5A2.5 2.5 0 0 1 15.8 15H18a4 4 0 0 0 4-4 10 10 0 0 0-10-9z" fill="none" stroke="currentColor" stroke-width="2"></path><circle cx="7.5" cy="11.5" fill="currentColor" r="1.2"></circle><circle cx="10" cy="7.5" fill="currentColor" r="1.2"></circle><circle cx="14.5" cy="8" fill="currentColor" r="1.2"></circle></svg><span class="lt">主题</span></a><div aria-label="选择主题" class="xb-thememenu" hidden="" id="xbThemeMenu"><div class="xb-tm-grid"><button class="xb-tm-opt" data-t="system" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#fafafa 0 50%,#18181b 50% 100%)"></span><span class="xb-tm-cn">跟随系统</span><span class="xb-tm-en">自动深浅</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="day" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#fafafa 0 50%,#18181b 50% 100%)"></span><span class="xb-tm-cn">白天模式</span><span class="xb-tm-en">清爽浅灰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="night" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#18181b 0 50%,#f4f4f5 50% 100%)"></span><span class="xb-tm-cn">夜间模式</span><span class="xb-tm-en">经典暗黑</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="eye" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#cfe6d0 0 50%,#243524 50% 100%)"></span><span class="xb-tm-cn">护眼模式</span><span class="xb-tm-en">豆沙绿</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="parchment" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#efe4cd 0 50%,#4a3a22 50% 100%)"></span><span class="xb-tm-cn">羊皮纸模式</span><span class="xb-tm-en">暖褐纸色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="solarized" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#fdf6e3 0 50%,#073642 50% 100%)"></span><span class="xb-tm-cn">日光浅色</span><span class="xb-tm-en">米黄经典</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="sunset" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#241a1f 0 50%,#f2a65e 50% 100%)"></span><span class="xb-tm-cn">日落模式</span><span class="xb-tm-en">暖暮棕紫</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="gray" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#2b2b2f 0 50%,#f4f4f5 50% 100%)"></span><span class="xb-tm-cn">深灰模式</span><span class="xb-tm-en">舒适中灰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="dracula" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#282a36 0 50%,#bd93f9 50% 100%)"></span><span class="xb-tm-cn">德古拉</span><span class="xb-tm-en">深紫荧光</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="nord" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#2e3440 0 50%,#88c0d0 50% 100%)"></span><span class="xb-tm-cn">北欧蓝</span><span class="xb-tm-en">冷调霜蓝</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="tokyo" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#1a1b26 0 50%,#7aa2f7 50% 100%)"></span><span class="xb-tm-cn">东京之夜</span><span class="xb-tm-en">深蓝霓虹</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="catppuccin" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#1e1e2e 0 50%,#cba6f7 50% 100%)"></span><span class="xb-tm-cn">猫布奇诺</span><span class="xb-tm-en">粉彩可可</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="rosepine" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#191724 0 50%,#ebbcba 50% 100%)"></span><span class="xb-tm-cn">玫瑰松</span><span class="xb-tm-en">紫夜玫瑰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="gruvbox" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#282828 0 50%,#fabd2f 50% 100%)"></span><span class="xb-tm-cn">复古暖褐</span><span class="xb-tm-en">复古终端</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="everforest" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#2d353b 0 50%,#a7c080 50% 100%)"></span><span class="xb-tm-cn">永恒森林</span><span class="xb-tm-en">林绿深色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="one-dark" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#282c34 0 50%,#61afef 50% 100%)"></span><span class="xb-tm-cn">One Dark</span><span class="xb-tm-en">经典编辑器</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><div class="xb-tm-sep"></div><p class="xb-tm-gt">字号大小</p><div class="xb-tm-grid"><button class="xb-tm-opt" data-fs="s" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:11px">A</span><span class="xb-tm-cn">小号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:13px">A</span><span class="xb-tm-cn">标准</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="l" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:15px">A</span><span class="xb-tm-cn">大号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="xl" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:17px">A</span><span class="xb-tm-cn">特大号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div></div><span class="search-button fr" id="search-button" role="button" tabindex="0" title="搜索"><svg aria-hidden="true" class="xb-ic" height="18" viewbox="0 0 24 24" width="18"><circle cx="11" cy="11" fill="none" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></svg></span><div class="container br sb animated-fast fadeInUpMenu hidden" id="search-area" style="display:none;"><form action="/search.html" class="searchform clearfix" method="get" name="search"><input autofocus="autofocus" class="s-input br fl" name="q" placeholder="请输入关键词..." type="text"/><button class="s-button fr br transition brightness" id="searchsubmit" type="submit">搜 索</button></form></div></div></header>
+<link as="image" href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000" rel="preload" type="image/svg+xml"/>
+
+<div class="navstrip sb">
+<nav aria-label="频道导航" class="ns-wrap container">
+<ul class="ns-ul">
+<li><a class="t" href="/" title="首页-线报酷">首页</a></li><li><a class="t has-dd" title="线报酷-线报酷">线报酷<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>本站公告区</a><a>订阅推送</a><a>线报知识库</a><a>线报酷服务</a><a>浏览器扩展</a></div></li><li><a class="t" title="我的关注-线报酷">我的关注</a></li><li><a class="t has-dd" title="排行榜-线报酷">排行榜<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>赚客吧排行榜</a><a>新赚吧排行榜</a><a>豆瓣线报排行榜</a><a>微博线报排行榜</a><a>好单线报排行榜</a><a>值得买排行榜</a><a>慢慢买排行榜</a></div></li><li><a class="t has-dd" href="/category-zuankeba/" title="赚客吧-线报酷">赚客吧<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>赚客吧排行榜</a></div></li><li><a class="t on has-dd" href="/category-xinzuanba/" title="新赚吧-线报酷">新赚吧<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>新赚吧排行榜</a></div></li><li><a class="t has-dd" title="豆瓣线报-线报酷">豆瓣线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>豆瓣线报排行榜</a><a>买组</a><a>拼组</a><a>发组</a><a>狗组</a><a>爱猫生活</a><a>爱猫澡盆</a></div></li><li><a class="t has-dd" title="微博线报-线报酷">微博线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>微博线报排行榜</a></div></li><li><a class="t has-dd" title="微博超话-线报酷">微博超话<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>微博超话排行榜</a></div></li><li><a class="t has-dd" title="好单线报-线报酷">好单线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>好单线报排行榜</a></div></li><li><a class="t has-dd" title="值得买-线报酷">值得买<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>值得买排行榜</a></div></li><li><a class="t has-dd" title="慢慢买-线报酷">慢慢买<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>慢慢买排行榜</a></div></li><li><a class="t has-dd" title="酷安-线报酷">酷安<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>酷安排行榜</a></div></li><li><a class="t has-dd" href="/category-xiaodigu/" title="小嘀咕-线报酷">小嘀咕<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>小嘀咕排行榜</a></div></li><li><a class="t" title="生活优惠-线报酷">生活优惠</a></li><li><a class="t" href="/category-huluxia/" title="葫芦侠三楼-线报酷">葫芦侠三楼</a></li><li><a class="t" href="/category-xiaodao/" title="小刀娱乐网-线报酷">小刀娱乐网</a></li><li><a class="t" title="爱Q生活网-线报酷">爱Q生活网</a></li><li><a class="t" title="免费赚钱中心-线报酷">免费赚钱中心</a></li> </ul>
+</nav>
+</div>
+<div class="nav2-wrap sb hidden-xl">
+
+<button aria-controls="nav2-panel" aria-expanded="false" aria-label="展开分类" class="nav2-toggle" title="展开分类" type="button"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use height="15" href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-chevron-down" width="15" x="4.5" y="4.5"></use></svg></button>
+</div>
+<div class="nav2-panel hidden-xl" id="nav2-panel">
+<div class="nav2-gt">常用</div><div class="nav2-chips"><a href="/" rel="nofollow" title="首页-线报酷">首页</a><a rel="nofollow" title="我的关注-线报酷">我的关注</a><a rel="nofollow" title="排行榜-线报酷">排行榜</a><a rel="nofollow" title="线报酷-线报酷">线报酷</a><a rel="nofollow" title="生活优惠-线报酷">生活优惠</a><a rel="nofollow" title="线报知识库-线报酷">线报知识库</a></div><div class="nav2-gt">线报频道</div><div class="nav2-chips"><a href="/category-zuankeba/" rel="nofollow" title="赚客吧-线报酷">赚客吧</a><a class="nav2-on" href="/category-xinzuanba/" rel="nofollow" title="新赚吧-线报酷">新赚吧</a><a rel="nofollow" title="酷安-线报酷">酷安</a><a href="/category-xiaodigu/" rel="nofollow" title="小嘀咕-线报酷">小嘀咕</a></div><div class="nav2-gt">购物频道</div><div class="nav2-chips"><a rel="nofollow" title="豆瓣线报-线报酷">豆瓣线报</a><a rel="nofollow" title="微博线报-线报酷">微博线报</a><a rel="nofollow" title="微博超话-线报酷">微博超话</a><a rel="nofollow" title="好单线报-线报酷">好单线报</a><a rel="nofollow" title="值得买-线报酷">值得买</a><a rel="nofollow" title="慢慢买-线报酷">慢慢买</a></div><div class="nav2-gt">排行榜</div><div class="nav2-chips"><a rel="nofollow" title="赚客吧排行榜-线报酷">赚客吧排行榜</a><a rel="nofollow" title="新赚吧排行榜-线报酷">新赚吧排行榜</a><a rel="nofollow" title="豆瓣线报排行榜-线报酷">豆瓣线报排行榜</a><a rel="nofollow" title="微博线报排行榜-线报酷">微博线报排行榜</a><a rel="nofollow" title="好单线报排行榜-线报酷">好单线报排行榜</a><a rel="nofollow" title="值得买排行榜-线报酷">值得买排行榜</a><a rel="nofollow" title="慢慢买排行榜-线报酷">慢慢买排行榜</a></div><div class="nav2-gt">其他站点</div><div class="nav2-chips"><a href="/category-huluxia/" rel="nofollow" title="葫芦侠三楼-线报酷">葫芦侠三楼</a><a href="/category-xiaodao/" rel="nofollow" title="小刀娱乐网-线报酷">小刀娱乐网</a><a rel="nofollow" title="爱Q生活网-线报酷">爱Q生活网</a><a rel="nofollow" title="免费赚钱中心-线报酷">免费赚钱中心</a></div><div class="nav2-gt">本站</div><div class="nav2-chips"><a rel="nofollow" title="本站公告区-线报酷">本站公告区</a><a rel="nofollow" title="订阅推送-线报酷">订阅推送</a><a rel="nofollow" title="线报知识库-线报酷">线报知识库</a><a rel="nofollow" title="线报酷服务-线报酷">线报酷服务</a><a rel="nofollow" title="浏览器扩展-线报酷">浏览器扩展</a></div> </div>
+<div class="content container clearfix" id="content">
+<main class="article-box mb" id="mainbox">
+<article class="art-main br mb sb">
+<div class="xb-crumbs article-mbx"><a href="/" title="首页">首页</a><span class="sub">/</span><a href="/category-xinzuanba/" title="新赚吧">新赚吧</a><span class="sub">/</span><span class="cur">文章</span></div>
+<div class="art-head mb">
+<h1 class="art-title">1320张抽纸，3.9元/提。速度！！！</h1>
+<div class="head-info">
+<span class="author"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-user"></use></svg><a target="_blank" title="淘淘365 注册日期：2021-8-26">淘淘365</a></span>
+<time class="time" datetime="2026-11-12" title="2026-11-12 20:41:00">
+<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-clock"></use></svg>2026年11月12日 20:41</time>
+
+</div>
+</div>
+<div class="xb-stband" id="xb-statusbar-root"><div aria-label="线报状态投票" class="xb-statusbar" data-sum='{"alive":0,"dead":0,"done":0,"total":0,"result":0,"burst":0}' role="group"><span class="xb-st-verdict none"><span class="dot"></span>待反馈</span><span class="xb-st-votes" title="点击反馈这条线报的状态"><button class="xb-st-btn" data-st="1" style="pointer-events:none;" title="镜像站为静态快照，投票数据为抓取时快照" type="button">有效</button><button class="xb-st-btn" data-st="2" style="pointer-events:none;" title="镜像站为静态快照，投票数据为抓取时快照" type="button">失效</button></span><span class="xb-st-fb">还没有人反馈，投一票告诉大家</span></div></div>
+<div class="art-content">
+<div class="article-content xb-linked">
+	        巨量抽纸*4大包1320张/提，3.9元<br/><a href="https://u.jd.com/o1gXrWK" target="_blank">https://u.jd.com/o1gXrWK</a><br/>————<br/>挂抽巨量装1710张/提 6.9元<br/><a href="https://u.jd.com/oggUDD3" target="_blank">https://u.jd.com/oggUDD3</a><br/><br/>可撸荭包叠加，超级大一提，速度！	        </div>
+</div>
+<div class="xb-artfoot">
+<div class="xb-artfoot-btns">
+<a class="xb-qlink" href="/xinzuanba/317965.html" rel="nofollow noopener" target="_blank" title="原文地址：1320张抽纸，3.9元/提。速度！！！"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-link"></use></svg><span class="xb-bt">查看原文</span><span class="xb-bs">原文</span></a><div data-biaoqian="抽纸|速度" data-id="7470933" id="article-button"></div></div>
+<div class="xb-artmeta-copy">版权说明：本站为免费线报整合平台，内容快照源自网络，临时存储、未经核实。商品活动有时效性，请以平台实际页面为准。</div></div>
+</article>
+<div class="art-fujia sb br mb clearfix" id="art-fujia">
+<div class="xb-crumbs"><span class="upd-t">本文由用户发起重新抓取更新于</span><span class="upd-sub">2026-11-12 21:42:03</span></div>
+<div class="art-fujia-content">
+<div class="no-comment mb mt"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261107173000#i-inbox"></use></svg> 原帖还没有人评论，等待重新抓取中~</div>
+</div>
+</div>
+
+
+</main>
+
+</div>
+
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-layer.min.js?v=20261016233500"></script><script defer="" src="/zb_users/plugin/mochu_us/style/mochu_us.js?r=20261005200000&amp;v=20261105012046"></script>
+<link href="/zb_users/plugin/mochu_us/style/mochu_us.css?r=20261005200000" rel="stylesheet"/>
+<script defer="" src="/zb_users/plugin/xc_report/script/script.js?r=20230523095540" type="text/javascript"></script>
+<div class="mask-hidden transition" id="mask-hidden"></div>
+<script>window.xb_rows_frag=1;</script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/vendor/xb-libs.min.js?v=20261016233500"></script>
+<script>
+window.xbLazyFancybox = {loaded:false,queue:[],cssDone:false,load:function () {if (this.loaded) {return}this.loaded = true;if (!this.cssDone) {this.cssDone = true;var c = document.createElement('link');c.rel = 'stylesheet';c.href = '/zb_users/theme/xianbao_theme/style/fancybox.css?v=20230724';document.head.appendChild(c);}var s = document.createElement('script');s.src = '/zb_users/theme/xianbao_theme/script/vendor/fancybox.js?v=20261015200000';s.onload = function () {window.Fancybox && Fancybox.bind("[data-fancybox]");var q = window.xbLazyFancybox.queue;window.xbLazyFancybox.queue = [];for (var i = 0; i < q.length; i++) {try {q[i]()} catch (e) {}}};document.head.appendChild(s);},onReady:function (f) {if (window.Fancybox) {f();return}window.xbLazyFancybox.queue.push(f);window.xbLazyFancybox.load();},ready:function (f) {/* 纯排队：挂回调，不触发库加载（20261016） */if (window.Fancybox) {f();return}window.xbLazyFancybox.queue.push(f);}};
+document.addEventListener('click',function (e) {var t = e.target;while (t && t !== document) {if (t.matches && t.matches('[data-fancybox]')) {if (!window.Fancybox) {e.preventDefault();e.stopPropagation();var el = t.closest ? t.closest('[data-fancybox]') : t;var sel = el.getAttribute('data-fancybox');window.xbLazyFancybox.onReady(function () {try {/* v5 fromSelector 需双参 (元素, 选择器字符串)；img[相对页内语义] 直接 show(imgURL) 最稳 */if (el.tagName === 'IMG') {Fancybox.show([{ src: el.currentSrc || el.src, type: 'image' }])} else {Fancybox.fromSelector(el, '[data-fancybox="' + sel + '"]') || Fancybox.show([{ src: el.getAttribute('href'), type: 'image' }])}} catch (err) {el && el.getAttribute && (location.href = el.getAttribute('href'))}})}break}t = t.parentNode}},true);
+
+document.addEventListener('mouseover',function (e) {var t = e.target;while (t && t !== document) {if (t.matches && t.matches('a[data-fancybox],img[data-fancybox]')) {window.xbLazyFancybox.load();return}t = t.parentNode}}, {passive:true});
+document.addEventListener('touchstart',function () {window.xbLazyFancybox.load()}, {passive:true,once:true});
+</script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-app.min.js?v=20261111103032"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-extra.min.js?v=20261110160730"></script>
+
+<div class="ck-link-pop"></div><!--xianbao-darkmode-override--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"&&document.body)document.body.classList.add("night");}catch(e){}})();function switchNightMode(){var m=document.cookie.match(/(?:^|; )night=([^;]*)/),night=(m&&decodeURIComponent(m[1])==="1")?"1":"0",next=night==="1"?"0":"1",d=new Date();d.setTime(d.getTime()+6048e5);document.cookie="night="+next+";expires="+d.toUTCString()+";path=/";document.documentElement.classList.toggle("night",next==="1");if(document.body)document.body.classList.toggle("night",next==="1");}</script><script id="xianbao-comment-tools">(function(){var xianbaoLouzhuState={};window.xianbaoPinglunshunxu=function(){document.querySelectorAll('.comment-list').forEach(function(cl){var uls=Array.from(cl.children).filter(function(c){return c.classList&&c.classList.contains('ul');});if(uls.length>1){uls.reverse().forEach(function(ul){cl.appendChild(ul);});}});};window.xianbaoShowlouzhu=function(){var author='',els=document.querySelectorAll('.head-info .author a,.art-head .author a');for(var i=0;i<els.length;i++){var t=els[i].textContent.trim();if(t){author=t;break;}}if(!author){return;}var showOnly=!xianbaoLouzhuState[author];xianbaoLouzhuState[author]=showOnly;document.querySelectorAll('.comment-list').forEach(function(cl){cl.querySelectorAll('.ul').forEach(function(ul){var aEl=ul.querySelector('.author'),aText=aEl?aEl.textContent.trim():'';if(showOnly){ul.style.display=(aText===author||aText===author+'楼主')?'':'none';}else{ul.style.display='';}});});document.querySelectorAll('.showlouzhu').forEach(function(el){el.textContent=showOnly?'查看全部':'只看楼主';});};})();</script><style id="xianbao-fancybox-noshift">html{overflow-y:scroll !important;overflow-x:hidden !important;}body{margin-right:0 !important;}</style><script id="xianbao-fancybox-init">(function(){function xbInitFb(){if(typeof window.Fancybox==='undefined')return false;if(window.__xbFbBound)return true;window.__xbFbBound=true;document.addEventListener('click',function(e){var el=e.target.closest?e.target.closest('img[data-fancybox]'):null;if(!el)return;e.preventDefault();var g=el.getAttribute('data-fancybox');var nodes=Array.prototype.slice.call(document.querySelectorAll("img[data-fancybox='"+g+"']"));var items=nodes.map(function(im){var s=im.getAttribute('src')||im.getAttribute('data-src')||'';if(s.charAt(0)==='/')s=location.origin+s;return {src:s,type:'image'};});var idx=nodes.indexOf(el);if(idx>0){items=items.slice(idx).concat(items.slice(0,idx));}Fancybox.show(items,{hideScrollbar:false});});return true;}if(!xbInitFb()){var n=0,iv=setInterval(function(){if(xbInitFb()||++n>50){clearInterval(iv);}},100);}})();</script><script id="xianbao-img-fallback">(function(){
+var PH='data:image/svg+xml;charset=utf-8,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='120' height='80'><rect width='120' height='80' fill='#eceef3'/><g fill='#b6bcc9'><rect x='52' y='24' width='46' height='30' rx='3'/><circle cx='42' cy='36' r='5'/><path d='M52 54l12-12 10 10 8-8 16 16z'/></g><text x='60' y='70' font-size='9' fill='#8a90a0' text-anchor='middle' font-family='sans-serif'>图片不可用</text></svg>");
+document.addEventListener('error',function(e){
+var t=e.target;if(!t||t.tagName!=='IMG')return;
+if(t.getAttribute('data-img-fallback'))return;
+t.setAttribute('data-img-fallback','1');
+t.style.maxWidth='100%';t.style.height='auto';t.src=PH;},true);})();</script><script id="xianbao-nav-tools">(function(){function t(){var a=document.getElementById('search-area');if(!a)return;var h=a.classList.contains('hidden');var d=a.style.display==='none'||window.getComputedStyle(a).display==='none';if(h||d){a.classList.remove('hidden');a.style.display='block';}else{a.classList.add('hidden');a.style.display='none';}}function m(){var n=document.querySelector('.responsive-nav');var i=document.querySelector('.m-nav-btn i.iconfont');if(!n)return;var o=n.style.display==='block';n.style.display=o?'none':'block';if(i)i.classList.toggle('active',!o);}var b=document.querySelector('.m-nav-btn');if(b)b.addEventListener('click',m);var s=document.getElementById('search-button');if(s)s.addEventListener('click',t);})();</script><script id="xianbao-hs-tools">(function(){document.querySelectorAll('form').forEach(function(f){  var q=f.querySelector('input[name=q]');  if(!q){return;}  f.addEventListener('submit',function(e){    if(!q.value.trim()){e.preventDefault();q.focus();}  });  var btns=f.querySelectorAll('button, [role=button]');  btns.forEach(function(b){    var t=(b.innerText||'').trim();    if(t==='清空'||t==='清除'){      b.addEventListener('click',function(){q.value='';q.focus();});    }  });});})();</script><script id="xianbao-nav2-tools">(function(){if(document.getElementById('nav2-list')){return;}var b=document.querySelector('.nav2-toggle');var p=document.getElementById('nav2-panel');if(!b||!p){return;}b.addEventListener('click',function(e){  e.preventDefault();  var open=p.classList.toggle('open');  b.setAttribute('aria-expanded',open?'true':'false');  b.classList.toggle('expanded',open);});})();</script></body></html>
