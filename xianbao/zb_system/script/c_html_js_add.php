@@ -101,7 +101,7 @@ $(function(){
   }
 });
 
-$(function(){ if($(".mochu_us_celan_login").length > 0 ){return false;var mochu_us_login_html = "<div class=\"mochu_us_logincelan\"><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.xianbao.fun\/login.html\">\u767b\u5f55<\/a><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.xianbao.fun\/register.html\">\u6ce8\u518c<\/a><\/div>"; $(".mochu_us_celan_login").html(mochu_us_login_html);}});
+$(function(){ if($(".mochu_us_celan_login").length > 0 ){return false;var mochu_us_login_html = "<div class=\"mochu_us_logincelan\"><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.ixbk.net\/login.html\">\u767b\u5f55<\/a><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.ixbk.net\/register.html\">\u6ce8\u518c<\/a><\/div>"; $(".mochu_us_celan_login").html(mochu_us_login_html);}});
 
 $(function(){
                 if($("#txaArticle").length > 0){
@@ -112,7 +112,7 @@ $(function(){
                     var xytht = $("#txaArticle").outerHeight();
                     var html = '<div id="mochu_us_pst" style="position: relative;overflow:hidden;">请<a class="mochu_ping_pst" href="/login.html" target="_blank">登录</a>或<a class="mochu_ping_pst" href="/register.html" target=\"_blank\">注册</a>后再发表评论！</div>';
                     $("#txaArticle").after(html);
-                    $("#mochu_us_pst").css({marginTop: "-"+xytht+"px",width:xytwd+"px",height:xytht+"px",lineHeight:xytht+"px",textAlign:"center",color:"#888",fontSize:"14px",padding:0,fontWeight:"normal"});
+                    $("#mochu_us_pst").css({marginTop: "-"+xytht+"px",width:xytwd+"px",height:xytht+"px",lineHeight:xytht+"px",textAlign:"center",color:"var(--text-2, #767676)",fontSize:"14px",padding:0,fontWeight:"normal"});
                     $(".mochu_ping_pst").css({margin:" 0 3px",color: "#ea6000"});
                 }
             });
