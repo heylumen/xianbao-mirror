@@ -101,7 +101,7 @@ $(function(){
   }
 });
 
-$(function(){ if($(".mochu_us_celan_login").length > 0 ){return false;var mochu_us_login_html = "<div class=\"mochu_us_logincelan\"><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.xianbao.fun\/login.html\">\u767b\u5f55<\/a><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.xianbao.fun\/register.html\">\u6ce8\u518c<\/a><\/div>"; $(".mochu_us_celan_login").html(mochu_us_login_html);}});
+$(function(){ if($(".mochu_us_celan_login").length > 0 ){return false;var mochu_us_login_html = "<div class=\"mochu_us_logincelan\"><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.ixbk.fun\/login.html\">\u767b\u5f55<\/a><a class=\"mochu_us_logincelan_a\" href=\"https:\/\/new.ixbk.fun\/register.html\">\u6ce8\u518c<\/a><\/div>"; $(".mochu_us_celan_login").html(mochu_us_login_html);}});
 
 $(function(){
                 if($("#txaArticle").length > 0){
@@ -119,7 +119,12 @@ $(function(){
 
     (function(){
         function fuiPrismLoad(){
-            if (!document.querySelector('pre, code')) { return; }
+            /* 2026-11-21：原来只判 pre/code，dingyue 页 18 个 <code class="xbdy-qq-num"> 装的是 QQ 群号，
+               白拉 119KB prism。改为必须 pre 或带 language-/lang- 的 code。 */
+            var need = document.querySelector('pre') ||
+                       document.querySelector('code[class*="language-"]') ||
+                       document.querySelector('code[class*="lang-"]');
+            if (!need) { return; }
             var h = document.head || document.documentElement;
             var l = document.createElement('link');
             l.rel = 'stylesheet';
