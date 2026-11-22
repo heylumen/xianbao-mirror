@@ -1,0 +1,360 @@
+/* ═══════════════════════════════════════════════════════════════════════
+ * 线报酷 · 评论区样式（生产版，2026-11-22）
+ *
+ * 当前启用：S2 社媒回复痕（小红书 / Threads / 微博 范式）
+ * 挂载方式：模板 header.php 给 <body> 加 class="xb-cmt-s2"
+ * 全部使用设计令牌（--surface/--text/--border/--primary/--radius/--fs-*/--fw-*），
+ *   自动继承 13 套皮肤 + html.night 深色模式，无需另写配色。
+ *
+ * 头像：两个 data-URI SVG 图标（楼主 = 实心主色 + 徽记点 / 普通 = 浅灰轮廓），
+ *   不用昵称首字；图形自包含，无额外请求。
+ *
+ * 完整 8 版对比见 /design/comment-preview-8.html
+ *
+ * ⚠ DOM 约束（改样式前必读）
+ *   采集端把评论楼层拍平成**同级 .ul**，楼中楼只以 c-dianping（内嵌在
+ *   父楼 c-neirong 里）存在，DOM 里没有父子结构。所以：
+ *     .ul .ul / .ul + .ul 都不可用（前者永远选不到，后者会误伤所有 2L 之后）
+ *   图片由服务端 xb_fujia_normalize() 归拢进 .c-imgs，可安全用 grid。
+ * ═══════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+ * S2 社媒回复痕 —— 小红书 / Threads / 微博评论范式
+ *
+ * 特征：头像 + 昵称一行（社媒的"发帖人栏"），正文紧随；
+ *      回复用左侧短竖条 + 淡底小条，像"盖章"在父楼下面。
+ * ═══════════════════════════════════════════════════════════════ */
+
+body.xb-cmt-s2 .art-fujia-content .comment-list {
+    padding: 0 0 4px;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .title {
+    padding: 13px 14px 11px;
+    border-bottom: 1px solid var(--border);
+}
+
+body.xb-cmt-s2 .art-fujia-content .comment-list .ul {
+    margin: 0;
+    border-top: none;
+    border-bottom: 1px solid var(--border);
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .ul:last-child {
+    border-bottom: none;
+}
+
+/* 社媒行：头像与正文顶对齐，行间距略大（社交阅读节奏） */
+body.xb-cmt-s2 .art-fujia-content .comment-list .li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 14px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+/* ── 头像：两个固定 icon（不再用昵称首字） ──
+ *
+ * 需求（2026-11-22）：不要首字，只用两个头像图标 —— 楼主 / 普通评论。
+ *
+ * 为什么用 data-URI SVG 而不是主题的 icons.svg：
+ *   1. 不依赖额外网络请求（图标跟着 CSS 一起到，首屏不闪）
+ *   2. 可以用 currentColor 直接吃 --on-primary / --text-2，深色模式零改动
+ *   3. 单文件自包含，四版 CSS 拷到任何站点都能直接跑
+ *
+ * 图形选择：
+ *   普通评论 = 单人轮廓（通用"用户"语义，社交产品最常用）
+ *   楼主     = 单人轮廓 + 头顶一个小圆点徽记（"认证/主持"的通行隐喻）
+ * 两者的**轮廓完全相同**，只在楼主版加一个色点 —— 这样扫读时形状一致不干扰，
+ * 又能一眼分辨身份，比换两种完全不同的图形更克制。
+ */
+body.xb-cmt-s2 .art-fujia-content .comment-list .pingluntoux,
+body.xb-cmt-s2 .art-fujia-content .comment-list .louzhutoux {
+    flex: none;
+    float: none;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    border-radius: 50%;
+    /* 头像底色：普通 = 浅灰，楼主 = 主色实心 */
+    background-color: var(--surface-2);
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='3.4'/%3E%3Cpath d='M4.6 20.4a7.4 7.4 0 0 1 14.8 0'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 19px 19px;
+    /* 隐藏昵称首字文本节点：
+       采集端会在头像 span 里塞一个首字（`<span class="pingluntoux">张</span>`），
+       而服务端归一化也会 append 首字。这里必须把它藏掉，否则文字叠在图标上。
+       用 font-size:0 + color:transparent 组合：文本仍在 DOM 里（读屏可读，
+       保留无障碍语义），但视觉上完全不可见，也不会像 text-indent:-9999px
+       那样把内容顶出 overflow 裁剪区导致圆形变形。 */
+    color: transparent;
+    font-size: 0;
+    line-height: 0;
+    box-shadow: inset 0 0 0 1px var(--border);
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+}
+/* 楼主：主色实心 + 白色单人轮廓 + 右上角徽记点
+ * 徽记点位置：圆形头像会被 overflow:hidden 裁掉外缘，点必须留在安全区内
+ * （实测 cx=18.6/cy=5.2 太靠外，右上角被圆裁掉一半）。收到 cx=17.2/cy=6.2。 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .louzhutoux,
+body.xb-cmt-s2 .art-fujia-content .comment-list .pingluntoux.lzav {
+    background-color: var(--primary);
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='10' r='3.1'/%3E%3Cpath d='M5.4 20.6a6.8 6.8 0 0 1 13.2 0'/%3E%3Ccircle cx='17.4' cy='6.4' r='2.1' fill='%23ffffff' stroke='none'/%3E%3C/svg%3E");
+    box-shadow: none;
+    color: transparent;
+}
+
+/* 深色模式下普通头像的描边色要跟着提亮（浅灰图标在深底上会糊） */
+html.night body.xb-cmt-s2 .art-fujia-content .comment-list .pingluntoux,
+html.night body.xb-cmt-s2 .art-fujia-content .comment-list .louzhutoux:not(.lzav) {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='3.4'/%3E%3Cpath d='M4.6 20.4a7.4 7.4 0 0 1 14.8 0'/%3E%3C/svg%3E");
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .clbody {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 0;
+}
+
+/* 发帖人栏 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .cinfo {
+    display: flex;
+    align-items: baseline;
+    gap: 0 7px;
+    flex-wrap: wrap;
+    min-height: 19px;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .cinfo::after {
+    content: none;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .clbody .author,
+body.xb-cmt-s2 .art-fujia-content .comment-list .clbody .author a {
+    font-size: var(--fs-13);
+    font-weight: var(--fw-600);
+    color: var(--text-2);            /* 社媒范式里昵称是"灰蓝"，正文才是黑的 */
+    line-height: 1.4;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-time {
+    font-size: var(--fs-12);
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+}
+/* 地区：社媒常见 "· 北京" 形态，去掉底色只留字
+ * 分隔点用 ::before 生成；必须显式给 line-height/vertical-align，
+ * 否则在 flex + baseline 对齐下点会飘到行上方（2026-11-22 线上实测）。 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-ip {
+    font-size: var(--fs-12);
+    color: var(--text-3);
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-ip::before {
+    content: "·";
+    color: var(--border-strong);
+    line-height: 1;
+    font-size: 12px;
+}
+/* 楼号：社媒弱化到几乎不可见（社媒本来没有楼层概念） */
+body.xb-cmt-s2 .art-fujia-content .comment-list .cmt-fl {
+    margin-left: auto;
+    flex: none;
+    font-size: var(--fs-12);
+    color: var(--text-3);
+    opacity: .75;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 楼主徽标：社媒风格的小实心角标 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .level-louzu {
+    display: inline-flex;
+    align-items: center;
+    height: 16px;
+    margin-left: 5px;
+    padding: 0 5px;
+    background: var(--primary);
+    color: var(--on-primary);
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: var(--fw-600);
+    line-height: 1;
+    transform: translateY(-1px);
+}
+
+/* 正文：社媒的字号偏大、行距偏松 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-neirong {
+    margin-top: 5px;
+    font-size: var(--fs-15);
+    line-height: 1.62;
+    color: var(--text-body);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+}
+
+/* 图片：社媒式自适应网格
+ *
+ * 这里用服务端新加的 .c-imgs 容器（xb_fujia_normalize 把散落 img 收进去了），
+ * 所以不再是"文本 + 图"混排，可以放心用 grid。
+ *
+ * 社媒惯例（小红书/微博）：
+ *   1 张 → 大图，最宽 62%，保持原比例（不裁切，让用户看到全貌）
+ *   2 张 → 并排两列
+ *   3+ 张 → 三列方格，正方形裁切（视觉整齐）
+ * 兼容：老数据没有 .c-imgs（尚未重渲染/历史 HTML），退回 inline 流也不会崩。 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-imgs {
+    display: grid;
+    gap: 5px;
+    margin-top: 8px;
+    /* 三列是上限；同时用一个总宽上限，避免宽屏下图片被拉得过大
+       （2026-11-22 实测：不设上限时双图会各自撑到 400px+，视觉过重） */
+    grid-template-columns: repeat(3, minmax(0, 112px));
+    justify-content: start;
+    max-width: 100%;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-imgs img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin: 0;
+    vertical-align: top;
+    background: var(--surface-2);
+}
+/* 单图：大图预览，不裁切（保持原比例，给一个合理上限，不占满全宽） */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-imgs:has(img:only-child) {
+    grid-template-columns: minmax(0, 260px);
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-imgs img:only-child {
+    aspect-ratio: auto;
+    max-height: 300px;
+    object-fit: contain;
+    background: var(--surface-3);
+}
+/* 双图：两列 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-imgs:has(img:nth-last-child(2):first-child) {
+    grid-template-columns: repeat(2, minmax(0, 112px));
+}
+/* 四图：2×2 更整齐（比 3+1 好看） */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-imgs:has(img:nth-last-child(4):first-child) {
+    grid-template-columns: repeat(2, minmax(0, 112px));
+}
+
+/* 兼容老数据：没有 .c-imgs 时（历史 HTML）退回行内流，不破坏可读性 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-neirong.xb-cmtthumbs {
+    display: block;
+    margin-top: 5px;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-neirong.xb-cmtthumbs > img {
+    display: inline-block;
+    width: calc((100% - 14px) / 3);
+    max-width: 108px;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: var(--radius);
+    margin: 0 6px 6px 0;
+    vertical-align: top;
+}
+
+/* ── 回复：淡底小条，左侧一道短竖线（社媒"盖章"形态） ── */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-dianping {
+    margin: 8px 0 0;
+    padding: 7px 10px;
+    background: var(--surface-2);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
+    font-size: var(--fs-13);
+    line-height: 1.58;
+    position: relative;
+}
+/* 左侧短竖线：社媒回复标志 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-dianping::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: var(--border-strong);
+    border-radius: 1px;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-dianping + .c-dianping {
+    margin-top: 5px;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .dianpingming,
+body.xb-cmt-s2 .art-fujia-content .comment-list .huifuming {
+    font-weight: var(--fw-600);
+    color: var(--text-body);
+    margin-right: 6px;
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .dianpingshijian,
+body.xb-cmt-s2 .art-fujia-content .comment-list .huifushijian {
+    font-size: var(--fs-12);
+    color: var(--text-3);
+}
+body.xb-cmt-s2 .art-fujia-content .comment-list .dianpingneirong,
+body.xb-cmt-s2 .art-fujia-content .comment-list .huifuneirong {
+    margin-top: 2px;
+    color: var(--text-2);
+}
+/* 引用块：社媒"转发原文"淡底块 */
+body.xb-cmt-s2 .art-fujia-content .comment-list .c-yingyong {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: var(--surface-3);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-3);
+    font-size: var(--fs-13);
+}
+
+body.xb-cmt-s2 .art-fujia-content .no-comment {
+    padding: 26px 16px;
+    color: var(--text-3);
+}
+
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * 移动端（≤768px）
+ * ═══════════════════════════════════════════════════════════════ */
+@media screen and (max-width: 768px) {
+    /* 窄屏：头像与字号各降一档，内边距收紧 */
+    body.xb-cmt-s2 .art-fujia-content .comment-list .li {
+        padding: 11px 12px 12px;
+        gap: 9px;
+    }
+    body.xb-cmt-s2 .art-fujia-content .comment-list .pingluntoux,
+    body.xb-cmt-s2 .art-fujia-content .comment-list .louzhutoux {
+        width: 28px;
+        height: 28px;
+        background-size: 17px 17px;
+    }
+    body.xb-cmt-s2 .art-fujia-content .comment-list .c-neirong {
+        font-size: 14px;
+    }
+    /* 窄屏单图最多占 72% 宽，九宫格保持三列 */
+    body.xb-cmt-s2 .art-fujia-content .comment-list .c-imgs:has(img:only-child) {
+        grid-template-columns: minmax(0, 72%);
+    }
+    body.xb-cmt-s2 .art-fujia-content .comment-list .c-imgs img:only-child {
+        max-height: 260px;
+    }
+    body.xb-cmt-s2 .art-fujia-content .comment-list .c-neirong.xb-cmtthumbs > img {
+        width: calc((100% - 8px) / 2);
+        max-width: none;
+    }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+    body.xb-cmt-s2 .art-fujia-content .comment-list .li {
+        transition: none;
+    }
+}

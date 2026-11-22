@@ -1,0 +1,30 @@
+/* ═══════════════════════════════════════════════════════════════
+ * 「只看楼主」空结果提示（2026-11-22）
+ *
+ * 问题：豆瓣买组这类帖子楼主从不参与评论，点「只看楼主」后
+ *   chakanlouzhu()（在 xb-extra.min.js）会把所有 .ul 加 .hide，
+ *   页面只剩一个空白评论卡，用户以为坏了。
+ *   实测 douban-maizu/7549584：65 条评论、level-louzu 命中 0。
+ *
+ * 方案：纯 CSS 兜底，不依赖改压缩 JS。
+ *   用 :has() 判断「列表里存在 .ul 且没有任何一个 .ul 不带 hide」
+ *   → 说明全被隐藏了 → 用 ::after 在列表底部显示提示。
+ *
+ * 兼容性：:has() 需 Chrome 105+ / Safari 15.4+ / FF 121+；
+ *   不支持时本条失效，退回"空白卡"原样（不报错，不比现在更差）。
+ *   另有配套的 JS 增强（comment-lzfix.js）负责自动回退按钮态。
+ * ═══════════════════════════════════════════════════════════════ */
+
+/* 全隐时：容器给个最小高度 + 提示文案 */
+@supports selector(:has(*)) {
+    body.xb-cmt-s2 .art-fujia-content .comment-list:has(.ul.hide):not(:has(.ul:not(.hide)))::after,
+    .art-fujia-content .comment-list:has(.ul.hide):not(:has(.ul:not(.hide)))::after {
+        content: "本条线报的楼主还没有参与评论，暂无可筛选的楼层。";
+        display: block;
+        padding: 26px 16px;
+        text-align: center;
+        color: var(--text-3, #71717a);
+        font-size: 13px;
+        line-height: 1.7;
+    }
+}

@@ -1,0 +1,567 @@
+@charset "UTF-8";
+/* 内容举报弹窗 · 前台原生样式（20261122 去 layui）
+ *
+ * 只服务前台（文章页举报弹窗 + is_theme / is_mochu_us 注入的举报按钮）。
+ * 后台举报列表页 main.php?act=list 仍用 script/script.js + style/style.css（layui），不受影响。
+ *
+ * 约束：
+ *   1. 服务端 #xc_report_form 结构不改（字段名 / hidden / name="Option[]" 全部原样），
+ *      因此这里只做「重画皮肤」，不动 form 的 DOM。
+ *   2. 颜色一律用 /design/tokens.css 令牌（带兜底值，令牌缺失也不崩），15 套皮肤自动跟随。
+ *   3. 与站内 .xb-cf-panel / .xb-xc-panel / .xb-hdrawer 同族：surface + border + shadow-pop + radius-lg。
+ *   4. 选择器前缀 .xb-rp 隔离，避免与残留的 layui 样式互相污染。
+ */
+
+/* ---------- 遮罩 + 卡片外壳 ---------- */
+.xb-rp-mask {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal, 1000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, .42);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur, .2s) var(--ease, cubic-bezier(.4, 0, .2, 1)), visibility 0s linear var(--dur, .2s);
+}
+
+.xb-rp-mask.on {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--dur, .2s) var(--ease, cubic-bezier(.4, 0, .2, 1));
+}
+
+.xb-rp {
+  display: flex;
+  flex-direction: column;
+  width: 460px;
+  max-width: 100%;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  color: var(--text, #09090b);
+  background: var(--surface, #fff);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-pop, 0 0 0 1px #e4e4e7, 0 8px 30px rgba(0, 0, 0, .08));
+  transform: translateY(6px) scale(.985);
+  transition: transform var(--dur, .2s) var(--ease, cubic-bezier(.4, 0, .2, 1));
+}
+
+.xb-rp-mask.on .xb-rp {
+  transform: none;
+}
+
+/* 容器本身可聚焦（tabindex=-1）但不画焦点环，只作为 Esc/Tab 的起点 */
+.xb-rp:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xb-rp-mask,
+  .xb-rp {
+    transition: none;
+  }
+}
+
+.xb-rp-hd {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border, #e4e4e7);
+}
+
+.xb-rp-hd h3 {
+  margin: 0;
+  font-size: var(--fs-15, 15px);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.xb-rp-x {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  padding: 0;
+  color: var(--text-3, #71717a);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  transition: background var(--dur-fast, .15s), color var(--dur-fast, .15s);
+}
+
+.xb-rp-x:hover {
+  color: var(--text, #09090b);
+  background: var(--surface-2, #f4f4f5);
+}
+
+.xb-rp-x svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.xb-rp-bd {
+  flex: 1;
+  min-height: 0;
+  padding: 4px 16px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.xb-rp-ft {
+  display: flex;
+  flex: none;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 16px;
+  background: var(--surface, #fff);
+  border-top: 1px solid var(--border, #e4e4e7);
+}
+
+.xb-rp-btn {
+  flex: none;
+  height: 34px;
+  padding: 0 18px;
+  font-size: var(--fs-13, 13px);
+  line-height: 1;
+  color: var(--text-body, #3f3f46);
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e4e4e7);
+  border-radius: var(--radius, 8px);
+  transition: background var(--dur-fast, .15s), color var(--dur-fast, .15s), border-color var(--dur-fast, .15s);
+}
+
+.xb-rp-btn:hover {
+  color: var(--text, #09090b);
+  background: var(--surface-2, #f4f4f5);
+}
+
+.xb-rp-btn.primary {
+  font-weight: 500;
+  color: var(--on-primary, #fff);
+  background: var(--primary, #18181b);
+  border-color: var(--primary, #18181b);
+}
+
+.xb-rp-btn.primary:hover {
+  color: var(--on-primary, #fff);
+  background: var(--primary, #18181b);
+  opacity: .9;
+}
+
+.xb-rp-btn:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.xb-rp-x:focus-visible,
+.xb-rp-btn:focus-visible {
+  outline: 2px solid var(--focus-ring, #71717a);
+  outline-offset: 2px;
+}
+
+/* ---------- 表单（服务端原结构，仅重画） ---------- */
+.xb-rp #xc_report_form {
+  padding: 0;
+  border: 0;
+}
+
+.xb-rp #xc_report_form .xc_report_form_p {
+  display: flex;
+  position: static;
+  gap: 4px;
+  align-items: center;
+  height: auto;
+  padding: 14px 0 8px;
+  margin: 0;
+  font-size: var(--fs-13, 13px);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-2, #71717a);
+  cursor: auto;
+  user-select: auto;
+}
+
+.xb-rp #xc_report_form .xc_report_form_p::before {
+  content: none;
+}
+
+/* 只有「后面紧跟选项列表」的标签是必填（其余字段服务端允许留空） */
+.xb-rp #xc_report_form .xc_report_form_p:has(+ ul)::after {
+  content: "*";
+  font-weight: 500;
+  color: var(--danger-text, #dc2626);
+}
+
+.xb-rp #xc_report_form .xc_report_form_p span {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+
+.xb-rp #xc_report_form ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  clear: none;
+  list-style: none;
+}
+
+.xb-rp #xc_report_form ul::after {
+  content: none;
+}
+
+.xb-rp #xc_report_form ul li {
+  position: relative;
+  float: none;
+  width: auto;
+  height: auto;
+  padding: 0;
+  font-size: var(--fs-13, 13px);
+  line-height: 1.4;
+  color: var(--text-body, #3f3f46);
+}
+
+.xb-rp #xc_report_form ul li label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 10px;
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e4e4e7);
+  border-radius: var(--radius, 8px);
+  transition: background var(--dur-fast, .15s), border-color var(--dur-fast, .15s), color var(--dur-fast, .15s);
+}
+
+.xb-rp #xc_report_form ul li label:hover {
+  background: var(--surface-2, #f4f4f5);
+  border-color: var(--border-strong, #d4d4d8);
+}
+
+.xb-rp #xc_report_form ul li:has(input:checked) label {
+  font-weight: 500;
+  color: var(--text, #09090b);
+  background: var(--surface-2, #f4f4f5);
+  border-color: var(--primary, #18181b);
+}
+
+/* 原生控件保留（键盘 / 读屏可达），只在视觉上重画 */
+.xb-rp #xc_report_form ul li input {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.xb-rp #xc_report_form li label input[type="radio"]+span,
+.xb-rp #xc_report_form li label input[type="checkbox"]+span {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  overflow: hidden;
+  background: var(--surface, #fff);
+  border: 1.5px solid var(--border-strong, #d4d4d8);
+  box-sizing: border-box;
+}
+
+.xb-rp #xc_report_form li label input[type="radio"]+span {
+  border-radius: 50%;
+}
+
+.xb-rp #xc_report_form li label input[type="checkbox"]+span {
+  border-radius: 4px;
+}
+
+.xb-rp #xc_report_form li label input[type="radio"]:checked+span,
+.xb-rp #xc_report_form li label input[type="checkbox"]:checked+span {
+  background: var(--primary, #18181b);
+  border-color: var(--primary, #18181b);
+}
+
+.xb-rp #xc_report_form li label input[type="radio"]:checked+span::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--on-primary, #fff);
+  border-radius: 50%;
+}
+
+.xb-rp #xc_report_form li label input[type="checkbox"]:checked+span::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--on-primary, #fff);
+  border-width: 0 1.8px 1.8px 0;
+  transform: rotate(45deg);
+}
+
+.xb-rp #xc_report_form li label input:focus-visible+span {
+  outline: 2px solid var(--focus-ring, #71717a);
+  outline-offset: 2px;
+}
+
+/* 文本框 */
+.xb-rp #xc_report_form textarea,
+.xb-rp #xc_report_form>input[type="text"],
+.xb-rp #xc_report_form>div>input[type="text"] {
+  width: 100%;
+  font: 400 var(--fs-13, 13px)/1.6 var(--font, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif);
+  color: var(--text, #09090b);
+  background: var(--surface, #fff);
+  border: 1px solid var(--border-strong, #d4d4d8);
+  border-radius: var(--radius, 8px);
+  box-sizing: border-box;
+  transition: border-color var(--dur-fast, .15s), box-shadow var(--dur-fast, .15s);
+}
+
+.xb-rp #xc_report_form textarea {
+  display: block;
+  height: 96px;
+  min-height: 72px;
+  max-height: 220px;
+  padding: 9px 11px;
+  resize: vertical;
+}
+
+.xb-rp #xc_report_form>input[type="text"],
+.xb-rp #xc_report_form>div>input[type="text"] {
+  height: 36px;
+  padding: 0 11px;
+}
+
+.xb-rp #xc_report_form textarea:focus,
+.xb-rp #xc_report_form>input[type="text"]:focus,
+.xb-rp #xc_report_form>div>input[type="text"]:focus {
+  border-color: var(--border-strong, #d4d4d8);
+  outline: none;
+  box-shadow: var(--shadow-ring-pop, 0 0 0 1.5px #18181b, 0 1px 2px rgba(0, 0, 0, .04));
+}
+
+.xb-rp #xc_report_form textarea::placeholder,
+.xb-rp #xc_report_form input::placeholder {
+  font-size: var(--fs-12, 12px);
+  color: var(--text-3, #71717a);
+  opacity: 1;
+}
+
+.xb-rp .xc_report_vfdiv {
+  position: relative;
+}
+
+.xb-rp .xc_report_vfdiv img {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 36px;
+  cursor: pointer;
+  border: 1px solid var(--border-strong, #d4d4d8);
+  border-left: 0;
+  border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0;
+  box-sizing: border-box;
+}
+
+.xb-rp .xc_report_alerta {
+  color: var(--text, #09090b);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ---------- 状态层（提交中 / 成功 / 失败） ---------- */
+.xb-rp-state {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  padding: 26px 8px 18px;
+  text-align: center;
+}
+
+.xb-rp[data-state="loading"] .xb-rp-bd,
+.xb-rp[data-state="done"] .xb-rp-bd,
+.xb-rp[data-state="error"] .xb-rp-bd {
+  display: none;
+}
+
+.xb-rp[data-state="loading"] .xb-rp-state,
+.xb-rp[data-state="done"] .xb-rp-state,
+.xb-rp[data-state="error"] .xb-rp-state {
+  display: flex;
+}
+
+/* 三个图标常驻 DOM，按状态只点亮对应的那一个 */
+.xb-rp-state>[data-st] {
+  display: none;
+}
+
+.xb-rp[data-state="loading"] .xb-rp-state>[data-st="loading"],
+.xb-rp[data-state="done"] .xb-rp-state>[data-st="done"],
+.xb-rp[data-state="error"] .xb-rp-state>[data-st="error"] {
+  display: inline-flex;
+}
+
+.xb-rp-spin {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border, #e4e4e7);
+  border-top-color: var(--text-2, #71717a);
+  border-radius: 50%;
+  animation: xb-rp-spin .8s linear infinite;
+}
+
+@keyframes xb-rp-spin {
+  to { transform: rotate(360deg); }
+}
+
+.xb-rp-state p {
+  margin: 0;
+  font-size: var(--fs-13, 13px);
+  line-height: 1.6;
+  color: var(--text-2, #71717a);
+}
+
+.xb-rp-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.xb-rp-ic.ok {
+  color: var(--success-deep, #047857);
+  background: var(--tint-ok, rgba(16, 185, 129, .12));
+}
+
+.xb-rp-ic.bad {
+  color: var(--danger-deep, #b91c1c);
+  background: var(--danger-bg, rgba(220, 38, 38, .08));
+}
+
+.xb-rp-ic svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+
+/* ---------- 移动端：底部抽屉 ---------- */
+@media (max-width: 560px) {
+  .xb-rp-mask {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .xb-rp {
+    width: 100%;
+    max-width: 100%;
+    max-height: 88vh;
+    max-height: 88dvh;
+    border-radius: var(--radius-lg, 12px) var(--radius-lg, 12px) 0 0;
+    transform: translateY(18px);
+  }
+
+  .xb-rp-hd {
+    padding: 13px 14px;
+  }
+
+  .xb-rp-bd {
+    padding: 2px 14px 12px;
+  }
+
+  .xb-rp-ft {
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .xb-rp-ft .xb-rp-btn {
+    flex: 1;
+    height: 38px;
+  }
+
+  .xb-rp #xc_report_form ul {
+    gap: 7px;
+  }
+
+  .xb-rp #xc_report_form ul li label {
+    min-height: 38px;
+    padding: 8px 9px;
+  }
+}
+
+/* ---------- 纯提示（取表单失败 / 未登录 / 重复提交） ---------- */
+.xb-rp-msg {
+  padding: 18px 2px 14px;
+  font-size: var(--fs-13, 13px);
+  line-height: 1.8;
+  color: var(--text-body, #3f3f46);
+  word-break: break-word;
+}
+
+.xb-rp--mini {
+  width: auto;
+  min-width: 160px;
+}
+
+.xb-rp--mini .xb-rp-state {
+  padding: 20px 22px;
+}
+
+/* ---------- is_theme / is_mochu_us 注入的举报按钮（原样式在编译后的 style.css 里） ---------- */
+.xc_report_reportdiv {
+  padding: 10px 0 !important;
+  margin: 10px auto !important;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.xc_report_reportbut {
+  position: relative;
+  display: inline-block;
+  width: 80px;
+  padding: 2px 0;
+  font-size: var(--fs-12, 12px);
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid var(--border, #e4e4e7);
+  border-radius: var(--radius-pill, 999px);
+  box-sizing: border-box;
+}
+
+.xc_report_reportbut::before {
+  content: '举报';
+  font-size: var(--fs-12, 12px);
+}
+
+.xc_report_reportbut:hover {
+  border-color: var(--border-strong, #d4d4d8);
+}
