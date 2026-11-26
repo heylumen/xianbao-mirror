@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="" lang="zh-CN"><head><!--xianbao-darkmode-sync--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"){document.documentElement.classList.add("night");if(document.body)document.body.classList.add("night");}}catch(e){}})();</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="webkit" name="renderer"/>
+<meta content="no-referrer" name="referrer"/>
+<meta content="webkit" name="force-rendering"/>
+<meta content="IE=edge,Chrome=1" http-equiv="X-UA-Compatible"/>
+<meta content="pc,mobile" name="applicable-device"/>
+<script>window.__xbCfTags={"f":["xianbao","shipin","guoshu","yinliao","danrou","liangyou","riyong","fushi","meizhuang","shuma","jiayong","muying","yule","yundong","jiankang","chongwu","qiche","zhubao","fuwu","wenjiao","qita"],"s":["tb","jd","pdd","tuan","other","zhengdian","maochao"]};</script><script>
+
+(function(){
+    try{
+        var KEY='xb_cf_go', SK='xb_cf_r:';
+        
+        var T=window.__xbCfTags||{}, TF=T.f||[], TS=T.s||[];
+        function hasTag(a,v){ for(var i=0;i<a.length;i++){ if(a[i]===v)return true } return false }
+        function tagOk(rest){
+            var p=String(rest).split('-');
+            if(p.length===1)return hasTag(TF,p[0])||hasTag(TS,p[0]);
+            if(p.length===2)return hasTag(TF,p[0])&&hasTag(TS,p[1]);
+            return false;
+        }
+        function scopeOf(path){
+            if(!path)return '';
+            if(path==='/'||path==='/index.php'||/^\/(page\/\d+|\d+)\/?$/.test(path))return 'home';
+            var m=/^\/category-([a-z0-9-]+)(?:\/\d+)?\/?$/i.exec(path);
+            if(!m)return '';
+            var a=m[1].toLowerCase(), CH=['weibo','haodan','douban','zhidemai','manmanmai'], SB=['weibo','haodan','zhidemai','manmanmai'], i, pre, rest;
+            for(i=0;i<CH.length;i++){ if(a===CH[i])return CH[i] }
+            for(i=0;i<SB.length;i++){
+                pre=SB[i]+'-';
+                if(a.indexOf(pre)===0){ rest=a.slice(pre.length); return tagOk(rest)?a:'' }
+            }
+            return '';
+        }
+        var sc=scopeOf(location.pathname);
+        
+        try{ window.__xbCfBootScope=sc }catch(e){}
+        if(!sc)return;
+        var all=null;
+        try{ all=JSON.parse(localStorage.getItem(KEY)||'null') }catch(e){ return }
+        var it=all&&all[sc];
+        if(!it||typeof it.q!=='string'||!it.q||!it.k||!it.k.length)return;
+        if(it.e&&+it.e<Date.now())return;
+        var sp=null,i;
+        try{ sp=new URLSearchParams(location.search) }catch(e){ return }
+        
+        for(i=0;i<it.k.length;i++){
+            if(sp.get(it.k[i])!==null&&sp.get(it.k[i])!=='')return;
+        }
+        
+        var guard=['q','k','kp','xbq'];
+        for(i=0;i<guard.length;i++){
+            if(sp.get(guard[i])!==null&&sp.get(guard[i])!=='')return;
+        }
+        var target=location.pathname+it.q+location.hash, last='';
+        try{ last=sessionStorage.getItem(SK+sc)||'' }catch(e){}
+        
+        if(last===target)return;
+        try{ sessionStorage.setItem(SK+sc,target) }catch(e){}
+        location.replace(target);
+    }catch(e){}
+})();
+</script><style>
+html.xb-boot{background:#fafafa}
+html.xb-boot>body{visibility:hidden}
+html.night{background:#18181b;color:#fafafa}
+html.night body{background:#18181b;color:#fafafa}
+html.night .header,html.night .footer{background:#1f1f23;border-color:#2e2e33}
+html.night .sb,html.night .xb-crumbs,html.night .pagebar .nav-links{background:#1f1f23}
+html.night .tip-nav,html.night .guanlian,html.night .mochu-us-colluser,html.night .sort-row .cate-btn{background:#1f1f23}
+html.night .nav2-panel{background:#1f1f23}
+html.night .nav2-toggle{background:transparent}
+
+html[data-xb-theme="sunset"]{background:#241a1f;color:#f7ebe0}
+html[data-xb-theme="sunset"] body,html[data-xb-theme="sunset"] .header,html[data-xb-theme="sunset"] .footer{background:#241a1f;color:#f7ebe0}
+html[data-xb-theme="gray"]{background:#2b2b2f;color:#f4f4f5}
+html[data-xb-theme="gray"] body,html[data-xb-theme="gray"] .header,html[data-xb-theme="gray"] .footer{background:#2b2b2f;color:#f4f4f5}
+html[data-xb-theme="dracula"]{background:#282a36;color:#f8f8f2}
+html[data-xb-theme="dracula"] body,html[data-xb-theme="dracula"] .header,html[data-xb-theme="dracula"] .footer{background:#282a36;color:#f8f8f2}
+html[data-xb-theme="nord"]{background:#2e3440;color:#eceff4}
+html[data-xb-theme="nord"] body,html[data-xb-theme="nord"] .header,html[data-xb-theme="nord"] .footer{background:#2e3440;color:#eceff4}
+html[data-xb-theme="tokyo"]{background:#1a1b26;color:#c0caf5}
+html[data-xb-theme="tokyo"] body,html[data-xb-theme="tokyo"] .header,html[data-xb-theme="tokyo"] .footer{background:#1a1b26;color:#c0caf5}
+html[data-xb-theme="catppuccin"]{background:#1e1e2e;color:#cdd6f4}
+html[data-xb-theme="catppuccin"] body,html[data-xb-theme="catppuccin"] .header,html[data-xb-theme="catppuccin"] .footer{background:#1e1e2e;color:#cdd6f4}
+html[data-xb-theme="rosepine"]{background:#191724;color:#e0def4}
+html[data-xb-theme="rosepine"] body,html[data-xb-theme="rosepine"] .header,html[data-xb-theme="rosepine"] .footer{background:#191724;color:#e0def4}
+html[data-xb-theme="gruvbox"]{background:#282828;color:#ebdbb2}
+html[data-xb-theme="gruvbox"] body,html[data-xb-theme="gruvbox"] .header,html[data-xb-theme="gruvbox"] .footer{background:#282828;color:#ebdbb2}
+html[data-xb-theme="everforest"]{background:#2d353b;color:#d3c6aa}
+html[data-xb-theme="everforest"] body,html[data-xb-theme="everforest"] .header,html[data-xb-theme="everforest"] .footer{background:#2d353b;color:#d3c6aa}
+html[data-xb-theme="one-dark"]{background:#282c34;color:#f7f7fb}
+html[data-xb-theme="one-dark"] body,html[data-xb-theme="one-dark"] .header,html[data-xb-theme="one-dark"] .footer{background:#282c34;color:#f7f7fb}
+</style>
+<script>
+(function () {
+var d = document.documentElement;
+d.className += ' xb-boot';
+function r() {
+if (d.classList) { d.classList.remove('xb-boot') }
+else { d.className = d.className.replace(/(^| )xb-boot( |$)/, ' ') }
+}
+window.xbBootRelease = r;
+setTimeout(r, 3500);
+function afterParse() { setTimeout(r, 1200) }
+if (document.readyState === 'loading') {
+document.addEventListener('readystatechange', function h() {
+if (document.readyState !== 'loading') { document.removeEventListener('readystatechange', h); afterParse() }
+});
+} else { afterParse() }
+if (document.readyState !== 'loading') { r() }
+else { document.addEventListener('DOMContentLoaded', function () { requestAnimationFrame(function () { requestAnimationFrame(r) }) }) }
+window.addEventListener('load', r);
+})();
+</script>
+<script>
+(function(){function gt(n){var m=document.cookie.match(new RegExp('(?:^|;\\s*)'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null}
+var t=gt('xb_theme');
+if(t===null){var ck=gt('night');t=ck==='1'?'night':(ck==='0'?'day':'system')}
+
+var __sch=gt('xb_theme_sched');
+if(__sch){
+var __segs=__sch.split(';'),__hh=(new Date()).getHours(),__hit='';
+for(var __i=0;__i<__segs.length;__i++){
+var __sm=String(__segs[__i]||'').match(/^(\d{1,2}):00-(\d{1,2}):00\|([a-z-]+)$/);
+if(!__sm){continue}
+var __s=parseInt(__sm[1],10),__e=parseInt(__sm[2],10);
+var __in=(__s===__e)?false:(__s<__e?((__hh>=__s)&&(__hh<__e)):((__hh>=__s)||(__hh<__e)));
+if(__in){__hit=__sm[3];break}
+}
+if(__hit&&/^[a-z-]{2,20}$/.test(__hit)){t=__hit}
+}
+if(t==='system'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'night':'day'}
+if(t==='night'){document.documentElement.className+=' night'}
+else if(t!=='day'){document.documentElement.setAttribute('data-xb-theme',t);
+
+var l=document.createElement('link');l.id='xb-theme-css';l.rel='stylesheet';
+l.href='/design/tokens-themes.css?v=20261122145700';document.documentElement.appendChild(l)}})();
+
+(function(){var m=document.cookie.match(/(?:^|;\s*)density=([^;]*)/);if(m&&decodeURIComponent(m[1])==='compact'){document.documentElement.className+=' density-compact';}})();
+
+(function(){function gt(n){var m=document.cookie.match(new RegExp('(?:^|;\\s*)'+n+'=([^;]*)'));return m?decodeURIComponent(m[1]):null}
+var h=document.documentElement,fs=gt('xb_fs'),tl=gt('xb_tlines');
+if(fs==='s'||fs==='l'||fs==='xl'){h.className+=' xb-fs-'+fs}
+if(tl==='1'){h.className+=' xb-tl1'}})();
+</script>
+<title>5岁男娃 一直夜咳  断断续续1个月 - 线报酷</title>
+<meta content="赚客吧" name="keywords"/>
+<meta content="以往就有腺样体肿大，但是不感冒睡觉还挺安稳，平常稍微张嘴，家里人不愿意做手术一直保守。10月底开始 ，晚上两三点咳嗽，咳个几下，停一两分钟又咳嗽。 没有痰，孩子自己不会擤鼻涕，去儿童医院耳鼻喉科看了看 说是鼻后滴漏，有鼻炎，让天天洗鼻子，开加湿器，同时开了抗生素，激素喷剂，溴已新 西替利嗪 还有一个..." name="description"/>
+<link href="/zuankeba/7576888.html" rel="canonical"/>
+<meta content="noindex,nofollow" name="robots"/>
+<meta content="article" property="og:type"/>
+<meta content="5岁男娃 一直夜咳  断断续续1个月" property="og:title"/>
+<meta content="" property="og:description"/>
+<meta content="/zuankeba/7576888.html" property="og:url"/>
+<meta content="/zb_users/theme/xianbao_theme/image/og-cover.png" property="og:image"/>
+<meta content="线报酷" property="og:site_name"/>
+<meta content="2026-11-26T08:57:00+08:00" property="article:published_time"/>
+<meta content="summary" name="twitter:card"/>
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"Article","headline":"5岁男娃 一直夜咳  断断续续1个月","datePublished":"2026-11-26T08:57:00+08:00","dateModified":"2026-11-26T08:57:26+08:00","author":{"@type":"Person","name":"MayJayDay","url":"/record/zuankeba/MayJayDay.html"},"publisher":{"@type":"Organization","name":"线报酷","url":"/","logo":{"@type":"ImageObject","url":"/zb_users/theme/xianbao_theme/image/newlogo.png"}},"mainEntityOfPage":{"@type":"WebPage","@id":"/zuankeba/7576888.html"},"image":"/zb_users/theme/xianbao_theme/image/newlogo.png","inLanguage":"zh-CN"},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"线报酷","item":"/"},{"@type":"ListItem","position":2,"name":"赚客吧","item":"/category-zuankeba/"},{"@type":"ListItem","position":3,"name":"5岁男娃 一直夜咳  断断续续1个月","item":"/zuankeba/7576888.html"}]}]</script>
+<link href="/favicon.ico" rel="shortcut icon"/>
+<link href="/rss.php" rel="alternate" title="线报酷 RSS 订阅" type="application/rss+xml"/>
+
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"or":[{"href_matches":"/search.php*"},{"href_matches":"/Ucenter*"},{"href_matches":"/extension.html*"},{"href_matches":"/plus/*"},{"href_matches":"/api/*"},{"href_matches":"/zb_system/*"},{"href_matches":"/zb_users/*"},{"href_matches":"/feed.php*"},{"href_matches":"/rss.php*"},{"href_matches":"/cmd.php*"},{"href_matches":"/api.php*"},{"selector_matches":"a[rel=nofollow], a[target=_blank], a[download], a[href*=\"?\"], a[href*=\"#\"]"}]}}]},"eagerness":"moderate"}]}
+</script>
+<script type="speculationrules">
+{"prerender":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"or":[{"href_matches":"/search*"},{"href_matches":"/Ucenter*"},{"href_matches":"/login.html*"},{"href_matches":"/logout*"},{"href_matches":"/tuisong.html*"},{"href_matches":"/extension.html*"},{"href_matches":"/plus/*"},{"href_matches":"/api/*"},{"href_matches":"/zb_system/*"},{"href_matches":"/zb_users/*"},{"href_matches":"/feed.php*"},{"href_matches":"/rss.php*"},{"href_matches":"/cmd.php*"},{"href_matches":"/api.php*"},{"selector_matches":"a[download], .no-prerender, a[href*=\"?\"], a[href*=\"#\"]"}]}}]},"eagerness":"moderate"}]}
+</script>
+<script>
+
+(function () {
+  try {
+    var st = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+             window.navigator.standalone === true;
+    if (!st) return;
+  } catch (e) { return; }
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0) return;
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var a = t.closest('a[target]');
+    if (!a || a.hasAttribute('download')) return;
+    var tg = (a.getAttribute('target') || '').toLowerCase();
+    if (tg === '_self' || tg === '_top' || tg === '_parent') return;
+    a.removeAttribute('target');
+  }, true);
+  var _xbOpen = window.open;
+  window.open = function (u, n) {
+    n = (n || '').toLowerCase();
+    if (!u || n === '_self' || n === '_top' || n === '_parent') return _xbOpen.apply(window, arguments);
+    try { window.location.href = u; } catch (e) { return _xbOpen.apply(window, arguments); }
+    return null;
+  };
+})();
+</script>
+<script>
+
+(function () {
+  try {
+    if (!/(?:Mobile|Android|Phone|Silk\/|Kindle|BlackBerry|Opera Mini|Opera Mobi)/.test(navigator.userAgent)) return;
+  } catch (e) { return; }
+  function stripTargets() {
+    var as = document.querySelectorAll('a[target][href^="/"]');
+    for (var i = 0; i < as.length; i++) {
+      var a = as[i];
+      if (a.hasAttribute('download')) continue;
+      var tg = (a.getAttribute('target') || '').toLowerCase();
+      if (tg === '_self' || tg === '_top' || tg === '_parent') continue;
+      a.removeAttribute('target');
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', stripTargets);
+  else stripTargets();
+  document.addEventListener('click', function (e) {
+    if (e.defaultPrevented || e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var a = t.closest('a[target]');
+    if (!a || a.hasAttribute('download')) return;
+    var href = a.getAttribute('href') || '';
+    if (href.charAt(0) !== '/') return;
+    a.removeAttribute('target');
+  }, true);
+})();
+</script>
+<link as="font" crossorigin="" href="/design/fonts/pangmen-logo.woff2?v=20261031" rel="preload" type="font/woff2"/>
+<link href="/design/tokens.css?v=20261121c" rel="stylesheet"/>
+<link href="/zb_users/theme/xianbao_theme/style/style.min.css?v=20261125143525" rel="stylesheet"/>
+<link href="/design/comment-live.css?v=20261126222209" rel="stylesheet"/>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-jq.min.js?v=20261123123000"></script><script defer="" src="/zb_system/script/zblogphp.js?v=5e8d86eb"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/dark-mode.min.js?v=20261123131000"></script>
+<script defer="" src="/zb_system/script/c_html_js_add.php"></script>
+<script>
+(function () {
+  try {
+    if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) return;
+    if (!('IntersectionObserver' in window)) return;
+    var c = navigator.connection || {};
+    if (c.saveData || /2g/i.test(c.effectiveType || '')) return;
+    var seen = {}, n = 0, queue = [];
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var a = en.target, href = a.getAttribute('href') || '';
+        io.unobserve(a);
+        if (!href || href.charAt(0) !== '/' || href.indexOf('//') === 0) return;
+        if (href.indexOf('#') === 0 || a.hash) return;
+        if (href.indexOf('?') !== -1) return; // 带参数（?cate=/?fc=/搜索）不预取，与 Speculation Rules 同口径
+        if (/(^|\/)(search\.php|Ucenter|tuisong\.html|extension\.html|feed\.php|rss\.php|cmd\.php|api\.php)([?/]|$)/.test(href)) return;
+        if (/^\/(plus|api|zb_system|zb_users)\//.test(href)) return;
+        if (a.rel && /nofollow/.test(a.rel)) return;
+        if (seen[href]) return; seen[href] = 1;
+        if (n >= 8) return; n++;
+        queue.push(href);
+      });
+      if (queue.length) schedule();
+    }, { rootMargin: '200px' });
+    var scheduled = false;
+    function schedule() {
+      if (scheduled) return; scheduled = true;
+      (window.requestIdleCallback || function (f) { setTimeout(f, 200); })(flush);
+    }
+    function flush() {
+      var frag = document.createDocumentFragment();
+      queue.splice(0).forEach(function (h) {
+        var l = document.createElement('link');
+        l.rel = 'prefetch'; l.href = h; l.as = 'document';
+        frag.appendChild(l);
+      });
+      document.head.appendChild(frag);
+      scheduled = false;
+    }
+    function scan() {
+      var as = document.querySelectorAll('a[href^="/"]');
+      for (var i = 0; i < as.length && i < 120; i++) io.observe(as[i]);
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan);
+    else scan();
+  } catch (e) { }
+})();
+</script>
+<link href="/zb_users/plugin/xc_report/front.css?r=20261122173226" media="all" rel="stylesheet" type="text/css"/><link href="/zb_users/plugin/xc_report/style/front-overrides.css?r=20261122173226" media="all" rel="stylesheet" type="text/css"/><meta content="线报酷" name="apple-mobile-web-app-title"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon.png" rel="apple-touch-icon"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-57.png" rel="apple-touch-icon-precomposed" sizes="57x57"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-72.png" rel="apple-touch-icon-precomposed" sizes="72x72"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-114.png" rel="apple-touch-icon-precomposed" sizes="114x114"/>
+<link href="/zb_users/theme/xianbao_theme/image/iosicon/icon-144.png" rel="apple-touch-icon-precomposed" sizes="144x144"/>
+<link href="/zb_users/plugin/mochu_us/layer/theme/default/layer.css?v=3.5.1" id="layuicss-layer" rel="stylesheet"/><style id="ck-link-style">.ck-link-pop{position:fixed;z-index:99999;background:#fff;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.15);min-width:140px;max-width:90vw;overflow:hidden;display:none;animation:ckFadeIn .15s ease-out}@keyframes ckFadeIn{from{opacity:0;transform:translateY(-4px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}.ck-link-pop .ck-link-item{display:flex;align-items:center;padding:10px 15px;color:#333;font-size:14px;cursor:pointer;user-select:none;transition:background .15s;white-space:nowrap}.ck-link-pop .ck-link-item + .ck-link-item{border-top:1px solid #f0f0f0}.ck-link-pop .ck-link-item:hover,.ck-link-pop .ck-link-item:active{background:#f7f8fa}.ck-link-pop .ck-link-item svg.xb-ic{font-size:16px;margin-right:10px;flex:none;}.ck-layer.msg{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:100000;display:none}.ck-qrcode-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.2);text-align:center;z-index:100001;display:none}.ck-qrcode-box .ck-qrcode-tip{margin-top:10px;font-size:12px;color:#999}.ck-qrcode-box .ck-qrcode-close{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;color:#999}</style></head>
+<body class="xb-cmt-s2 xb-p2"><!--xianbao-chrome-stripped--><header class="header sb xianbao-article-nav"><div class="h-wrap container clearfix"><div class="logo-area fl"><a href="/" title="线报酷"><img alt="线报酷" class="img" src="/zb_users/theme/xianbao_theme/image/newlogo.png" title="线报酷"/></a></div><nav class="responsive-nav"><div class="pc-nav m-nav fl" data-cateid="16" data-catename="zuankeba" data-type="category"><ul class="nav-ul"><li id="nvabar-item-index"><a href="/">首页</a></li><li class="active" id="navbar-category-zuankeba"><a href="/category-zuankeba/">赚客吧</a></li><li class="" id="navbar-category-xinzuanba"><a href="/category-xinzuanba/">新赚吧</a></li><li class="" id="navbar-category-xiaodigu"><a href="/category-xiaodigu/">小嘀咕</a></li><li class="" id="navbar-category-huluxia"><a href="/category-huluxia/">葫芦侠三楼</a></li><li class="" id="navbar-category-xiaodao"><a href="/category-xiaodao/">小刀娱乐网</a></li></ul></div></nav><a aria-expanded="false" aria-haspopup="true" aria-label="选择主题" class="dark-mode fr" href="javascript:;" id="xbThemeBtn" onclick="xbThemeMenuToggle(event);return false;" role="button" target="_self" title="选择主题"><svg aria-hidden="true" class="xb-ic" height="18" viewbox="0 0 24 24" width="18"><path d="M12 2a10 10 0 1 0 0 20 2.5 2.5 0 0 0 2.5-2.5c0-.6-.2-1.1-.6-1.5-.4-.4-.6-.9-.6-1.5A2.5 2.5 0 0 1 15.8 15H18a4 4 0 0 0 4-4 10 10 0 0 0-10-9z" fill="none" stroke="currentColor" stroke-width="2"></path><circle cx="7.5" cy="11.5" fill="currentColor" r="1.2"></circle><circle cx="10" cy="7.5" fill="currentColor" r="1.2"></circle><circle cx="14.5" cy="8" fill="currentColor" r="1.2"></circle></svg><span class="lt">主题</span></a><div aria-label="选择主题" class="xb-thememenu" hidden="" id="xbThemeMenu"><p class="xb-tm-hint">悬停预览整页 · 点击保存</p><div class="xb-tm-grid xb-tm-grid--sys"><button class="xb-tm-opt on" data-t="system" type="button"><span class="xb-tm-sw" style="background:linear-gradient(135deg,#fafafa 0 50%,#18181b 50% 100%)"></span><span class="xb-tm-cn">跟随系统<span class="xb-tm-cur">当前白天</span></span><span class="xb-tm-en">自动深浅</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><p class="xb-tm-gt">亮色</p><div class="xb-tm-grid"><button class="xb-tm-opt" data-t="day" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#fafafa 0 50%,#18181b 50% 100%)"><i style="background:#fafafa"></i><i style="background:#ffffff"></i><i style="background:#18181b"></i></span><span class="xb-tm-cn">白天模式</span><span class="xb-tm-en">清爽浅灰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="eye" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#cfe6d0 0 50%,#243524 50% 100%)"><i style="background:#cfe6d0"></i><i style="background:#eef6ee"></i><i style="background:#243524"></i></span><span class="xb-tm-cn">护眼模式</span><span class="xb-tm-en">豆沙绿</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="parchment" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#efe4cd 0 50%,#4a3a22 50% 100%)"><i style="background:#efe4cd"></i><i style="background:#f7efdd"></i><i style="background:#4a3a22"></i></span><span class="xb-tm-cn">羊皮纸模式</span><span class="xb-tm-en">暖褐纸色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="solarized" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#fdf6e3 0 50%,#073642 50% 100%)"><i style="background:#fdf6e3"></i><i style="background:#fffbf0"></i><i style="background:#073642"></i></span><span class="xb-tm-cn">日光浅色</span><span class="xb-tm-en">米黄经典</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><p class="xb-tm-gt">暗色</p><div class="xb-tm-grid"><button class="xb-tm-opt" data-t="night" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#18181b 0 50%,#f4f4f5 50% 100%)"><i style="background:#18181b"></i><i style="background:#1f1f23"></i><i style="background:#fafafa"></i></span><span class="xb-tm-cn">夜间模式</span><span class="xb-tm-en">经典暗黑</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="sunset" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#241a1f 0 50%,#f2a65e 50% 100%)"><i style="background:#241a1f"></i><i style="background:#2e2126"></i><i style="background:#f2a65e"></i></span><span class="xb-tm-cn">日落模式</span><span class="xb-tm-en">暖暮棕紫</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="gray" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#2b2b2f 0 50%,#f4f4f5 50% 100%)"><i style="background:#2b2b2f"></i><i style="background:#343439"></i><i style="background:#f4f4f5"></i></span><span class="xb-tm-cn">深灰模式</span><span class="xb-tm-en">舒适中灰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="dracula" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#282a36 0 50%,#bd93f9 50% 100%)"><i style="background:#282a36"></i><i style="background:#343746"></i><i style="background:#bd93f9"></i></span><span class="xb-tm-cn">德古拉</span><span class="xb-tm-en">深紫荧光</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="nord" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#2e3440 0 50%,#88c0d0 50% 100%)"><i style="background:#2e3440"></i><i style="background:#3b4252"></i><i style="background:#88c0d0"></i></span><span class="xb-tm-cn">北欧蓝</span><span class="xb-tm-en">冷调霜蓝</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="kanagawa" type="button"><span aria-hidden="true" class="xb-tm-sws"><i style="background:#1f1f28"></i><i style="background:#2a2a37"></i><i style="background:#7e9cd8"></i></span><span class="xb-tm-cn">神奈川</span><span class="xb-tm-en">和风墨色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="tokyo" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#1a1b26 0 50%,#7aa2f7 50% 100%)"><i style="background:#1a1b26"></i><i style="background:#1f2335"></i><i style="background:#7aa2f7"></i></span><span class="xb-tm-cn">东京之夜</span><span class="xb-tm-en">深蓝霓虹</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="catppuccin" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#1e1e2e 0 50%,#cba6f7 50% 100%)"><i style="background:#1e1e2e"></i><i style="background:#262637"></i><i style="background:#cba6f7"></i></span><span class="xb-tm-cn">猫布奇诺</span><span class="xb-tm-en">粉彩可可</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="rosepine" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#191724 0 50%,#ebbcba 50% 100%)"><i style="background:#191724"></i><i style="background:#1f1d2e"></i><i style="background:#ebbcba"></i></span><span class="xb-tm-cn">玫瑰松</span><span class="xb-tm-en">紫夜玫瑰</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="gruvbox" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#282828 0 50%,#fabd2f 50% 100%)"><i style="background:#282828"></i><i style="background:#32302f"></i><i style="background:#fabd2f"></i></span><span class="xb-tm-cn">复古暖褐</span><span class="xb-tm-en">复古终端</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="everforest" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#2d353b 0 50%,#a7c080 50% 100%)"><i style="background:#2d353b"></i><i style="background:#343f44"></i><i style="background:#a7c080"></i></span><span class="xb-tm-cn">永恒森林</span><span class="xb-tm-en">林绿深色</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-t="one-dark" type="button"><span aria-hidden="true" class="xb-tm-sws" style="background:linear-gradient(135deg,#282c34 0 50%,#61afef 50% 100%)"><i style="background:#282c34"></i><i style="background:#2f343d"></i><i style="background:#61afef"></i></span><span class="xb-tm-cn">One Dark</span><span class="xb-tm-en">经典编辑器</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><div class="xb-tm-sep"></div><p class="xb-tm-gt">字号大小</p><div class="xb-tm-grid"><button class="xb-tm-opt" data-fs="s" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:11px">A</span><span class="xb-tm-cn">小号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt on" data-fs="" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:13px">A</span><span class="xb-tm-cn">标准</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="l" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:15px">A</span><span class="xb-tm-cn">大号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button><button class="xb-tm-opt" data-fs="xl" type="button"><span class="xb-tm-sw xb-tm-aa" style="font-size:17px">A</span><span class="xb-tm-cn">特大号</span><span aria-hidden="true" class="xb-tm-ck">✓</span></button></div><div class="xb-tm-sep"></div><p class="xb-tm-gt">列表密度</p><div aria-label="列表密度" class="xb-tm-seg" role="group"><button class="on" data-density="" type="button">舒适</button><button data-density="compact" type="button">紧凑</button></div><div class="xb-tm-foot"><button class="xb-tm-reset" title="恢复默认主题、字号、标题行数与列表密度" type="button">恢复默认</button></div></div><span class="search-button fr" id="search-button" role="button" tabindex="0" title="搜索"><svg aria-hidden="true" class="xb-ic" height="18" viewbox="0 0 24 24" width="18"><circle cx="11" cy="11" fill="none" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></svg></span><div class="container br sb animated-fast fadeInUpMenu hidden" id="search-area" style="display:none;"><form action="/search.html" class="searchform clearfix" method="get" name="search"><input autofocus="autofocus" class="s-input br fl" name="q" placeholder="请输入关键词..." type="text"/><button class="s-button fr br transition brightness" id="searchsubmit" type="submit">搜 索</button></form></div></div></header>
+
+<div class="navstrip sb">
+<nav aria-label="频道导航" class="ns-wrap container">
+<ul class="ns-ul">
+<li><a class="t" href="/" title="首页-线报酷">首页</a></li><li><a class="t has-dd" title="线报酷-线报酷">线报酷<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>本站公告区</a><a>订阅推送</a><a>线报知识库</a><a>线报酷服务</a><a>浏览器扩展</a></div></li><li><a class="t" title="我的关注-线报酷">我的关注</a></li><li><a class="t has-dd" title="排行榜-线报酷">排行榜<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>赚客吧排行榜</a><a>新赚吧排行榜</a><a>豆瓣线报排行榜</a><a>微博线报排行榜</a><a>好单线报排行榜</a><a>值得买排行榜</a><a>慢慢买排行榜</a></div></li><li><a class="t on has-dd" href="/category-zuankeba/" title="赚客吧-线报酷">赚客吧<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>赚客吧排行榜</a></div></li><li><a class="t has-dd" href="/category-xinzuanba/" title="新赚吧-线报酷">新赚吧<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>新赚吧排行榜</a></div></li><li><a class="t has-dd" title="豆瓣线报-线报酷">豆瓣线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>豆瓣线报排行榜</a><a>买组</a><a>拼组</a><a>发组</a><a>狗组</a><a>爱猫生活</a><a>爱猫澡盆</a></div></li><li><a class="t has-dd" title="微博线报-线报酷">微博线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>微博线报排行榜</a></div></li><li><a class="t has-dd" title="微博超话-线报酷">微博超话<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>微博超话排行榜</a></div></li><li><a class="t has-dd" title="好单线报-线报酷">好单线报<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>好单线报排行榜</a></div></li><li><a class="t has-dd" title="值得买-线报酷">值得买<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>值得买排行榜</a></div></li><li><a class="t has-dd" title="慢慢买-线报酷">慢慢买<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>慢慢买排行榜</a></div></li><li><a class="t has-dd" title="酷安-线报酷">酷安<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>酷安排行榜</a></div></li><li><a class="t has-dd" href="/category-xiaodigu/" title="小嘀咕-线报酷">小嘀咕<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down"></use></svg></a><div class="ns-dd"><a>小嘀咕排行榜</a></div></li><li><a class="t" title="生活优惠-线报酷">生活优惠</a></li><li><a class="t" href="/category-huluxia/" title="葫芦侠三楼-线报酷">葫芦侠三楼</a></li><li><a class="t" href="/category-xiaodao/" title="小刀娱乐网-线报酷">小刀娱乐网</a></li><li><a class="t" title="爱Q生活网-线报酷">爱Q生活网</a></li><li><a class="t" title="免费赚钱中心-线报酷">免费赚钱中心</a></li> </ul>
+</nav>
+</div>
+<div class="nav2-wrap sb hidden-xl">
+
+<button aria-controls="nav2-panel" aria-expanded="false" aria-label="展开分类" class="nav2-toggle" title="展开分类" type="button"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use height="15" href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-chevron-down" width="15" x="4.5" y="4.5"></use></svg></button>
+</div>
+<div class="nav2-panel hidden-xl" id="nav2-panel">
+<div class="nav2-gt">常用</div><div class="nav2-chips"><a href="/" rel="nofollow" title="首页-线报酷">首页</a><a rel="nofollow" title="我的关注-线报酷">我的关注</a><a rel="nofollow" title="排行榜-线报酷">排行榜</a><a rel="nofollow" title="线报酷-线报酷">线报酷</a><a rel="nofollow" title="生活优惠-线报酷">生活优惠</a><a rel="nofollow" title="线报知识库-线报酷">线报知识库</a></div><div class="nav2-gt">线报频道</div><div class="nav2-chips"><a class="nav2-on" href="/category-zuankeba/" rel="nofollow" title="赚客吧-线报酷">赚客吧</a><a href="/category-xinzuanba/" rel="nofollow" title="新赚吧-线报酷">新赚吧</a><a rel="nofollow" title="酷安-线报酷">酷安</a><a href="/category-xiaodigu/" rel="nofollow" title="小嘀咕-线报酷">小嘀咕</a></div><div class="nav2-gt">购物频道</div><div class="nav2-chips"><a rel="nofollow" title="豆瓣线报-线报酷">豆瓣线报</a><a rel="nofollow" title="微博线报-线报酷">微博线报</a><a rel="nofollow" title="微博超话-线报酷">微博超话</a><a rel="nofollow" title="好单线报-线报酷">好单线报</a><a rel="nofollow" title="值得买-线报酷">值得买</a><a rel="nofollow" title="慢慢买-线报酷">慢慢买</a></div><div class="nav2-gt">排行榜</div><div class="nav2-chips"><a rel="nofollow" title="赚客吧排行榜-线报酷">赚客吧排行榜</a><a rel="nofollow" title="新赚吧排行榜-线报酷">新赚吧排行榜</a><a rel="nofollow" title="豆瓣线报排行榜-线报酷">豆瓣线报排行榜</a><a rel="nofollow" title="微博线报排行榜-线报酷">微博线报排行榜</a><a rel="nofollow" title="好单线报排行榜-线报酷">好单线报排行榜</a><a rel="nofollow" title="值得买排行榜-线报酷">值得买排行榜</a><a rel="nofollow" title="慢慢买排行榜-线报酷">慢慢买排行榜</a></div><div class="nav2-gt">其他站点</div><div class="nav2-chips"><a href="/category-huluxia/" rel="nofollow" title="葫芦侠三楼-线报酷">葫芦侠三楼</a><a href="/category-xiaodao/" rel="nofollow" title="小刀娱乐网-线报酷">小刀娱乐网</a><a rel="nofollow" title="爱Q生活网-线报酷">爱Q生活网</a><a rel="nofollow" title="免费赚钱中心-线报酷">免费赚钱中心</a></div><div class="nav2-gt">本站</div><div class="nav2-chips"><a rel="nofollow" title="本站公告区-线报酷">本站公告区</a><a rel="nofollow" title="订阅推送-线报酷">订阅推送</a><a rel="nofollow" title="线报知识库-线报酷">线报知识库</a><a rel="nofollow" title="线报酷服务-线报酷">线报酷服务</a><a rel="nofollow" title="浏览器扩展-线报酷">浏览器扩展</a></div> </div>
+<div class="content container clearfix" id="content">
+<main class="article-box mb" id="mainbox">
+<article class="art-main br mb sb">
+<div class="xb-crumbs article-mbx"><a href="/" title="首页">首页</a><span class="sub">/</span><a href="/category-zuankeba/" title="赚客吧">赚客吧</a><span class="sub">/</span><span class="cur">文章</span></div>
+<div class="art-head mb">
+<h1 class="art-title">5岁男娃 一直夜咳  断断续续1个月</h1>
+<div class="head-info">
+<span class="author"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-user"></use></svg><a target="_blank" title="MayJayDay 注册日期：2021-6-23">MayJayDay</a></span>
+<time class="time" datetime="2026-11-26" title="2026-11-26 08:57:00">
+<svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-clock"></use></svg>2026年11月26日 08:57</time>
+
+</div>
+</div>
+<div class="xb-stband" id="xb-statusbar-root"><div aria-label="线报状态投票" class="xb-statusbar" data-sum='{"alive":0,"dead":1,"done":0,"total":1,"result":0,"burst":0}' role="group"><span class="xb-st-verdict bad"><span class="dot"></span>已失效</span><span class="xb-st-votes" title="1 人已反馈"><button class="xb-st-btn" data-st="1" style="pointer-events:none;" title="镜像站为静态快照，投票数据为抓取时快照" type="button">有效</button><button class="xb-st-btn lead bad" data-st="2" style="pointer-events:none;" title="镜像站为静态快照，投票数据为抓取时快照" type="button">失效 <em>1</em></button></span><span class="xb-st-fb">已有 1 人反馈，快来投一票告诉大家</span></div></div>
+<div class="art-content">
+<div class="article-content xb-linked">
+	        以往就有腺样体肿大，但是不感冒睡觉还挺安稳，平常稍微张嘴，家里人不愿意做手术一直保守。<br/>10月底开始 ，晚上两三点咳嗽，咳个几下，停一两分钟又咳嗽。 没有痰，孩子自己不会擤鼻涕，去儿童医院耳鼻喉科看了看 说是鼻后滴漏，有鼻炎，让天天洗鼻子，开加湿器，同时开了抗生素，激素喷剂，溴已新 西替利嗪 还有一个中成药，治疗了一周，有减轻。复查 只留下西替利嗪继续吃，多开了个只能喷7天的喷剂。 又治疗了一周 基本缓解，7天喷剂就喷了两天 ，激素药到2周也停了。<br/>第三周 偶有发作 ，还是每天洗鼻子，开加湿器，最近两天又开始咳嗽了，症状一样。<br/><br/>我有点怨我老婆 非得提前停药，基础激素的那个药都说了 2到4周，非想着能停就停，还有7天喷剂也是没好好用。<br/>天天就想着找些所谓的偏方，什么藿香正气外敷，什么小儿推拿的，我想问大家这些有用吗？<br/>或者有哪些对小儿鼻炎有效的持久的方法。	        </div>
+</div>
+<div class="xb-artfoot">
+<div class="xb-artfoot-btns">
+<a class="xb-qlink" href="#" rel="nofollow noopener" target="_blank" title="原文地址：5岁男娃 一直夜咳  断断续续1个月"><svg aria-hidden="true" class="xb-ic" viewbox="0 0 24 24"><use href="/zb_users/theme/xianbao_theme/image/icons.svg?v=20261125110000#i-link"></use></svg><span class="xb-bt">查看原文</span><span class="xb-bs">原文</span></a><div data-biaoqian="加湿器|鼻炎|孩子|感冒|藿香|抗生素|中成药|男娃|耳鼻喉科" data-id="7576888" id="article-button"></div></div>
+<div class="xb-artmeta-copy">版权说明：本站为免费线报整合平台，内容快照源自网络，临时存储、未经核实。商品活动有时效性，请以平台实际页面为准。</div></div>
+</article>
+<div class="art-fujia sb br mb clearfix" id="art-fujia">
+<div class="xb-crumbs"><span class="upd-t">本文由系统自动重新抓取更新于</span><span class="upd-sub">2026-11-26 20:58:47</span></div>
+<div class="art-fujia-content">
+<div class="post-comment clearfix br mb kuangxian" id="comment"><div class="comment-list" style="display:block;"><div class="title">评论列表<span class="xb-cmtn">31 条</span><span class="xb-cmtpills noselect"><span class="fr pinglunshunxu noselect" onclick="xianbaoPinglunshunxu();" style="cursor:pointer;">↹ 顺序</span><span class="fr showlouzhu noselect" onclick="xianbaoShowlouzhu();" style="cursor:pointer;">只看楼主</span></span></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">m</span><div class="clbody"><div class="cinfo clearfix"><span class="author">mn772075340</span><span class="c-time">2026-11-26 10:21</span><span class="cmt-fl">1L</span></div><div class="c-neirong">吃药还得是遵照医嘱，我一直有过敏性鼻炎，过了过敏季节还不缓和，还有点喘不上来，去医院检查说是鼻窦炎了，让吃够两个星期的药再去复查，我吃上两天就缓解了，真的是太高兴了，期间有时也会忘记吃药，后来有天出远门忘记吃了，我就没吃，也没吃够2个星期，好了没有1个星期，这几天又有要犯的节奏.悔不当初啊</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">a</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>a137157006</a></span><span class="c-time">2026-11-26 09:08</span><span class="cmt-fl">2L</span></div><div class="c-neirong">能不能问ai这里是撸毛的地方，再不济上医院。。</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">l</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>lixianghe</a></span><span class="c-time">2026-11-26 09:09</span><span class="cmt-fl">3L</span></div><div class="c-neirong">8岁也是咳嗽一个月了，去医院输液，输了七天还没好，就让出院，跟他说了早晨咳嗽厉害。医院非让出院。不知道怎么办了</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">g</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>gaodian</a></span><span class="c-time">2026-11-26 09:10</span><span class="cmt-fl">4L</span></div><div class="c-neirong">医嘱都不遵守。问了吧友有什么用</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">s</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>scutlxb</a></span><span class="c-time">2026-11-26 09:11</span><span class="cmt-fl">5L</span></div><div class="c-neirong">过敏性鼻炎？<br/><br/>被子勤洗，床上面不要放毛绒公仔。<br/><br/></div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">x</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>xiaowang2014</a></span><span class="c-time">2026-11-26 09:11</span><span class="cmt-fl">6L</span></div><div class="c-neirong">能不能好好去医院治疗</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">s</span><div class="clbody"><div class="cinfo clearfix"><span class="author">smjiiu</span><span class="c-time">2026-11-26 09:12</span><span class="cmt-fl">7L</span></div><div class="c-neirong">有些药不能觉得缓解了就停或是减少用量。比如西提丽琴这种，让吃多久就吃多久，之后再观察调整，不然很快肥大细胞阿，组胺阿炎症阿啥的又回来了。很容易急性的变慢性的。<br/>当然，最好还是多问医生。</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">M</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>Mr.Zhou_bo</a></span><span class="c-time">2026-11-26 09:19</span><span class="cmt-fl">8L</span></div><div class="c-neirong">去医院挂个专家号。<br/><br/>还有啊，盐酸西替利嗪口服溶液  副作用好大。<br/><br/>我自己鼻炎，睡前吃个10ml，第二天一整天头都晕乎乎的，提不起劲。</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">暮</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>暮行之</a></span><span class="c-time">2026-11-26 09:34</span><span class="cmt-fl">9L</span></div><div class="c-neirong">过来人告诉你，喝热水 喝热水 喝热水，冬天一定要喝热水，不要喝任何冰的 冷的饮料 水</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">让</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>让子弹飞！</a></span><span class="c-time">2026-11-26 09:35</span><span class="cmt-fl">10L</span></div><div class="c-neirong">我们家也有鼻炎，前段时间还细菌感染，雾化了一周后，医生说鼻炎的得长久治疗，然后说每天洗鼻子，然后让吃苍耳子之类的鼻炎药，说吃到不鼻塞就行，这个药有毒不能长久吃！然后说鼻喷对小孩效果不好，没开鼻喷，然后开的那个孟鲁司特钠咀嚼片，这个药风险也比较大，但是我们家吃了还好了开了一个月的，每天吃一粒，西利琴没让再喝，就是洗鼻子，晚上孟鲁司他钠</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">4</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>4872080</a></span><span class="c-time">2026-11-26 09:36</span><span class="cmt-fl">11L</span></div><div class="c-neirong xb-cmtthumbs">鼻炎引起的 就洗鼻子 把生理盐水 灌在中了 你用嘴吹  一个鼻子吹盐水进去 另外鼻子 鼻涕就全部出来了 买一大瓶打针的那种生理盐水 可以洗好久 睡觉之前洗哈鼻子 <br/><div class="c-imgs"><img alt="5岁男娃 一直夜咳  断断续续1个月 - 线报酷" data-fancybox="pinglun-img" loading="lazy" referrerpolicy="no-referrer" src="/plus/api/image.php?imgurl=http%3A%2F%2Fimg.zuanke8.cn%2Fforum%2F202611%2F26%2F093635qzmbsvaj4sbb3dzj.jpg" title="5岁男娃 一直夜咳  断断续续1个月 - 线报酷"/></div></div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">4</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>4872080</a></span><span class="c-time">2026-11-26 09:37</span><span class="cmt-fl">12L</span></div><div class="c-neirong">盐水装中间</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">1</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>102gy</a></span><span class="c-time">2026-11-26 09:37</span><span class="cmt-fl">13L</span></div><div class="c-neirong"><br/><br/>西替利嗪不要用国产的，买进口的，中成药鼻子的鼻渊舒应该还可以，就是非常难喝。<br/><br/>鼻喷的应该是有到换季就长期喷吧，虽然有副作用。抗过敏的尽量买进口的，不要用医院开的国产，比如要买开瑞坦、仙特明，效果差很多<br/><br/>洗鼻子应该是效果最好的</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">w</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>winwayz</a></span><span class="c-time">2026-11-26 09:38</span><span class="cmt-fl">14L</span></div><div class="c-neirong">痊愈了又开始，那就注意环境了</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">l</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>lzcppt</a></span><span class="c-time">2026-11-26 09:39</span><span class="cmt-fl">15L</span></div><div class="c-neirong">补VD，盐水洗鼻子，坚持<br/></div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">4</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>4872080</a></span><span class="c-time">2026-11-26 09:41</span><span class="cmt-fl">16L</span></div><div class="c-neirong xb-cmtthumbs">买这种也可以 我用的就是这种 每天晚上洗鼻子  多洗几次 没有鼻涕就洗好了<br/><div class="c-imgs"><img alt="5岁男娃 一直夜咳  断断续续1个月 - 线报酷" data-fancybox="pinglun-img" loading="lazy" referrerpolicy="no-referrer" src="/plus/api/image.php?imgurl=http%3A%2F%2Fimg.zuanke8.cn%2Fforum%2F202611%2F26%2F094126rmxx3s3u4y3uqmyq.jpg" title="5岁男娃 一直夜咳  断断续续1个月 - 线报酷"/></div></div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">l</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>lkjinhu</a></span><span class="c-time">2026-11-26 09:42</span><span class="cmt-fl">17L</span></div><div class="c-neirong">多跑几个医院看看</div></div></div></div><div class="ul"><div class="li transition"><span class="louzhutoux xb-cmtav lzav">M</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>MayJayDay</a><span class="level-mark level-louzu">楼主</span></span><span class="c-time">2026-11-26 09:43</span><span class="cmt-fl">18L</span></div><div class="c-neirong"><div class="c-yingyong"><span class="huifuming"><a>a137157006</a></span><span class="huifushijian">2026-11-26 09:08</span><div class="huifuneirong">能不能问ai这里是撸毛的地方，再不济上医院。。</div></div><br/>毛荒了，只能故事会了<br/></div></div></div></div><div class="ul"><div class="li transition"><span class="louzhutoux xb-cmtav lzav">M</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>MayJayDay</a><span class="level-mark level-louzu">楼主</span></span><span class="c-time">2026-11-26 09:46</span><span class="cmt-fl">19L</span></div><div class="c-neirong"><div class="c-yingyong"><span class="huifuming"><a>4872080</a></span><span class="huifushijian">2026-11-26 09:41</span><div class="huifuneirong">买这种也可以 我用的就是这种 每天晚上洗鼻子  多洗几次 没有鼻涕就洗好了</div></div><br/>感谢 我们一直也用吸鼻器洗，那种纯重力的 ，也能洗出来很多，不行用这个试试</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">1</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>102gy</a></span><span class="c-time">2026-11-26 10:06</span><span class="cmt-fl">20L</span></div><div class="c-neirong"><div class="c-yingyong"><span class="huifuming"><a>MayJayDay</a><span class="level-mark level-louzu">楼主</span></span><span class="huifushijian">2026-11-26 09:43</span><div class="huifuneirong">毛荒了，只能故事会了</div></div><br/>没事，在这里问问跟ai互补，因为很多人也是带娃过来的，都或多或少有些经验。宁可毛少撸点，也想娃能少受点罪。<br/><br/>上面推荐用进口药的原因是，我娃自己在省妇幼开的药都是进口的，一个亲戚小孩也是过敏，全身痒，起疹子，在诊所开了国产的氯雷他定，吃了几天没见好，我给他2片开瑞坦，吃了2天就好了</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">m</span><div class="clbody"><div class="cinfo clearfix"><span class="author">mn772075340</span><span class="c-time">2026-11-26 10:21</span><span class="cmt-fl">21L</span></div><div class="c-neirong">吃药还得是遵照医嘱，我一直有过敏性鼻炎，过了过敏季节还不缓和，还有点喘不上来，去医院检查说是鼻窦炎了，让吃够两个星期的药再去复查，我吃上两天就缓解了，真的是太高兴了，期间有时也会忘记吃药，后来有天出远门忘记吃了，我就没吃，也没吃够2个星期，好了没有1个星期，这几天又有要犯的节奏.悔不当初啊</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">l</span><div class="clbody"><div class="cinfo clearfix"><span class="author">lijj580</span><span class="c-time">2026-11-26 10:31</span><span class="cmt-fl">22L</span></div><div class="c-neirong">顺便去查个过敏源看看</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">1</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>15920987065</a></span><span class="c-time">2026-11-26 11:06</span><span class="cmt-fl">23L</span></div><div class="c-neirong">去验一下看看是不是过敏</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">w</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>wchen</a></span><span class="c-time">2026-11-26 12:12</span><span class="cmt-fl">24L</span></div><div class="c-neirong">坚持生理盐水洗鼻，忌口，吃那么多药其实没啥用</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">沐</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>沐辰宝</a></span><span class="c-time">2026-11-26 12:12</span><span class="cmt-fl">25L</span></div><div class="c-neirong">有太阳时候，多出去走走，尽量别吹大风，好的很快，出汗后一定要擦干，不然加重。回去泡个热水澡，</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">g</span><div class="clbody"><div class="cinfo clearfix"><span class="author">guangnai</span><span class="c-time">2026-11-26 12:20</span><span class="cmt-fl">26L</span></div><div class="c-neirong">考虑一下过敏性咳嗽</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">c</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>ckc66698</a></span><span class="c-time">2026-11-26 12:20</span><span class="cmt-fl">27L</span></div><div class="c-neirong">我小孩也是咳嗽不停，吞口水，鼻涕倒流。咳嗽一个星期多不好。我昨天给他睡260克的睡袋，就是衣服裤子那种没咳嗽。只是凌晨3-4点老婆给他加被子出汗咳嗽。<br/>天天咳嗽穿睡袋<br/>睡觉不咳嗽神奇<br/>你可以试一试穿睡袋</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">心</span><div class="clbody"><div class="cinfo clearfix"><span class="author">心绪漫笔</span><span class="c-time">2026-11-26 13:10</span><span class="cmt-fl">28L</span></div><div class="c-neirong">1.喷鼻子的激素药是医生给你开的全部药里面最安全的，糖皮质激素本身就安全而且只是鼻炎局部用药，不要看是激素就觉得不行，糖皮质激素喷鼻是要用一周才有效果，不是立马见效的，另外一个只能喷七天的是尽量别用，那个是血管收缩剂，虽然用了之后鼻子马上就不塞了，用久了会变成药物性鼻炎，很难戒药<br/>2.西替利嗪是二代抗胺药也是比较安全的，就是吃了容易困，一般是睡觉前吃问题不大，抗组胺是吃了也很快起效<br/>鼻炎和鼻后滴漏糖皮质激素喷鼻和抗组胺药是主要用药，家中常备，冷热交替鼻炎发作就要及时用药，不能等严重起来再用，鼻炎严重了会刺激腺样体增大，所以要及时控制，洗鼻子，开加湿这些都是辅助。<br/>要记住的是那两个药的作用是缓解鼻炎症状并不是用来治愈鼻炎，抗组胺的药发作时就吃，好了就可以停，糖皮质激素起效慢每次要持续用一周以上，症状好了也可以停药</div></div></div></div><div class="ul"><div class="li transition"><span class="louzhutoux xb-cmtav lzav">M</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>MayJayDay</a><span class="level-mark level-louzu">楼主</span></span><span class="c-time">2026-11-26 15:13</span><span class="cmt-fl">29L</span></div><div class="c-neirong"><div class="c-yingyong"><span class="huifuming">心绪漫笔</span><span class="huifushijian">2026-11-26 13:10</span><div class="huifuneirong">1.喷鼻子的激素药是医生给你开的全部药里面最安全的，糖皮质激素本身就安全而且只是鼻炎局部用药，不要看是 ...</div></div><br/>感谢专业吧友<br/></div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">彩</span><div class="clbody"><div class="cinfo clearfix"><span class="author"><a>彩云追月77</a></span><span class="c-time">2026-11-26 15:40</span><span class="cmt-fl">30L</span></div><div class="c-neirong">腺样体做手术也没那么邪乎，前年做的，也没啥变化</div></div></div></div><div class="ul"><div class="li transition"><span class="pingluntoux xb-cmtav">t</span><div class="clbody"><div class="cinfo clearfix"><span class="author">tom998068</span><span class="c-time">2026-11-26 16:28</span><span class="cmt-fl">31L</span></div><div class="c-neirong">内舒拿停太快了，起码一个月</div></div></div></div></div></div> </div>
+</div>
+
+
+</main>
+
+</div>
+
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-layer.min.js?v=20261016233500"></script><script defer="" src="/zb_users/plugin/mochu_us/style/mochu_us.js?r=20261121162014&amp;v=20261105012046"></script>
+<link href="/zb_users/plugin/mochu_us/style/mochu_us.css?r=20261121162014" rel="stylesheet"/>
+<script defer="" src="/zb_users/plugin/xc_report/front.js?r=20261122173226" type="text/javascript"></script>
+<div class="mask-hidden transition" id="mask-hidden"></div>
+<script>window.xb_rows_frag=1;</script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/vendor/xb-libs.min.js?v=20261016233500"></script>
+<script>
+window.xbLazyFancybox = {loaded:false,queue:[],cssDone:false,load:function () {if (this.loaded) {return}this.loaded = true;if (!this.cssDone) {this.cssDone = true;var c = document.createElement('link');c.rel = 'stylesheet';c.href = '/zb_users/theme/xianbao_theme/style/fancybox.css?v=20230724';document.head.appendChild(c);}var s = document.createElement('script');s.src = '/zb_users/theme/xianbao_theme/script/vendor/fancybox.js?v=20261015200000';s.onload = function () {window.Fancybox && Fancybox.bind("[data-fancybox]");var q = window.xbLazyFancybox.queue;window.xbLazyFancybox.queue = [];for (var i = 0; i < q.length; i++) {try {q[i]()} catch (e) {}}};document.head.appendChild(s);},onReady:function (f) {if (window.Fancybox) {f();return}window.xbLazyFancybox.queue.push(f);window.xbLazyFancybox.load();},ready:function (f) {/* 纯排队：挂回调，不触发库加载（20261016） */if (window.Fancybox) {f();return}window.xbLazyFancybox.queue.push(f);}};
+document.addEventListener('click',function (e) {var t = e.target;while (t && t !== document) {if (t.matches && t.matches('[data-fancybox]')) {if (!window.Fancybox) {e.preventDefault();e.stopPropagation();var el = t.closest ? t.closest('[data-fancybox]') : t;var sel = el.getAttribute('data-fancybox');window.xbLazyFancybox.onReady(function () {try {/* v5 fromSelector 需双参 (元素, 选择器字符串)；img[相对页内语义] 直接 show(imgURL) 最稳 */if (el.tagName === 'IMG') {Fancybox.show([{ src: el.currentSrc || el.src, type: 'image' }])} else {Fancybox.fromSelector(el, '[data-fancybox="' + sel + '"]') || Fancybox.show([{ src: el.getAttribute('href'), type: 'image' }])}} catch (err) {el && el.getAttribute && (location.href = el.getAttribute('href'))}})}break}t = t.parentNode}},true);
+
+document.addEventListener('mouseover',function (e) {var t = e.target;while (t && t !== document) {if (t.matches && t.matches('a[data-fancybox],img[data-fancybox]')) {window.xbLazyFancybox.load();return}t = t.parentNode}}, {passive:true});
+document.addEventListener('touchstart',function () {window.xbLazyFancybox.load()}, {passive:true,once:true});
+</script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-app.min.js?v=20261123010308"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/app/xb-extra.min.js?v=20261123100849"></script>
+<script defer="" src="/zb_users/theme/xianbao_theme/script/pricewatch.js?v=20261124a"></script>
+
+<div class="ck-link-pop"></div><!--xianbao-darkmode-override--><script>(function(){try{var m=document.cookie.match(/(?:^|; )night=([^;]*)/);if(m&&decodeURIComponent(m[1])==="1"&&document.body)document.body.classList.add("night");}catch(e){}})();function switchNightMode(){var m=document.cookie.match(/(?:^|; )night=([^;]*)/),night=(m&&decodeURIComponent(m[1])==="1")?"1":"0",next=night==="1"?"0":"1",d=new Date();d.setTime(d.getTime()+6048e5);document.cookie="night="+next+";expires="+d.toUTCString()+";path=/";document.documentElement.classList.toggle("night",next==="1");if(document.body)document.body.classList.toggle("night",next==="1");}</script><script id="xianbao-comment-tools">(function(){var xianbaoLouzhuState={};window.xianbaoPinglunshunxu=function(){document.querySelectorAll('.comment-list').forEach(function(cl){var uls=Array.from(cl.children).filter(function(c){return c.classList&&c.classList.contains('ul');});if(uls.length>1){uls.reverse().forEach(function(ul){cl.appendChild(ul);});}});};window.xianbaoShowlouzhu=function(){var author='',els=document.querySelectorAll('.head-info .author a,.art-head .author a');for(var i=0;i<els.length;i++){var t=els[i].textContent.trim();if(t){author=t;break;}}if(!author){return;}var showOnly=!xianbaoLouzhuState[author];xianbaoLouzhuState[author]=showOnly;document.querySelectorAll('.comment-list').forEach(function(cl){cl.querySelectorAll('.ul').forEach(function(ul){var aEl=ul.querySelector('.author'),aText=aEl?aEl.textContent.trim():'';if(showOnly){ul.style.display=(aText===author||aText===author+'楼主')?'':'none';}else{ul.style.display='';}});});document.querySelectorAll('.showlouzhu').forEach(function(el){el.textContent=showOnly?'查看全部':'只看楼主';});};})();</script><style id="xianbao-fancybox-noshift">html{overflow-y:scroll !important;overflow-x:hidden !important;}body{margin-right:0 !important;}</style><script id="xianbao-fancybox-init">(function(){function xbInitFb(){if(typeof window.Fancybox==='undefined')return false;if(window.__xbFbBound)return true;window.__xbFbBound=true;document.addEventListener('click',function(e){var el=e.target.closest?e.target.closest('img[data-fancybox]'):null;if(!el)return;e.preventDefault();var g=el.getAttribute('data-fancybox');var nodes=Array.prototype.slice.call(document.querySelectorAll("img[data-fancybox='"+g+"']"));var items=nodes.map(function(im){var s=im.getAttribute('src')||im.getAttribute('data-src')||'';if(s.charAt(0)==='/')s=location.origin+s;return {src:s,type:'image'};});var idx=nodes.indexOf(el);if(idx>0){items=items.slice(idx).concat(items.slice(0,idx));}Fancybox.show(items,{hideScrollbar:false});});return true;}if(!xbInitFb()){var n=0,iv=setInterval(function(){if(xbInitFb()||++n>50){clearInterval(iv);}},100);}})();</script><script id="xianbao-img-fallback">(function(){
+var PH='data:image/svg+xml;charset=utf-8,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='120' height='80'><rect width='120' height='80' fill='#eceef3'/><g fill='#b6bcc9'><rect x='52' y='24' width='46' height='30' rx='3'/><circle cx='42' cy='36' r='5'/><path d='M52 54l12-12 10 10 8-8 16 16z'/></g><text x='60' y='70' font-size='9' fill='#8a90a0' text-anchor='middle' font-family='sans-serif'>图片不可用</text></svg>");
+document.addEventListener('error',function(e){
+var t=e.target;if(!t||t.tagName!=='IMG')return;
+if(t.getAttribute('data-img-fallback'))return;
+t.setAttribute('data-img-fallback','1');
+t.style.maxWidth='100%';t.style.height='auto';t.src=PH;},true);})();</script><script id="xianbao-nav-tools">(function(){function t(){var a=document.getElementById('search-area');if(!a)return;var h=a.classList.contains('hidden');var d=a.style.display==='none'||window.getComputedStyle(a).display==='none';if(h||d){a.classList.remove('hidden');a.style.display='block';}else{a.classList.add('hidden');a.style.display='none';}}function m(){var n=document.querySelector('.responsive-nav');var i=document.querySelector('.m-nav-btn i.iconfont');if(!n)return;var o=n.style.display==='block';n.style.display=o?'none':'block';if(i)i.classList.toggle('active',!o);}var b=document.querySelector('.m-nav-btn');if(b)b.addEventListener('click',m);var s=document.getElementById('search-button');if(s)s.addEventListener('click',t);})();</script><script id="xianbao-hs-tools">(function(){document.querySelectorAll('form').forEach(function(f){  var q=f.querySelector('input[name=q]');  if(!q){return;}  f.addEventListener('submit',function(e){    if(!q.value.trim()){e.preventDefault();q.focus();}  });  var btns=f.querySelectorAll('button, [role=button]');  btns.forEach(function(b){    var t=(b.innerText||'').trim();    if(t==='清空'||t==='清除'){      b.addEventListener('click',function(){q.value='';q.focus();});    }  });});})();</script><script id="xianbao-nav2-tools">(function(){if(document.getElementById('nav2-list')){return;}var b=document.querySelector('.nav2-toggle');var p=document.getElementById('nav2-panel');if(!b||!p){return;}b.addEventListener('click',function(e){  e.preventDefault();  var open=p.classList.toggle('open');  b.setAttribute('aria-expanded',open?'true':'false');  b.classList.toggle('expanded',open);});})();</script></body></html>
