@@ -2551,8 +2551,8 @@ def _capture_theme_menu(soup, out_dir: Path) -> None:
         if dst.exists() and dst.read_text(encoding="utf-8", errors="replace") == html:
             return
         dst.write_text(html, encoding="utf-8")
-    except OSError:
-        pass
+    except OSError as e:
+        print(f"::warning:: 主题菜单缓存写入失败 {dst}: {e}", file=sys.stderr)
 
 
 def _generic_search_forms(soup) -> None:
