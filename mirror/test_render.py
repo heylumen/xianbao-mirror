@@ -1357,6 +1357,19 @@ def test_capture_theme_menu_syncs_new_theme_and_drops_line_option(tmp_path):
     assert "abcdef" in out.lower(), "新主题应按 tokens 配色生成双色圆点"
 
 
+def test_capture_theme_menu_warns_when_cache_write_fails(tmp_path, monkeypatch, capsys):
+    html = '''<html><body><div id="xbThemeMenu"><button class="xb-tm-opt" data-t="day">Day</button></div></body></html>'''
+    soup = BeautifulSoup(html, "html.parser")
+
+    def fail_write(self, *args, **kwargs):
+        raise OSError("read-only")
+
+    monkeypatch.setattr(Path, "write_text", fail_write)
+    render._capture_theme_menu(soup, tmp_path)
+
+    assert "主题菜单缓存写入失败" in capsys.readouterr().err
+
+
 def test_discover_article_links_warns_on_shape_change(capsys):
     """防改版：列表页出现大量文章式链接但无一匹配时，输出警告（CI 可见）。"""
     html = "<html><body>" + "".join(
